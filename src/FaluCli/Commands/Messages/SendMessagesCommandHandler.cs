@@ -115,7 +115,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
         var messages = new List<MessageBatchCreateRequestMessage>(groups.Count);
         foreach (var group in groups)
         {
-            var message = new MessageBatchCreateRequestMessage { To = group, };
+            var message = new MessageBatchCreateRequestMessage { Tos = group, };
             setupFunc(message);
             messages.Add(message);
         }
