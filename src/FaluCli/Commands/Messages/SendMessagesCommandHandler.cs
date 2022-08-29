@@ -128,9 +128,8 @@ internal class SendMessagesCommandHandler : ICommandHandler
         rr.EnsureSuccess();
 
         var response = rr.Resource!;
-        var scheduled = response.Created;
         var ids = response.Messages!;
-        logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, scheduled);
+        logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
         logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
     }
 
