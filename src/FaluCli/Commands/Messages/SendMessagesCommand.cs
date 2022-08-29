@@ -36,6 +36,12 @@ public abstract class AsbtractSendMessagesCommand : Command
                        description: "The stream to use, either the name or unique identifier. Example: mstr_610010be9228355f14ce6e08 or transactional",
                        defaultValue: "transactional",
                        configure: o => o.IsRequired = true);
+
+        this.AddOption<DateTimeOffset?>(new[] { "--schedule-time", "--time", },
+                                        description: "The time at which the message(s) should be in the future.");
+
+        this.AddOption<TimeSpan?>(new[] { "--schedule-delay", "--delay", },
+                                  description: "The delay to be applied by the server before sending the message(s).");
     }
 
     private static string? ValidateNumbers(string optionName, string[] numbers)
