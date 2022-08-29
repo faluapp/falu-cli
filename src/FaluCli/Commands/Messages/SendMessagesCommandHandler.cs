@@ -1,4 +1,5 @@
 ﻿using Falu.Client;
+using Falu.MessageBatches;
 using Falu.Messages;
 
 namespace Falu.Commands.Messages;
@@ -57,8 +58,8 @@ internal class SendMessagesCommandHandler : ICommandHandler
     {
         var body = context.ParseResult.ValueForOption<string>("--body");
 
-        var requests = CreateRequests(tos, stream, r => r.Body = body);
-        await SendMessagesAsync(requests, cancellationToken);
+        var messages = CreateMessages(tos, r => r.Body = body);
+        await SendMessagesAsync(messages, stream, cancellationToken);
         return 0;
     }
 
@@ -82,38 +83,42 @@ internal class SendMessagesCommandHandler : ICommandHandler
             return -1;
         }
 
-        var requests = CreateRequests(tos, stream, r => r.Template = new MessageSourceTemplate { Id = id, Alias = alias, Model = model, });
-        await SendMessagesAsync(requests, cancellationToken);
+        var messages = CreateMessages(tos, r => r.Template = new MessageSourceTemplate { Id = id, Alias = alias, Model = model, });
+        await SendMessagesAsync(messages, stream, cancellationToken);
         return 0;
     }
 
-    private async Task SendMessagesAsync(IList<MessageCreateRequest> requests, CancellationToken cancellationToken)
+    private async Task SendMessagesAsync(List<MessageBatchCreateRequestMessage> messages, string stream, CancellationToken cancellationToken)
     {
-        var rr = await client.Messages.SendBatchAsync(requests, cancellationToken: cancellationToken);
+        var request = new MessageBatchCreateRequest
+        {
+            Messages = messages,
+            Stream = stream,
+        };
+        var rr = await client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
         rr.EnsureSuccess();
 
         var response = rr.Resource!;
         var scheduled = response.Created;
-        var ids = response.Ids!;
+        var ids = response.Messages!;
         logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, scheduled);
         logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
     }
 
-    private static IList<MessageCreateRequest> CreateRequests(string[] tos, string stream, Action<MessageCreateRequest> setupFunc)
+    private static List<MessageBatchCreateRequestMessage> CreateMessages(string[] tos, Action<MessageBatchCreateRequestMessage> setupFunc)
     {
         ArgumentNullException.ThrowIfNull(tos);
-        ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(setupFunc);
 
         // a maximum of 500 tos per batch
         var groups = tos.Distinct(StringComparer.OrdinalIgnoreCase).Chunk(500).ToList();
-        var requests = new List<MessageCreateRequest>(groups.Count);
+        var messages = new List<MessageBatchCreateRequestMessage>(groups.Count);
         foreach (var group in groups)
         {
-            var request = new MessageCreateRequest { To = group, Stream = stream, };
-            setupFunc(request);
-            requests.Add(request);
+            var message = new MessageBatchCreateRequestMessage { To = group, };
+            setupFunc(message);
+            messages.Add(message);
         }
-        return requests;
+        return messages;
     }
 }
