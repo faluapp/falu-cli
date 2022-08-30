@@ -46,24 +46,49 @@ internal class SendMessagesCommandHandler : ICommandHandler
         }
 
         var stream = context.ParseResult.ValueForOption<string>("--stream")!;
+
+        // ensure both time and delay are not specified
+        var time = context.ParseResult.ValueForOption<DateTimeOffset?>("--schedule-time");
+        var delay = context.ParseResult.ValueForOption<TimeSpan?>("--schedule-delay");
+        if (time is not null && delay is not null)
+        {
+            logger.LogError("Schedule time and delay cannot be specified together.");
+            return Task.FromResult(-1);
+        }
+
+        // make the schedule
+        var schedule = time is not null
+                     ? (MessageCreateRequestSchedule)time
+                     : delay is not null
+                        ? (MessageCreateRequestSchedule)delay
+                        : null;
+
         var cancellationToken = context.GetCancellationToken();
 
         var command = context.ParseResult.CommandResult.Command;
-        if (command is SendRawMessagesCommand) return HandleRawAsync(context, tos, stream, cancellationToken);
-        else if (command is SendTemplatedMessagesCommand) return HandleTemplatedAsync(context, tos, stream, cancellationToken);
+        if (command is SendRawMessagesCommand) return HandleRawAsync(context, tos, stream, schedule, cancellationToken);
+        else if (command is SendTemplatedMessagesCommand) return HandleTemplatedAsync(context, tos, stream, schedule, cancellationToken);
         throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
     }
 
-    private async Task<int> HandleRawAsync(InvocationContext context, string[] tos, string stream, CancellationToken cancellationToken)
+    private async Task<int> HandleRawAsync(InvocationContext context,
+                                           string[] tos,
+                                           string stream,
+                                           MessageCreateRequestSchedule? schedule,
+                                           CancellationToken cancellationToken)
     {
         var body = context.ParseResult.ValueForOption<string>("--body");
 
         var messages = CreateMessages(tos, r => r.Body = body);
-        await SendMessagesAsync(messages, stream, cancellationToken);
+        await SendMessagesAsync(messages, stream, schedule, cancellationToken);
         return 0;
     }
 
-    private async Task<int> HandleTemplatedAsync(InvocationContext context, string[] tos, string stream, CancellationToken cancellationToken)
+    private async Task<int> HandleTemplatedAsync(InvocationContext context,
+                                                 string[] tos,
+                                                 string stream,
+                                                 MessageCreateRequestSchedule? schedule,
+                                                 CancellationToken cancellationToken)
     {
         var id = context.ParseResult.ValueForOption<string>("--id");
         var alias = context.ParseResult.ValueForOption<string>("--alias");
@@ -84,24 +109,27 @@ internal class SendMessagesCommandHandler : ICommandHandler
         }
 
         var messages = CreateMessages(tos, r => r.Template = new MessageSourceTemplate { Id = id, Alias = alias, Model = model, });
-        await SendMessagesAsync(messages, stream, cancellationToken);
+        await SendMessagesAsync(messages, stream, schedule, cancellationToken);
         return 0;
     }
 
-    private async Task SendMessagesAsync(List<MessageBatchCreateRequestMessage> messages, string stream, CancellationToken cancellationToken)
+    private async Task SendMessagesAsync(List<MessageBatchCreateRequestMessage> messages,
+                                         string stream,
+                                         MessageCreateRequestSchedule? schedule,
+                                         CancellationToken cancellationToken)
     {
         var request = new MessageBatchCreateRequest
         {
             Messages = messages,
             Stream = stream,
+            Schedule = schedule,
         };
         var rr = await client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
         rr.EnsureSuccess();
 
         var response = rr.Resource!;
-        var scheduled = response.Created;
         var ids = response.Messages!;
-        logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, scheduled);
+        logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
         logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
     }
 
