@@ -133,9 +133,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
             rr.EnsureSuccess();
 
             var response = rr.Resource!;
-            // TODO: update this to use the schedule
-            logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:r}.", response.Ids![0], /*response.Schedule?.Time ??*/ response.Created);
-
+            logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:r}.", response.Id, response.Schedule?.Time ?? response.Created);
         }
         else
         {
@@ -150,7 +148,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
 
             var response = rr.Resource!;
             var ids = response.Messages!;
-            logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
+            logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
             logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
         }
     }
