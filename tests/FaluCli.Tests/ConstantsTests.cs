@@ -82,4 +82,15 @@ public class ConstantsTests
     {
         Assert.Matches(Constants.E164PhoneNumberFormat, input);
     }
+
+    [Theory]
+    [InlineData("P2W")]
+    [InlineData("PT21M")]
+    [InlineData("P3Y6M4DT12H30M5S")]
+    [InlineData("P3,2Y6.5M4,7DT")]
+    [InlineData("PT57H30.5M3,77262S")]
+    public void Iso8061DurationFormat_IsCorrect(string input)
+    {
+        Assert.Matches(Constants.Iso8061DurationFormat, input);
+    }
 }

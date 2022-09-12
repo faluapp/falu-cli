@@ -40,8 +40,9 @@ public abstract class AsbtractSendMessagesCommand : Command
         this.AddOption<DateTimeOffset?>(new[] { "--schedule-time", "--time", },
                                         description: "The time at which the message(s) should be in the future.");
 
-        this.AddOption<TimeSpan?>(new[] { "--schedule-delay", "--delay", },
-                                  description: "The delay to be applied by the server before sending the message(s).");
+        this.AddOption(new[] { "--schedule-delay", "--delay", },
+                       description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s).",
+                       format: Constants.Iso8061DurationFormat);
     }
 
     private static string? ValidateNumbers(string optionName, string[] numbers)
