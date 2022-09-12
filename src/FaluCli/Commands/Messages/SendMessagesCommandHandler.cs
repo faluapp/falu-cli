@@ -49,7 +49,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
 
         // ensure both time and delay are not specified
         var time = context.ParseResult.ValueForOption<DateTimeOffset?>("--schedule-time");
-        var delay = context.ParseResult.ValueForOption<TimeSpan?>("--schedule-delay");
+        var delay = context.ParseResult.ValueForOption<string?>("--schedule-delay");
         if (time is not null && delay is not null)
         {
             logger.LogError("Schedule time and delay cannot be specified together.");
@@ -118,19 +118,41 @@ internal class SendMessagesCommandHandler : ICommandHandler
                                          MessageCreateRequestSchedule? schedule,
                                          CancellationToken cancellationToken)
     {
-        var request = new MessageBatchCreateRequest
+        if (messages.Sum(m => m.Tos!.Count) == 1)
         {
-            Messages = messages,
-            Stream = stream,
-            Schedule = schedule,
-        };
-        var rr = await client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
-        rr.EnsureSuccess();
+            var target = messages[0];
+            var request = new MessageCreateRequest
+            {
+                To = target.Tos![0],
+                Body = target.Body,
+                Template = target.Template,
+                Stream = stream,
+                Schedule = schedule,
+            };
+            var rr = await client.Messages.CreateAsync(request, cancellationToken: cancellationToken);
+            rr.EnsureSuccess();
 
-        var response = rr.Resource!;
-        var ids = response.Messages!;
-        logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
-        logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
+            var response = rr.Resource!;
+            // TODO: update this to use the schedule
+            logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:r}.", response.Ids![0], /*response.Schedule?.Time ??*/ response.Created);
+
+        }
+        else
+        {
+            var request = new MessageBatchCreateRequest
+            {
+                Messages = messages,
+                Stream = stream,
+                Schedule = schedule,
+            };
+            var rr = await client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
+            rr.EnsureSuccess();
+
+            var response = rr.Resource!;
+            var ids = response.Messages!;
+            logger.LogInformation("Scheduled {Count} for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
+            logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
+        }
     }
 
     private static List<MessageBatchCreateRequestMessage> CreateMessages(string[] tos, Action<MessageBatchCreateRequestMessage> setupFunc)
