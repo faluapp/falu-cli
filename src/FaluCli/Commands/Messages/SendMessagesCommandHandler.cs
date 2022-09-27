@@ -108,7 +108,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
             return -1;
         }
 
-        var messages = CreateMessages(tos, r => r.Template = new MessageSourceTemplate { Id = id, Alias = alias, Model = model, });
+        var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, });
         await SendMessagesAsync(messages, stream, schedule, cancellationToken);
         return 0;
     }
