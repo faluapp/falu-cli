@@ -20,7 +20,7 @@ internal static class ISupportsUploadingMpesaStatementExtensions
         options.Live = true;
 
         // prepare the request and execute
-        var uri = $"/v1/money/mpesa/statements/upload/{client.ObjectKind}";
+        var uri = $"/v1/money/statements/mpesa/upload/{client.ObjectKind}";
         var content = new MultipartFormDataContent
         {
             { new StreamContent(fileContent), "file", fileName }
