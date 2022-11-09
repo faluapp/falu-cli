@@ -4,7 +4,6 @@ namespace Falu.Client.Money;
 
 internal static class ISupportsUploadingMpesaStatementExtensions
 {
-
     public static Task<ResourceResponse<List<ExtractedMpesaStatementRecord>>> UploadMpesaAsync(this ISupportsUploadingMpesaStatement client,
                                                                                                string fileName,
                                                                                                Stream fileContent,
@@ -20,10 +19,11 @@ internal static class ISupportsUploadingMpesaStatementExtensions
         options.Live = true;
 
         // prepare the request and execute
-        var uri = $"/v1/money/statements/mpesa/upload/{client.ObjectKind}";
+        var uri = $"/v1/money/statements/upload/{client.ObjectKind}";
         var content = new MultipartFormDataContent
         {
-            { new StreamContent(fileContent), "file", fileName }
+            { new StringContent("mpesa"), "type" },
+            { new StreamContent(fileContent), "file", fileName },
         };
         return client.RequestAsync<List<ExtractedMpesaStatementRecord>>(uri, HttpMethod.Post, content, options, cancellationToken);
     }
