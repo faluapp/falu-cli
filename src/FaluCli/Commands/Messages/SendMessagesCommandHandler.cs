@@ -47,6 +47,19 @@ internal class SendMessagesCommandHandler : ICommandHandler
 
         var stream = context.ParseResult.ValueForOption<string>("--stream")!;
 
+        // ensure both media URL and medial file Id are not specified
+        var mediaUrl = context.ParseResult.ValueForOption<Uri?>("--media-url");
+        var mediaFileId = context.ParseResult.ValueForOption<string?>("--media-file-id");
+        if (mediaUrl is not null && mediaFileId is not null)
+        {
+            logger.LogError("Media URL and File ID cannot be specified together.");
+            return Task.FromResult(-1);
+        }
+
+        var media = mediaUrl is not null || mediaFileId is not null
+                  ? new[] { new MessageCreateRequestMedia { Url = mediaUrl?.ToString(), File = mediaFileId, }, }
+                  : null;
+
         // ensure both time and delay are not specified
         var time = context.ParseResult.ValueForOption<DateTimeOffset?>("--schedule-time");
         var delay = context.ParseResult.ValueForOption<string?>("--schedule-delay");
@@ -66,27 +79,29 @@ internal class SendMessagesCommandHandler : ICommandHandler
         var cancellationToken = context.GetCancellationToken();
 
         var command = context.ParseResult.CommandResult.Command;
-        if (command is SendRawMessagesCommand) return HandleRawAsync(context, tos, stream, schedule, cancellationToken);
-        else if (command is SendTemplatedMessagesCommand) return HandleTemplatedAsync(context, tos, stream, schedule, cancellationToken);
+        if (command is SendRawMessagesCommand) return HandleRawAsync(context, tos, stream, media, schedule, cancellationToken);
+        else if (command is SendTemplatedMessagesCommand) return HandleTemplatedAsync(context, tos, stream, media, schedule, cancellationToken);
         throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
     }
 
     private async Task<int> HandleRawAsync(InvocationContext context,
                                            string[] tos,
                                            string stream,
+                                           IList<MessageCreateRequestMedia>? media,
                                            MessageCreateRequestSchedule? schedule,
                                            CancellationToken cancellationToken)
     {
         var body = context.ParseResult.ValueForOption<string>("--body");
 
         var messages = CreateMessages(tos, r => r.Body = body);
-        await SendMessagesAsync(messages, stream, schedule, cancellationToken);
+        await SendMessagesAsync(messages, stream, media, schedule, cancellationToken);
         return 0;
     }
 
     private async Task<int> HandleTemplatedAsync(InvocationContext context,
                                                  string[] tos,
                                                  string stream,
+                                                 IList<MessageCreateRequestMedia>? media,
                                                  MessageCreateRequestSchedule? schedule,
                                                  CancellationToken cancellationToken)
     {
@@ -109,12 +124,13 @@ internal class SendMessagesCommandHandler : ICommandHandler
         }
 
         var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, });
-        await SendMessagesAsync(messages, stream, schedule, cancellationToken);
+        await SendMessagesAsync(messages, stream, media, schedule, cancellationToken);
         return 0;
     }
 
     private async Task SendMessagesAsync(List<MessageBatchCreateRequestMessage> messages,
                                          string stream,
+                                         IList<MessageCreateRequestMedia>? media,
                                          MessageCreateRequestSchedule? schedule,
                                          CancellationToken cancellationToken)
     {
@@ -127,6 +143,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
                 Body = target.Body,
                 Template = target.Template,
                 Stream = stream,
+                Media = media,
                 Schedule = schedule,
             };
             var rr = await client.Messages.CreateAsync(request, cancellationToken: cancellationToken);
