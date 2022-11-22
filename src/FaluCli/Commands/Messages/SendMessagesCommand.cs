@@ -37,6 +37,13 @@ public abstract class AsbtractSendMessagesCommand : Command
                        defaultValue: "transactional",
                        configure: o => o.IsRequired = true);
 
+        this.AddOption<Uri?>(new[] { "--media-url", },
+                             description: "Publicly accessible URL of the media to include in the message(s). Example: https://c1.staticflickr.com/3/2899/14341091933_1e92e62d12_b.jpg");
+
+        this.AddOption(new[] { "--media-file-id", },
+                       description: "The unique identifier of the pre-uploaded file containing the media to include in the message(s). Example: file_602a8dd0a54847479a874de4",
+                       format: Constants.Iso8061DurationFormat);
+
         this.AddOption<DateTimeOffset?>(new[] { "--schedule-time", "--time", },
                                         description: "The time at which the message(s) should be in the future.");
 
