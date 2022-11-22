@@ -45,10 +45,10 @@ public abstract class AsbtractSendMessagesCommand : Command
                        format: Constants.Iso8061DurationFormat);
 
         this.AddOption<DateTimeOffset?>(new[] { "--schedule-time", "--time", },
-                                        description: "The time at which the message(s) should be in the future.");
+                                        description: $"The time at which the message(s) should be in the future. Example: {DateTime.Today.AddDays(1):O}");
 
         this.AddOption(new[] { "--schedule-delay", "--delay", },
-                       description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s).",
+                       description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s). Example: PT10M for 10 minutes",
                        format: Constants.Iso8061DurationFormat);
     }
 
