@@ -20,7 +20,7 @@ internal class Constants
     };
     public static readonly string Scopes = string.Join(" ", ScopesList);
 
-    public static readonly ByteSizeLib.ByteSize MaxMpesaStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(128);
+    public static readonly ByteSizeLib.ByteSize MaxMpesaStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(256);
     public static readonly string MaxMpesaStatementFileSizeString = MaxMpesaStatementFileSize.ToBinaryString();
 
     public static readonly Regex WorkspaceIdFormat = new(@"^wksp_[a-zA-Z0-9]{20,30}$");
