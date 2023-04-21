@@ -1,7 +1,7 @@
 # Falu CLI
 
 [![Release](https://img.shields.io/github/release/tinglesoftware/falu-cli.svg?style=flat-square)](https://github.com/tinglesoftware/falu-cli/releases/latest)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tinglesoftware/falu-cli/build-release.yml?branch=main&style=flat-square)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tinglesoftware/falu-cli/build.yml?branch=main&style=flat-square)
 
 The official CLI tool for [Falu][falu] to help you build, test and managed your Falu integration right from the terminal.
 

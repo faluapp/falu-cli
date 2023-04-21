@@ -1,4 +1,4 @@
-name: Build and Publish
+name: Build
 
 on:
   push:
@@ -11,12 +11,24 @@ on:
     - LICENSE
     - CHANGELOG.md
     - docs/**
+  pull_request:
+    branches:
+    - main
+    paths-ignore:
+    - README.md
+    - LICENSE
+    - CHANGELOG.md
+    - docs/**
   workflow_dispatch:
     inputs:
       reason:
         description: 'Reason for running the action'
         required: false
         default: 'Pre-Release'
+
+env:
+  buildConfiguration: 'Release'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
 jobs:
   Build:
@@ -32,10 +44,6 @@ jobs:
           os: ubuntu-latest #macos-latest
 
     runs-on: ${{ matrix.config.os }}
-    env:
-      buildConfiguration: 'Release'
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-      RELEASING_SDK: false # ensure the SDK is not built for release
 
     steps:
     - name: Checkout
@@ -62,6 +70,14 @@ jobs:
 
     - name: Install dependencies
       run: dotnet restore --runtime ${{ matrix.config.rid }}
+
+    - name: Build
+      if: github.event_name == 'pull_request'
+      run: dotnet build --configuration $buildConfiguration --no-restore
+
+    - name: Test
+      if: github.event_name == 'pull_request'
+      run: dotnet test --configuration $buildConfiguration --no-build --verbosity normal --collect "Code coverage"
 
     - name: Publish
       run: >

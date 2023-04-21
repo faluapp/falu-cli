@@ -8,8 +8,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <RuntimeIdentifiers Condition="'$(RuntimeIdentifiersSingleLine)' != ''">$(RuntimeIdentifiersSingleLine)</RuntimeIdentifiers>
-  </PropertyGroup>
-
 </Project>
