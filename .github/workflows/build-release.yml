@@ -5,12 +5,12 @@ on:
     # branches:
     #   - main
     tags:
-      - '*'
+    - '*'
     paths-ignore:
-      - README.md
-      - LICENSE
-      - CHANGELOG.md
-      - docs/**
+    - README.md
+    - LICENSE
+    - CHANGELOG.md
+    - docs/**
   workflow_dispatch:
     inputs:
       reason:
@@ -24,12 +24,12 @@ jobs:
       fail-fast: true
       matrix:
         config:
-          - rid: linux-x64
-            os: ubuntu-latest
-          - rid: win-x64
-            os: ubuntu-latest #windows-latest
-          - rid: osx-x64
-            os: ubuntu-latest #macos-latest
+        - rid: linux-x64
+          os: ubuntu-latest
+        - rid: win-x64
+          os: ubuntu-latest #windows-latest
+        - rid: osx-x64
+          os: ubuntu-latest #macos-latest
 
     runs-on: ${{ matrix.config.os }}
     env:
