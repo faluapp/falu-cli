@@ -25,7 +25,7 @@ internal class Constants
 
     public static readonly Regex WorkspaceIdFormat = new(@"^wksp_[a-zA-Z0-9]{20,30}$");
     public static readonly Regex IdempotencyKeyFormat = new (@"^[a-zA-Z0-9-_:]{2,128}$");
-    public static readonly Regex ApiKeyFormat = new(@"^^f[s|p]k[l|t]_[0-9a-zA-Z]{20,30}$");
+    public static readonly Regex ApiKeyFormat = new(@"^f[s|p]k[l|t]_[0-9a-zA-Z]{20,30}$");
     public static readonly Regex EventIdFormat = new(@"^evt_[a-zA-Z0-9]{20,30}$");
     public static readonly Regex WebhookEndpointIdFormat = new(@"^we_[a-zA-Z0-9]{20,30}$");
     public static readonly Regex MessageTemplateIdFormat = new(@"^(?:mtpl|tmpl)_[a-zA-Z0-9]{20,30}$");
