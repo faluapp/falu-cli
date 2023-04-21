@@ -107,13 +107,18 @@ internal static class CommandLineBuilderExtensions
 
         return builder.AddMiddleware(async (invocation, next) =>
         {
-            await next(invocation);
+            try
+            {
+                await next(invocation);
+            }
+            catch(FaluException) { }
 
             // At this point, we can check if a newer version was found.
             // This code will not be reached if there's an exception but validation errors do get here.
 
+            var current = UpdateChecker.CurrentVersion;
             var latest = UpdateChecker.LatestVersion;
-            if (latest is not null && latest > UpdateChecker.CurrentVersion)
+            if (latest is not null && latest > current)
             {
                 var console = invocation.Console;
                 var stdout = console.Out;
@@ -125,12 +130,16 @@ internal static class CommandLineBuilderExtensions
                 console.SetTerminalForegroundGreen();
                 stdout.Write($"{latest}");
                 console.ResetTerminalForegroundColor();
-                stdout.WriteLine(") is available.");
+                stdout.WriteLine($") is available. You have version {current.BaseVersion()}");
 
                 stdout.Write("Download at: ");
                 console.SetTerminalForegroundGreen();
                 stdout.WriteLine(UpdateChecker.LatestVersionHtmlUrl!);
                 console.ResetTerminalForegroundColor();
+
+                stdout.WriteLine(); // empty line
+                stdout.WriteLine("Release notes: ");
+                stdout.WriteLine(UpdateChecker.LatestVersionBody!);
             }
         });
     }

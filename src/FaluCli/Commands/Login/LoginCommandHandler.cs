@@ -93,12 +93,12 @@ internal class LoginCommandHandler : ICommandHandler
             {
                 var msg = response.Error switch
                 {
-                    OidcConstants.TokenErrors.AuthorizationPending => "Authorization is pending.",
+                    OidcConstants.TokenErrors.AuthorizationPending => "Authorization is pending",
                     OidcConstants.TokenErrors.SlowDown => "Slowing down check for authorization.",
                     _ => throw new LoginException(response),
                 };
 
-                logger.LogInformation("{Message}. Delaying for {Duration} seconds", msg, auth.Interval);
+                logger.LogInformation("{Message} Delaying for {Duration} seconds", msg, auth.Interval);
                 await Task.Delay(TimeSpan.FromSeconds(auth.Interval), cancellationToken);
             }
             else
