@@ -8,6 +8,7 @@ internal class UpdateChecker : BackgroundService
     private static readonly SemanticVersioning.Version? currentVersion = SemanticVersioning.Version.Parse(VersioningHelper.ProductVersion);
     private static SemanticVersioning.Version? latestVersion;
     private static string? latestVersionHtmlUrl;
+    private static string? latestVersionBody;
 
     private readonly IHostEnvironment environment;
 
@@ -24,11 +25,12 @@ internal class UpdateChecker : BackgroundService
 
             try
             {
-                var client = new GitHubClient(new ProductHeaderValue(Constants.RepositoryName));
                 await locker.WaitAsync(stoppingToken);
+                var client = new GitHubClient(new ProductHeaderValue(Constants.RepositoryName));
                 var release = await client.Repository.Release.GetLatest(Constants.RepositoryOwner, Constants.RepositoryName);
                 Interlocked.Exchange(ref latestVersion, SemanticVersioning.Version.Parse(release.TagName));
                 Interlocked.Exchange(ref latestVersionHtmlUrl, release.HtmlUrl);
+                Interlocked.Exchange(ref latestVersionBody, release.Body);
             }
             finally
             {
@@ -41,4 +43,5 @@ internal class UpdateChecker : BackgroundService
     public static SemanticVersioning.Version? LatestVersion => latestVersion;
     public static SemanticVersioning.Version? CurrentVersion => currentVersion;
     public static string? LatestVersionHtmlUrl => latestVersionHtmlUrl;
+    public static string? LatestVersionBody => latestVersionBody;
 }
