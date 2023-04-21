@@ -7,7 +7,7 @@ public class ConstantsTests
     [Fact]
     public void MaxMpesaStatementFileSizeString_IsCorrect()
     {
-        Assert.Equal("128 KiB", Constants.MaxMpesaStatementFileSizeString);
+        Assert.Equal("256 KiB", Constants.MaxMpesaStatementFileSizeString);
     }
 
     [Theory]
