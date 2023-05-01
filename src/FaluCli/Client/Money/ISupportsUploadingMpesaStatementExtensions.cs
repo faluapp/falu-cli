@@ -4,11 +4,11 @@ namespace Falu.Client.Money;
 
 internal static class ISupportsUploadingMpesaStatementExtensions
 {
-    public static Task<ResourceResponse<List<ExtractedMpesaStatementRecord>>> UploadMpesaAsync(this ISupportsUploadingMpesaStatement client,
-                                                                                               string fileName,
-                                                                                               Stream fileContent,
-                                                                                               RequestOptions? options = null,
-                                                                                               CancellationToken cancellationToken = default)
+    public static Task<ResourceResponse<List<ExtractedStatementRecord>>> UploadMpesaAsync(this ISupportsUploadingMpesaStatement client,
+                                                                                          string fileName,
+                                                                                          Stream fileContent,
+                                                                                          RequestOptions? options = null,
+                                                                                          CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(client, nameof(client));
         ArgumentNullException.ThrowIfNull(fileName, nameof(fileName));
@@ -25,6 +25,6 @@ internal static class ISupportsUploadingMpesaStatementExtensions
             { new StringContent("mpesa"), "type" },
             { new StreamContent(fileContent), "file", fileName },
         };
-        return client.RequestAsync<List<ExtractedMpesaStatementRecord>>(uri, HttpMethod.Post, content, options, cancellationToken);
+        return client.RequestAsync<List<ExtractedStatementRecord>>(uri, HttpMethod.Post, content, options, cancellationToken);
     }
 }

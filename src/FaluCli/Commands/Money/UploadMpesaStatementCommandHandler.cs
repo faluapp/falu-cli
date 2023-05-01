@@ -54,7 +54,7 @@ internal class UploadMpesaStatementCommandHandler : ICommandHandler
         response.EnsureSuccess();
 
         var extracted = response.Resource!;
-        var receiptNumbers = extracted.Select(r => r.Receipt).ToList();
+        var receiptNumbers = extracted.Select(r => r.Mpesa?.Receipt).ToList();
         logger.LogInformation("Uploaded statement successfully. Imported/Updated {ImportedCount} records.", extracted.Count);
         if (extracted.Count > 0)
         {
