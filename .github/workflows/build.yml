@@ -96,6 +96,10 @@ jobs:
         --no-restore
         src/FaluCli/FaluCli.csproj
 
+    - name: Test (CLI) # ensure the CLI can launch (catches global DI issues)
+      run: ./falu logout
+      working-directory: ${{ github.workspace }}/drop/${{ matrix.config.rid }}
+
     - name: Publish Artifact (drop)
       uses: actions/upload-artifact@v3
       with:
