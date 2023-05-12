@@ -91,7 +91,7 @@ jobs:
         -p:EnableCompressionInSingleFile=true
         --runtime ${{ matrix.config.rid }}
         --configuration Release
-        --output $GITHUB_WORKSPACE/drop/${{ matrix.config.rid }}
+        --output ${{ github.workspace }}/drop/${{ matrix.config.rid }}
         --self-contained true
         --no-restore
         src/FaluCli/FaluCli.csproj
