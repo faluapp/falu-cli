@@ -27,7 +27,6 @@ on:
         default: 'Pre-Release'
 
 env:
-  buildConfiguration: 'Release'
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
 jobs:
@@ -73,11 +72,11 @@ jobs:
 
     - name: Build
       if: github.event_name == 'pull_request'
-      run: dotnet build --configuration $buildConfiguration --no-restore
+      run: dotnet build --configuration Release --no-restore
 
     - name: Test
       if: github.event_name == 'pull_request'
-      run: dotnet test --configuration $buildConfiguration --no-build --verbosity normal --collect "Code coverage"
+      run: dotnet test --configuration Release --no-build --verbosity normal --collect "Code coverage"
 
     - name: Publish
       run: >
@@ -91,7 +90,7 @@ jobs:
         -p:AssemblyName=falu
         -p:EnableCompressionInSingleFile=true
         --runtime ${{ matrix.config.rid }}
-        --configuration $buildConfiguration
+        --configuration Release
         --output $GITHUB_WORKSPACE/drop/${{ matrix.config.rid }}
         --self-contained true
         --no-restore
