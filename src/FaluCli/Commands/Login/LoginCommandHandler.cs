@@ -63,7 +63,7 @@ internal class LoginCommandHandler : ICommandHandler
                               response.UserCode);
 
         // open browser unless told not to
-        if (!noBrowser)
+        if (!noBrowser && response.VerificationUriComplete is not null)
         {
             logger.LogInformation("Automatically opening the browser ...");
 
@@ -85,7 +85,7 @@ internal class LoginCommandHandler : ICommandHandler
             {
                 Address = disco.TokenEndpoint,
                 ClientId = Constants.ClientId,
-                DeviceCode = auth.DeviceCode,
+                DeviceCode = auth.DeviceCode ?? throw new InvalidOperationException("Device code in the response cannot be null. Contact support!"),
             };
             var response = await client.RequestDeviceTokenAsync(request, cancellationToken);
 

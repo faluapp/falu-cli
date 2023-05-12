@@ -66,7 +66,7 @@ internal class FaluCliClientHandler : DelegatingHandler
 
             // at this point, we either have a valid access token or an invalid acess token with a valid refresh token
             // if the access token is invalid, we need to get one via the refresh token
-            if (!config.Authentication.HasValidAccessToken())
+            if (!config.Authentication.HasValidAccessToken() && config.Authentication.HasValidRefreshToken())
             {
                 logger.LogInformation("Requesting for a new access token using the saved refresh token");
                 // perform confirguration discovery
