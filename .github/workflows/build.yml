@@ -27,7 +27,6 @@ on:
         default: 'Pre-Release'
 
 env:
-  buildConfiguration: 'Release'
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
 jobs:
@@ -39,9 +38,9 @@ jobs:
         - rid: linux-x64
           os: ubuntu-latest
         - rid: win-x64
-          os: ubuntu-latest #windows-latest
+          os: windows-latest
         - rid: osx-x64
-          os: ubuntu-latest #macos-latest
+          os: macos-latest
 
     runs-on: ${{ matrix.config.os }}
 
@@ -73,11 +72,11 @@ jobs:
 
     - name: Build
       if: github.event_name == 'pull_request'
-      run: dotnet build --configuration $buildConfiguration --no-restore
+      run: dotnet build --configuration Release --no-restore
 
     - name: Test
       if: github.event_name == 'pull_request'
-      run: dotnet test --configuration $buildConfiguration --no-build --verbosity normal --collect "Code coverage"
+      run: dotnet test --configuration Release --no-build --verbosity normal --collect "Code coverage"
 
     - name: Publish
       run: >
@@ -91,8 +90,8 @@ jobs:
         -p:AssemblyName=falu
         -p:EnableCompressionInSingleFile=true
         --runtime ${{ matrix.config.rid }}
-        --configuration $buildConfiguration
-        --output $GITHUB_WORKSPACE/drop/${{ matrix.config.rid }}
+        --configuration Release
+        --output ${{ github.workspace }}/drop/${{ matrix.config.rid }}
         --self-contained true
         --no-restore
         src/FaluCli/FaluCli.csproj
