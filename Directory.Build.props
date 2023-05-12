@@ -2,7 +2,19 @@
   <!-- There is nothing else to import. -->
 
   <PropertyGroup>
-    <!-- Using net7.0 causes errors since we publish with trimming -->
+    <!--
+      Using net7.0 causes errors since we publish with trimming:
+      - Constructors for command handlers cannot be found.
+      - Deserialization of JsonWebKeySet (required for login) does not work
+
+      We wait until there is a new version of some of these libraries.
+      Since .net6 is LTS and we generate framework independent code, we are safe for now.
+      PublishAot=true will not solve the problem because it also uses trimming.
+
+      Updating to more recent patterns of using the System.CommandLine libraries such as binding
+      may solve some of the issues. Maybe consider moving entirely to the more stable Spectre.Cli
+      if System.CommandLin doesn't GA within reasonable time.
+    -->
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
