@@ -39,9 +39,9 @@ jobs:
         - rid: linux-x64
           os: ubuntu-latest
         - rid: win-x64
-          os: ubuntu-latest #windows-latest
+          os: windows-latest
         - rid: osx-x64
-          os: ubuntu-latest #macos-latest
+          os: macos-latest
 
     runs-on: ${{ matrix.config.os }}
 
