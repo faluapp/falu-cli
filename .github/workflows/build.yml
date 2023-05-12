@@ -68,16 +68,14 @@ jobs:
       with:
         dotnet-version: '6.x'
 
-    - name: Install dependencies
-      run: dotnet restore --runtime ${{ matrix.config.rid }}
-
-    - name: Build
-      if: github.event_name == 'pull_request'
-      run: dotnet build --configuration $buildConfiguration --no-restore
-
     - name: Test
       if: github.event_name == 'pull_request'
-      run: dotnet test --configuration $buildConfiguration --no-build --verbosity normal --collect "Code coverage"
+      run: >
+        dotnet test
+        --configuration $buildConfiguration
+        --verbosity normal
+        --collect "Code coverage"
+        --runtime ${{ matrix.config.rid }}
 
     - name: Publish
       run: >
@@ -94,7 +92,6 @@ jobs:
         --configuration $buildConfiguration
         --output $GITHUB_WORKSPACE/drop/${{ matrix.config.rid }}
         --self-contained true
-        --no-restore
         src/FaluCli/FaluCli.csproj
 
     - name: Publish Artifact (drop)
