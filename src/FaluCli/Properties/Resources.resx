@@ -132,6 +132,9 @@ Try again after a short while.
 If it persists, check your internet connection.
 You can also check https://status.falu.io to see if there are any server related issues.</value>
   </data>
+  <data name="InternalServerError500Message" xml:space="preserve">
+    <value>Server encountered an error. You can try again later or contact support at https://falu.io/support</value>
+  </data>
   <data name="InvalidE164PhoneNumber" xml:space="preserve">
     <value>Value for '{0}' is not a valid E.164 phone number: '{1}'</value>
   </data>
