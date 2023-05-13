@@ -109,6 +109,9 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddOpenIdServices();
         });
 
+        // System.CommandLine library does not create a scope, so we should skip validation of scopes
+        host.UseDefaultServiceProvider(o => o.ValidateScopes = false);
+
         host.UseCommandHandler<LoginCommand, LoginCommandHandler>();
         host.UseCommandHandler<LogoutCommand, LogoutCommandHandler>();
         host.UseCommandHandler<RetryCommand, RetryCommandHandler>();
