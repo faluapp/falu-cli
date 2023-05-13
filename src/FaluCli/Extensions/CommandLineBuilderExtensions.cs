@@ -115,35 +115,37 @@ internal static class CommandLineBuilderExtensions
             {
                 await next(invocation);
             }
-            catch(FaluException) { }
-
-            // At this point, we can check if a newer version was found.
-            // This code will not be reached if there's an exception but validation errors do get here.
-
-            var current = UpdateChecker.CurrentVersion;
-            var latest = UpdateChecker.LatestVersion;
-            if (latest is not null && latest > current)
+            finally
             {
-                var console = invocation.Console;
-                var stdout = console.Out;
+                // At this point, we can check if a newer version was found.
+                // This code will not be reached if there's an exception but validation errors do get here.
 
-                stdout.WriteLine(); // empty line
+                var current = UpdateChecker.CurrentVersion;
+                var latest = UpdateChecker.LatestVersion;
+                if (latest is not null && latest > current)
+                {
+                    var console = invocation.Console;
+                    var stdout = console.Out;
 
-                console.ResetTerminalForegroundColor();
-                stdout.Write("New version (");
-                console.SetTerminalForegroundGreen();
-                stdout.Write($"{latest}");
-                console.ResetTerminalForegroundColor();
-                stdout.WriteLine($") is available. You have version {current.BaseVersion()}");
+                    stdout.WriteLine(); // empty line
 
-                stdout.Write("Download at: ");
-                console.SetTerminalForegroundGreen();
-                stdout.WriteLine(UpdateChecker.LatestVersionHtmlUrl!);
-                console.ResetTerminalForegroundColor();
+                    console.ResetTerminalForegroundColor();
+                    stdout.Write("New version (");
+                    console.SetTerminalForegroundGreen();
+                    stdout.Write($"{latest}");
+                    console.ResetTerminalForegroundColor();
+                    stdout.WriteLine($") is available. You have version {current.BaseVersion()}");
 
-                stdout.WriteLine(); // empty line
-                stdout.WriteLine("Release notes: ");
-                stdout.WriteLine(UpdateChecker.LatestVersionBody!);
+                    stdout.Write("Download at: ");
+                    console.SetTerminalForegroundGreen();
+                    stdout.WriteLine(UpdateChecker.LatestVersionHtmlUrl!);
+                    console.ResetTerminalForegroundColor();
+
+                    stdout.WriteLine(); // empty line
+                    stdout.WriteLine("Release notes: ");
+                    stdout.WriteLine(UpdateChecker.LatestVersionBody!);
+                    stdout.WriteLine(); // empty line
+                }
             }
         });
     }
