@@ -80,6 +80,10 @@ internal static class CommandLineBuilderExtensions
             {
                 stderr.WriteLine(Res.Forbidden403Message);
             }
+            else if (fe.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                stderr.WriteLine(Res.InternalServerError500Message);
+            }
             else
             {
                 stderr.WriteLine(fe.Message);

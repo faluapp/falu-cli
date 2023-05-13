@@ -93,6 +93,15 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Server encountered an error. You can try again later or contact support at https://falu.io/support.
+        /// </summary>
+        internal static string InternalServerError500Message {
+            get {
+                return ResourceManager.GetString("InternalServerError500Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value for &apos;{0}&apos; is not a valid E.164 phone number: &apos;{1}&apos;.
         /// </summary>
         internal static string InvalidE164PhoneNumber {
