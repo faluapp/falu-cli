@@ -152,7 +152,7 @@ You can also check https://status.falu.io to see if there are any server related
     <value>Login request failed with code: {0}</value>
   </data>
   <data name="ProblemDetailsErrorCodeFormat" xml:space="preserve">
-    <value>Error Code: {0}</value>
+    <value>Error Code: {0} (See docs at https://falu.io/docs/error-codes#{0})</value>
   </data>
   <data name="ProblemDetailsErrorDetailFormat" xml:space="preserve">
     <value>Error Detail: {0}</value>

@@ -147,7 +147,7 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error Code: {0}.
+        ///   Looks up a localized string similar to Error Code: {0} (See docs at https://falu.io/docs/error-codes#{0}).
         /// </summary>
         internal static string ProblemDetailsErrorCodeFormat {
             get {
