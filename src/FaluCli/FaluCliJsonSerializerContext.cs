@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 namespace Falu;
 
 [JsonSerializable(typeof(List<Client.ExtractedStatementRecord>))]
+[JsonSerializable(typeof(Client.Events.EventDeliveryRetry))]
+[JsonSerializable(typeof(Client.Events.WebhookDeliveryAttempt))]
 internal partial class FaluCliJsonSerializerContext : JsonSerializerContext
 {
     private static JsonSerializerOptions DefaultSerializerOptions { get; } = new(JsonSerializerDefaults.Web)
