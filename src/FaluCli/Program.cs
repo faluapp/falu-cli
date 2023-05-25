@@ -98,7 +98,9 @@ var builder = new CommandLineBuilder(rootCommand)
 
         host.ConfigureLogging((context, builder) =>
         {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             builder.AddConsoleFormatter<Falu.Logging.FaluConsoleFormatter, Falu.Logging.FaluConsoleFormatterOptions>();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         });
 
         host.ConfigureServices((context, services) =>
