@@ -108,7 +108,8 @@ internal class SendMessagesCommandHandler : ICommandHandler
     {
         var id = context.ParseResult.ValueForOption<string>("--id");
         var alias = context.ParseResult.ValueForOption<string>("--alias");
-        var model = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object>>(context.ParseResult.ValueForOption<string>("--model")!);
+        var modelJson = context.ParseResult.ValueForOption<string>("--model");
+        var model = modelJson is null ? (MessageTemplateModel?)null: new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
 
         // ensure both id and alias are not null
         if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
@@ -124,7 +125,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
             return -1;
         }
 
-        var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = MessageTemplateModel.Create(model), });
+        var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, });
         await SendMessagesAsync(messages, stream, media, schedule, cancellationToken);
         return 0;
     }

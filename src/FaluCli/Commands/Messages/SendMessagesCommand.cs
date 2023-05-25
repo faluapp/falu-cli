@@ -104,7 +104,7 @@ public class SendTemplatedMessagesCommand : AsbtractSendMessagesCommand
                            var value = or.GetValueOrDefault<string>()!;
                            try
                            {
-                               System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object>>(value);
+                               _ = System.Text.Json.Nodes.JsonNode.Parse(value)!.AsObject();
                            }
                            catch (System.Text.Json.JsonException)
                            {
