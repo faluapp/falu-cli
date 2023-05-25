@@ -12,13 +12,13 @@ internal class ExtendedTransfersServiceClient : TransfersServiceClient, ISupport
 
     string ISupportsUploadingMpesaStatement.ObjectKind => "transfers";
 
-    Task<ResourceResponse<TResource>> ISupportsUploadingMpesaStatement.RequestAsync<TResource>(string uri,
-                                                                                               HttpMethod method,
-                                                                                               HttpContent? content,
-                                                                                               RequestOptions? options,
-                                                                                               CancellationToken cancellationToken)
+    Task<ResourceResponse<List<ExtractedStatementRecord>>> ISupportsUploadingMpesaStatement.RequestAsync(string uri,
+                                                                                                         HttpMethod method,
+                                                                                                         HttpContent? content,
+                                                                                                         RequestOptions? options,
+                                                                                                         CancellationToken cancellationToken)
     {
-        return base.RequestAsync<TResource>(uri, method, content, options, cancellationToken);
+        return base.RequestAsync(uri, method, FaluCliJsonSerializerContext.Default.ListExtractedStatementRecord, content, options, cancellationToken);
     }
 
     #endregion

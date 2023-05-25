@@ -9,7 +9,6 @@ internal class TemplatesCommandHandler : ICommandHandler
 {
     private const string BodyFileName = "content.txt";
     private const string InfoFileName = "info.json";
-    private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web);
 
     public FaluCliClient client;
     private readonly ILogger logger;
@@ -73,23 +72,16 @@ internal class TemplatesCommandHandler : ICommandHandler
         // write the template info
         var infoPath = Path.Combine(dirPath, InfoFileName);
         var info = new TemplateInfo(template);
-        await SerializeAndWriteToFileAsync(infoPath, overwrite, info, cancellationToken);
+        using var stream = new MemoryStream();
+        await JsonSerializer.SerializeAsync(stream, info, FaluCliJsonSerializerContext.Default.TemplateInfo, cancellationToken);
+        stream.Seek(0, SeekOrigin.Begin);
+        await WriteToFileAsync(infoPath, overwrite, stream, cancellationToken);
     }
 
     private Task WriteToFileAsync(string path, bool overwrite, string contents, CancellationToken cancellationToken)
     {
         using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(contents));
         return WriteToFileAsync(path, overwrite, stream, cancellationToken);
-    }
-
-    private async Task SerializeAndWriteToFileAsync<T>(string path, bool overwrite, T value, CancellationToken cancellationToken)
-    {
-        if (value is null) throw new ArgumentNullException(nameof(value));
-
-        using var stream = new MemoryStream();
-        await JsonSerializer.SerializeAsync(stream, value, serializerOptions, cancellationToken);
-        stream.Seek(0, SeekOrigin.Begin);
-        await WriteToFileAsync(path, overwrite, stream, cancellationToken);
     }
 
     private async Task WriteToFileAsync(string path, bool overwrite, Stream contents, CancellationToken cancellationToken)
@@ -230,7 +222,8 @@ internal class TemplatesCommandHandler : ICommandHandler
             if (!File.Exists(infoPath)) continue;
 
             // read the info
-            var info = (await ReadFromFileAndDeserializeAsync<TemplateInfo>(infoPath, cancellationToken))!;
+            using var stream = File.OpenRead(infoPath);
+            var info = (await JsonSerializer.DeserializeAsync(stream, FaluCliJsonSerializerContext.Default.TemplateInfo, cancellationToken))!;
 
             var contentPath = Path.Combine(dirPath, BodyFileName);
             var body = await ReadFromFileAsync(contentPath, cancellationToken);
@@ -239,12 +232,6 @@ internal class TemplatesCommandHandler : ICommandHandler
         }
 
         return results;
-    }
-
-    private static async Task<T?> ReadFromFileAndDeserializeAsync<T>(string path, CancellationToken cancellationToken)
-    {
-        using var stream = File.OpenRead(path);
-        return await JsonSerializer.DeserializeAsync<T>(stream, serializerOptions, cancellationToken);
     }
 
     private static async Task<string> ReadFromFileAsync(string path, CancellationToken cancellationToken)

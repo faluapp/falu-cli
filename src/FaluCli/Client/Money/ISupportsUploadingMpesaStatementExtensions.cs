@@ -25,6 +25,6 @@ internal static class ISupportsUploadingMpesaStatementExtensions
             { new StringContent("mpesa"), "type" },
             { new StreamContent(fileContent), "file", fileName },
         };
-        return client.RequestAsync<List<ExtractedStatementRecord>>(uri, HttpMethod.Post, content, options, cancellationToken);
+        return client.RequestAsync(uri, HttpMethod.Post, content, options, cancellationToken);
     }
 }

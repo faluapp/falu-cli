@@ -98,7 +98,9 @@ var builder = new CommandLineBuilder(rootCommand)
 
         host.ConfigureLogging((context, builder) =>
         {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             builder.AddConsoleFormatter<Falu.Logging.FaluConsoleFormatter, Falu.Logging.FaluConsoleFormatterOptions>();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         });
 
         host.ConfigureServices((context, services) =>
@@ -108,6 +110,25 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddUpdateChecker();
             services.AddConfigValuesProvider();
             services.AddOpenIdServices();
+
+            /*
+             * These registrations/additions are necessary when trimming
+             * maybe until the next version of System.CommandLine
+             * 
+             * Alternatively consider migrating to Spectre
+             */
+            services.AddTransient<LoginCommandHandler>();
+            services.AddTransient<LogoutCommandHandler>();
+            services.AddTransient<RetryCommandHandler>();
+            services.AddTransient<SendMessagesCommandHandler>();
+            services.AddTransient<SendMessagesCommandHandler>();
+            services.AddTransient<TemplatesCommandHandler>();
+            services.AddTransient<TemplatesCommandHandler>();
+            services.AddTransient<UploadMpesaStatementCommandHandler>();
+            services.AddTransient<ConfigCommandHandler>();
+            services.AddTransient<ConfigCommandHandler>();
+            services.AddTransient<ConfigCommandHandler>();
+            services.AddTransient<ConfigCommandHandler>();
         });
 
         // System.CommandLine library does not create a scope, so we should skip validation of scopes

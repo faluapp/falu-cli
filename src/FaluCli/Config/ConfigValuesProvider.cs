@@ -14,6 +14,7 @@ internal class ConfigValuesProvider : IConfigValuesProvider
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true,
     };
+    private static readonly FaluCliJsonSerializerContext serializerContext = new(new(serializerOptions));
 
     private ConfigValues? values;
 
@@ -24,7 +25,7 @@ internal class ConfigValuesProvider : IConfigValuesProvider
             if (File.Exists(FilePath))
             {
                 var json = await File.ReadAllTextAsync(FilePath, cancellationToken);
-                values = JsonSerializer.Deserialize<ConfigValues>(json, serializerOptions)!;
+                values = JsonSerializer.Deserialize(json, serializerContext.ConfigValues)!;
             }
             else
             {
@@ -40,7 +41,7 @@ internal class ConfigValuesProvider : IConfigValuesProvider
         Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
 
         values ??= await GetConfigValuesAsync(cancellationToken);
-        var json = JsonSerializer.Serialize(values, serializerOptions);
+        var json = JsonSerializer.Serialize(values, serializerContext.ConfigValues);
         await File.WriteAllTextAsync(FilePath, json, cancellationToken);
     }
 

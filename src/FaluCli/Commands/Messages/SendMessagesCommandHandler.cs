@@ -1,6 +1,7 @@
 ﻿using Falu.Client;
 using Falu.MessageBatches;
 using Falu.Messages;
+using Falu.MessageTemplates;
 
 namespace Falu.Commands.Messages;
 
@@ -107,7 +108,8 @@ internal class SendMessagesCommandHandler : ICommandHandler
     {
         var id = context.ParseResult.ValueForOption<string>("--id");
         var alias = context.ParseResult.ValueForOption<string>("--alias");
-        var model = System.Text.Json.JsonSerializer.Deserialize<IDictionary<string, object>>(context.ParseResult.ValueForOption<string>("--model")!);
+        var modelJson = context.ParseResult.ValueForOption<string>("--model");
+        var model = modelJson is null ? (MessageTemplateModel?)null: new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
 
         // ensure both id and alias are not null
         if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
