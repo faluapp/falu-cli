@@ -3,6 +3,7 @@ using Falu.Client.Events;
 using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Falu.Commands.Events;
 
@@ -64,7 +65,6 @@ internal class RetryCommandHandler : ICommandHandler
             WriteIndented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
-        var je = JsonSerializer.Deserialize<JsonElement>(json);
-        return JsonSerializer.Serialize(je, so);
+        return JsonNode.Parse(json)!.ToJsonString(so);
     }
 }
