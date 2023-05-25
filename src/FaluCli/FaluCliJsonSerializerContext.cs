@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 namespace Falu;
 
 [JsonSerializable(typeof(Config.ConfigValues))]
+[JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
+
 [JsonSerializable(typeof(Client.Events.EventDeliveryRetry))]
 [JsonSerializable(typeof(Client.Events.WebhookDeliveryAttempt))]
 
