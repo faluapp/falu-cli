@@ -1,6 +1,7 @@
 ﻿using Falu.Client;
 using Falu.MessageBatches;
 using Falu.Messages;
+using Falu.MessageTemplates;
 
 namespace Falu.Commands.Messages;
 
@@ -123,7 +124,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
             return -1;
         }
 
-        var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, });
+        var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = MessageTemplateModel.Create(model), });
         await SendMessagesAsync(messages, stream, media, schedule, cancellationToken);
         return 0;
     }
