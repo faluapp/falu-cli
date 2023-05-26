@@ -121,13 +121,8 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddTransient<LogoutCommandHandler>();
             services.AddTransient<RetryCommandHandler>();
             services.AddTransient<SendMessagesCommandHandler>();
-            services.AddTransient<SendMessagesCommandHandler>();
-            services.AddTransient<TemplatesCommandHandler>();
             services.AddTransient<TemplatesCommandHandler>();
             services.AddTransient<UploadMpesaStatementCommandHandler>();
-            services.AddTransient<ConfigCommandHandler>();
-            services.AddTransient<ConfigCommandHandler>();
-            services.AddTransient<ConfigCommandHandler>();
             services.AddTransient<ConfigCommandHandler>();
         });
 
