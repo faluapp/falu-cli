@@ -55,7 +55,7 @@ public abstract class AsbtractSendMessagesCommand : Command
     private static string? ValidateNumbers(string optionName, string[] numbers)
     {
         // ensure not more than 500*1000 (500 per batch and 1000 batches per request)
-        var limit = 500_000;
+        var limit = 500_000; // TODO: limit is 1k
         if (numbers.Length > limit)
         {
             return string.Format(Res.TooManyMessagesToBeSent, limit);
