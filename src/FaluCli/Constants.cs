@@ -40,7 +40,7 @@ internal partial class Constants
     [GeneratedRegex("^[a-zA-Z0-9-_:]{2,128}$")]
     private static partial Regex GetIdempotencyKeyFormat();
 
-    [GeneratedRegex("^f[s|p|t]k[l|t]_[0-9a-zA-Z]{20,30}$")]
+    [GeneratedRegex("^f[s|p|t]k[l|t]_[0-9a-zA-Z]{20,50}$")]
     private static partial Regex GetApiKeyFormat();
 
     [GeneratedRegex("^evt_[a-zA-Z0-9]{20,30}$")]
