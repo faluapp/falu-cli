@@ -55,15 +55,15 @@ Please leave all comments, bugs, requests and issues on the Issues page.
 For any requests, bug or comments, please [open an issue][issues] or [submit a pull request][pulls].
 
 [chocolatey]: https://chocolatey.org/
-[issues]: https://github.com/tingle/falu-dotnet/issues/new
-[pulls]: https://github.com/tingle/falu-dotnet/pulls
+[issues]: https://github.com/tingle/falu-cli/issues/new
+[pulls]: https://github.com/tingle/falu-cli/pulls
 [releases]: https://github.com/tinglesoftware/falu-cli/releases
 [falu]: https://falu.io
-[wiki-command-login]: https://github.com/tingle/falu-dotnet/wiki/commands/login
-[wiki-command-logout]: https://github.com/tingle/falu-dotnet/wiki/commands/logout
-[wiki-command-events-retry]: https://github.com/tingle/falu-dotnet/wiki/commands/events-retry
-[wiki-command-templates-pull]: https://github.com/tingle/falu-dotnet/wiki/commands/templates-pull
-[wiki-command-templates-push]: https://github.com/tingle/falu-dotnet/wiki/commands/templates-push
+[wiki-command-login]: https://github.com/tingle/falu-cli/wiki/commands/login
+[wiki-command-logout]: https://github.com/tingle/falu-cli/wiki/commands/logout
+[wiki-command-events-retry]: https://github.com/tingle/falu-cli/wiki/commands/events-retry
+[wiki-command-templates-pull]: https://github.com/tingle/falu-cli/wiki/commands/templates-pull
+[wiki-command-templates-push]: https://github.com/tingle/falu-cli/wiki/commands/templates-push
 
 ### License
 
