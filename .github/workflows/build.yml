@@ -39,9 +39,8 @@ jobs:
           os: ubuntu-latest
         - rid: win-x64
           os: windows-latest
-# macos is failing so we disable till next release
-#         - rid: osx-x64
-#           os: macos-latest
+        - rid: osx-x64
+          os: macos-latest
 
     runs-on: ${{ matrix.config.os }}
 
@@ -69,7 +68,7 @@ jobs:
         dotnet-version: '6.x'
 
     - name: Install dependencies
-      run: dotnet restore --runtime ${{ matrix.config.rid }}
+      run: dotnet restore --runtime ${{ matrix.config.rid }} -v detailed
 
     - name: Build
       if: github.event_name == 'pull_request'
