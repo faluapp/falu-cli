@@ -110,37 +110,23 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddUpdateChecker();
             services.AddConfigValuesProvider();
             services.AddOpenIdServices();
-
-            /*
-             * These registrations/additions are necessary when trimming
-             * maybe until the next version of System.CommandLine
-             * 
-             * Alternatively consider migrating to Spectre
-             */
-            services.AddTransient<LoginCommandHandler>();
-            services.AddTransient<LogoutCommandHandler>();
-            services.AddTransient<RetryCommandHandler>();
-            services.AddTransient<SendMessagesCommandHandler>();
-            services.AddTransient<TemplatesCommandHandler>();
-            services.AddTransient<UploadMpesaStatementCommandHandler>();
-            services.AddTransient<ConfigCommandHandler>();
         });
 
         // System.CommandLine library does not create a scope, so we should skip validation of scopes
         host.UseDefaultServiceProvider(o => o.ValidateScopes = false);
 
-        host.UseCommandHandler<LoginCommand, LoginCommandHandler>();
-        host.UseCommandHandler<LogoutCommand, LogoutCommandHandler>();
-        host.UseCommandHandler<RetryCommand, RetryCommandHandler>();
-        host.UseCommandHandler<SendRawMessagesCommand, SendMessagesCommandHandler>();
-        host.UseCommandHandler<SendTemplatedMessagesCommand, SendMessagesCommandHandler>();
-        host.UseCommandHandler<PullTemplatesCommand, TemplatesCommandHandler>();
-        host.UseCommandHandler<PushTemplatesCommand, TemplatesCommandHandler>();
-        host.UseCommandHandler<UploadMpesaStatementCommand, UploadMpesaStatementCommandHandler>();
-        host.UseCommandHandler<ConfigShowCommand, ConfigCommandHandler>();
-        host.UseCommandHandler<ConfigSetCommand, ConfigCommandHandler>();
-        host.UseCommandHandler<ConfigClearAllCommand, ConfigCommandHandler>();
-        host.UseCommandHandler<ConfigClearAuthCommand, ConfigCommandHandler>();
+        host.UseCommandHandlerTrimmable<LoginCommand, LoginCommandHandler>();
+        host.UseCommandHandlerTrimmable<LogoutCommand, LogoutCommandHandler>();
+        host.UseCommandHandlerTrimmable<RetryCommand, RetryCommandHandler>();
+        host.UseCommandHandlerTrimmable<SendRawMessagesCommand, SendMessagesCommandHandler>();
+        host.UseCommandHandlerTrimmable<SendTemplatedMessagesCommand, SendMessagesCommandHandler>();
+        host.UseCommandHandlerTrimmable<PullTemplatesCommand, TemplatesCommandHandler>();
+        host.UseCommandHandlerTrimmable<PushTemplatesCommand, TemplatesCommandHandler>();
+        host.UseCommandHandlerTrimmable<UploadMpesaStatementCommand, UploadMpesaStatementCommandHandler>();
+        host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
+        host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
+        host.UseCommandHandlerTrimmable<ConfigClearAllCommand, ConfigCommandHandler>();
+        host.UseCommandHandlerTrimmable<ConfigClearAuthCommand, ConfigCommandHandler>();
     })
     .UseFaluDefaults()
     .UseUpdateChecker() /* update checker middleware must be added last because it only prints what the checker has */;
