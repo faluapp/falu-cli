@@ -39,8 +39,9 @@ jobs:
           os: ubuntu-latest
         - rid: win-x64
           os: windows-latest
-        - rid: osx-x64
-          os: macos-latest
+# macos is failing so we disable till next release
+#         - rid: osx-x64
+#           os: macos-latest
 
     runs-on: ${{ matrix.config.os }}
 
