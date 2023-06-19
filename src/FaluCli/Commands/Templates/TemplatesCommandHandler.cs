@@ -238,7 +238,7 @@ internal class TemplatesCommandHandler : ICommandHandler
     {
         using var stream = File.OpenRead(path);
         using var reader = new StreamReader(stream);
-        return await reader.ReadToEndAsync();
+        return await reader.ReadToEndAsync(cancellationToken);
     }
 
     #endregion

@@ -109,7 +109,7 @@ internal class SendMessagesCommandHandler : ICommandHandler
         var id = context.ParseResult.ValueForOption<string>("--id");
         var alias = context.ParseResult.ValueForOption<string>("--alias");
         var modelJson = context.ParseResult.ValueForOption<string>("--model");
-        var model = modelJson is null ? (MessageTemplateModel?)null: new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
+        var model = modelJson is null ? (MessageTemplateModel?)null : new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
 
         // ensure both id and alias are not null
         if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
