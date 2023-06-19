@@ -35,7 +35,7 @@ Check out the [wiki](/wiki) for more on using the CLI.
 
 ## Installation
 
-Falu CLI is available for macOS, Windows and Linux (Ubuntu). You can download each of the binaries in the [releases](/releases) or you can use package managers in the respective platforms.
+Falu CLI is available for macOS, Windows and Linux (Ubuntu). You can download each of the binaries in the [releases][releases] or you can use package managers in the respective platforms.
 
 <!-- ### Windows
 
@@ -57,6 +57,7 @@ For any requests, bug or comments, please [open an issue][issues] or [submit a p
 [chocolatey]: https://chocolatey.org/
 [issues]: https://github.com/tingle/falu-dotnet/issues/new
 [pulls]: https://github.com/tingle/falu-dotnet/pulls
+[releases]: https://github.com/tinglesoftware/falu-cli/releases
 [falu]: https://falu.io
 [wiki-command-login]: https://github.com/tingle/falu-dotnet/wiki/commands/login
 [wiki-command-logout]: https://github.com/tingle/falu-dotnet/wiki/commands/logout
