@@ -83,7 +83,7 @@ var builder = new CommandLineBuilder(rootCommand)
                 ["Logging:LogLevel:Microsoft"] = "Warning",
                 ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Warning",
 
-                // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-6.0#logging
+                // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#logging
                 ["Logging:LogLevel:System.Net.Http.HttpClient"] = "None", // removes all we do not need
                 ["Logging:LogLevel:System.Net.Http.HttpClient.Oidc.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
                 ["Logging:LogLevel:System.Net.Http.HttpClient.FaluCliClient.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
