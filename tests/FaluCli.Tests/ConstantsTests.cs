@@ -14,6 +14,7 @@ public class ConstantsTests
     [InlineData("fskl_602cd2747409e867a240d000")]
     [InlineData("fpkt_60ffe3f79c1deb8060f91312")]
     [InlineData("fskt_27e868O6xW4NYrQb3WvxDb8iW6D")]
+    [InlineData("ftkt_27e868O6xW4NYrQb3WvxDb8iW6D")]
     public void ApiKeyFormat_IsCorrect(string input)
     {
         Assert.Matches(Constants.ApiKeyFormat, input);
