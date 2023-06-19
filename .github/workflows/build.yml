@@ -40,7 +40,8 @@ jobs:
         - rid: win-x64
           os: windows-latest
         - rid: osx-x64
-          os: macos-latest
+#           os: macos-latest
+          os: macos-13
 
     runs-on: ${{ matrix.config.os }}
 
