@@ -7,11 +7,7 @@ internal sealed class AnsiParser
     private readonly Action<string, int, int, ConsoleColor?, ConsoleColor?> _onParseWrite;
     public AnsiParser(Action<string, int, int, ConsoleColor?, ConsoleColor?> onParseWrite)
     {
-        if (onParseWrite == null)
-        {
-            throw new ArgumentNullException(nameof(onParseWrite));
-        }
-        _onParseWrite = onParseWrite;
+        _onParseWrite = onParseWrite ?? throw new ArgumentNullException(nameof(onParseWrite));
     }
 
     /// <summary>
