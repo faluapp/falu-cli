@@ -26,7 +26,7 @@ internal class RetryCommandHandler : ICommandHandler
         var eventId = context.ParseResult.ValueForArgument<string>("event");
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
 
-        var model = new EventDeliveryRetry { WebhookEndpointId = webhookEndpointId, };
+        var model = new EventDeliveryRetry { WebhookEndpoint = webhookEndpointId, };
         var response = await client.Events.RetryAsync(eventId!, model, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
