@@ -35,13 +35,22 @@ jobs:
       fail-fast: true
       matrix:
         config:
+        # list of RIDs (Runtime Identifiers) can be found at:
+        # https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.NETCore.Platforms/src/runtime.json
         - rid: linux-x64
+          os: ubuntu-latest
+        - rid: linux-arm64
           os: ubuntu-latest
         - rid: win-x64
           os: windows-latest
+        - rid: win-arm64
+          os: windows-latest
+        # macos-latest uses macos-12 which fails to build the app
+        # macos-13 is in preview, we can switch when it becomes the latest one
         - rid: osx-x64
-#           os: macos-latest
-          os: macos-13
+          os: macos-13 # macos-latest
+        - rid: osx-arm64
+          os: macos-13 # macos-latest
 
     runs-on: ${{ matrix.config.os }}
 
@@ -98,6 +107,9 @@ jobs:
         src/FaluCli/FaluCli.csproj
 
     - name: Test (CLI) # ensure the CLI can launch (catches global DI issues)
+      # ARM agents are in preview and we cannot use them, so we skip this test
+      # TODO: consider using QEMU emulator for ARM?
+      if: "!contains(matrix.config.rid, 'arm')"
       run: ./falu logout
       working-directory: ${{ github.workspace }}/drop/${{ matrix.config.rid }}
 
