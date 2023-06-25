@@ -144,9 +144,44 @@ jobs:
         path: ${{ github.workspace }}/releases/**
         name: releases
 
-  Release:
+  Checksum:
     runs-on: ubuntu-latest
     needs: [ Build ]
+
+    steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: releases
+        path: releases
+
+    - name: Generate checksum
+      uses: jmgilman/actions-generate-checksum@v1
+      with:
+        method: 'sha256'
+        output: 'checksum.txt'
+        patterns: |
+          releases/falu-*.zip
+          releases/falu-*.tar.gz
+
+    # retain only the file names
+    # waiting on https://github.com/jmgilman/actions-generate-checksum/pull/2
+    - name: Strip directory
+      uses: jacobtomlinson/gha-find-replace@v3
+      with:
+        find: "releases/falu-"
+        replace: "falu-"
+        include: checksum.txt
+
+    - name: Publish Artifact (releases)
+      uses: actions/upload-artifact@v3
+      with:
+        path: checksum.txt
+        name: releases
+
+  Release:
+    runs-on: ubuntu-latest
+    needs: [ Build, Checksum ]
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
@@ -158,7 +193,11 @@ jobs:
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: '${{ github.workspace }}/falu-*.zip,${{ github.workspace }}/falu-*.tar.gz'
+        # comma-separated values
+        artifacts: >
+          ${{ github.workspace }}/releases/checksum.txt,
+          ${{ github.workspace }}/releases/falu-*.zip,
+          ${{ github.workspace }}/releases/falu-*.tar.gz
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: true
         allowUpdates: true
