@@ -10,24 +10,24 @@ class Falu < Formula
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/tinglesoftware/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-linux-arm64.tar.gz"
+      url "https://github.com/faluapp/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-linux-arm64.tar.gz"
       sha256 "#{LINUX_ARM64_BINARY_SHA256}#"
     end
 
     if Hardware::CPU.intel?
-      url "https://github.com/tinglesoftware/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-linux-x64.tar.gz"
+      url "https://github.com/faluapp/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-linux-x64.tar.gz"
       sha256 "#{LINUX_X64_BINARY_SHA256}#"
     end
   end
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/tinglesoftware/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-osx-arm64.tar.gz"
+      url "https://github.com/faluapp/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-osx-arm64.tar.gz"
       sha256 "#{MACOS_ARM64_BINARY_SHA256}#"
     end
 
     if Hardware::CPU.intel?
-      url "https://github.com/tinglesoftware/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-osx-x64.tar.gz"
+      url "https://github.com/faluapp/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-osx-x64.tar.gz"
       sha256 "#{MACOS_X64_BINARY_SHA256}#"
     end
   end

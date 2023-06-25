@@ -1,7 +1,7 @@
 # Falu CLI
 
-[![Release](https://img.shields.io/github/release/tinglesoftware/falu-cli.svg?style=flat-square)](https://github.com/tinglesoftware/falu-cli/releases/latest)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tinglesoftware/falu-cli/build.yml?branch=main&style=flat-square)
+[![Release](https://img.shields.io/github/release/faluapp/falu-cli.svg?style=flat-square)](https://github.com/faluapp/falu-cli/releases/latest)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/faluapp/falu-cli/build.yml?branch=main&style=flat-square)
 
 The official CLI tool for [Falu][falu] to help you build, test and managed your Falu integration right from the terminal.
 
@@ -55,15 +55,15 @@ Please leave all comments, bugs, requests and issues on the Issues page.
 For any requests, bug or comments, please [open an issue][issues] or [submit a pull request][pulls].
 
 [chocolatey]: https://chocolatey.org/
-[issues]: https://github.com/tingle/falu-cli/issues/new
-[pulls]: https://github.com/tingle/falu-cli/pulls
-[releases]: https://github.com/tinglesoftware/falu-cli/releases
+[issues]: https://github.com/faluapp/falu-cli/issues/new
+[pulls]: https://github.com/faluapp/falu-cli/pulls
+[releases]: https://github.com/faluapp/falu-cli/releases
 [falu]: https://falu.io
-[wiki-command-login]: https://github.com/tingle/falu-cli/wiki/commands/login
-[wiki-command-logout]: https://github.com/tingle/falu-cli/wiki/commands/logout
-[wiki-command-events-retry]: https://github.com/tingle/falu-cli/wiki/commands/events-retry
-[wiki-command-templates-pull]: https://github.com/tingle/falu-cli/wiki/commands/templates-pull
-[wiki-command-templates-push]: https://github.com/tingle/falu-cli/wiki/commands/templates-push
+[wiki-command-login]: https://github.com/faluapp/falu-cli/wiki/commands/login
+[wiki-command-logout]: https://github.com/faluapp/falu-cli/wiki/commands/logout
+[wiki-command-events-retry]: https://github.com/faluapp/falu-cli/wiki/commands/events-retry
+[wiki-command-templates-pull]: https://github.com/faluapp/falu-cli/wiki/commands/templates-pull
+[wiki-command-templates-push]: https://github.com/faluapp/falu-cli/wiki/commands/templates-push
 
 ### License
 

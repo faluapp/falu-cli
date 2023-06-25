@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <Deterministic>true</Deterministic>
     <IsPackable>true</IsPackable> <!-- Needed when OutputType is Exe -->
-    <Company>Tingle Software</Company>
+    <Company>Falu Technologies Limited</Company>
   </PropertyGroup>
 
   <PropertyGroup>

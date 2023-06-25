@@ -6,7 +6,7 @@ internal partial class Constants
 {
     public const string OpenIdCategoryOrClientName = "Oidc";
 
-    public const string RepositoryOwner = "tinglesoftware";
+    public const string RepositoryOwner = "faluapp";
     public const string RepositoryName = "falu-cli";
 
     public const string Authority = "https://login.falu.io";

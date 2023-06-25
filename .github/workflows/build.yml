@@ -260,7 +260,7 @@ jobs:
         BINARIES_VERSION: ${{ needs.Packaging.outputs.BINARIES_VERSION }}
       with:
         source_file: '${{ github.workspace }}/releases/homebrew/falu.rb'
-        destination_repo: 'tinglesoftware/homebrew-falu-cli'
+        destination_repo: 'faluapp/homebrew-falu-cli'
         user_email: 'support@falu.io'
         user_name: 'falu-ci'
         commit_message: 'Update homebrew tap to $BINARIES_VERSION'
