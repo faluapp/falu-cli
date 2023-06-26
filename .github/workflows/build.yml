@@ -258,10 +258,9 @@ jobs:
       uses: dmnemec/copy_file_to_another_repo_action@main
       env:
         API_TOKEN_GITHUB: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
-        BINARIES_VERSION: ${{ needs.Packaging.outputs.BINARIES_VERSION }}
       with:
         source_file: '${{ github.workspace }}/releases/homebrew/falu.rb'
         destination_repo: 'faluapp/homebrew-falu-cli'
         user_email: 'support@falu.io'
         user_name: 'falu-ci'
-        commit_message: 'Update homebrew tap to $BINARIES_VERSION'
+        commit_message: 'Update homebrew tap to ${{ needs.Packaging.outputs.BINARIES_VERSION }}'
