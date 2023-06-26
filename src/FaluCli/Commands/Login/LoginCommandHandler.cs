@@ -10,12 +10,10 @@ internal class LoginCommandHandler : ICommandHandler
     private readonly HttpClient client;
     private readonly IConfigValuesProvider configValuesProvider;
     private readonly ILogger logger;
-    private readonly IDiscoveryCache discoveryCache;
 
-    public LoginCommandHandler(IHttpClientFactory httpClientFactory, IDiscoveryCache discoveryCache, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger)
+    public LoginCommandHandler(IHttpClientFactory httpClientFactory, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger)
     {
         client = httpClientFactory?.CreateOpenIdClient() ?? throw new ArgumentNullException(nameof(httpClientFactory));
-        this.discoveryCache = discoveryCache ?? throw new ArgumentNullException(nameof(discoveryCache));
         this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -27,14 +25,11 @@ internal class LoginCommandHandler : ICommandHandler
         var cancellationToken = context.GetCancellationToken();
         var noBrowser = context.ParseResult.ValueForOption<bool>("--no-browser");
 
-        // perform confirguration discovery
-        var disco = await discoveryCache.GetSafelyAsync(cancellationToken);
-
         // perform device authorization
-        var auth_resp = await RequestAuthorizationAsync(disco, noBrowser, cancellationToken);
+        var auth_resp = await RequestAuthorizationAsync(noBrowser, cancellationToken);
 
         // get the token via polling
-        var token_resp = await RequestTokenAsync(disco, auth_resp, cancellationToken);
+        var token_resp = await RequestTokenAsync(auth_resp, cancellationToken);
         logger.LogInformation("Authentication tokens issued successfully.");
 
         // save the authentication information
@@ -43,13 +38,13 @@ internal class LoginCommandHandler : ICommandHandler
         return 0;
     }
 
-    private async Task<DeviceAuthorizationResponse> RequestAuthorizationAsync(DiscoveryDocumentResponse disco, bool noBrowser, CancellationToken cancellationToken = default)
+    private async Task<DeviceAuthorizationResponse> RequestAuthorizationAsync(bool noBrowser, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Performing device authentication. You will be redirected to the browser.");
 
         var request = new DeviceAuthorizationRequest
         {
-            Address = disco.DeviceAuthorizationEndpoint,
+            Address = Constants.DeviceAuthorizationEndpoint,
             ClientId = Constants.ClientId,
             ClientCredentialStyle = ClientCredentialStyle.PostBody,
             Scope = Constants.Scopes,
@@ -75,7 +70,7 @@ internal class LoginCommandHandler : ICommandHandler
         return response;
     }
 
-    private async Task<TokenResponse> RequestTokenAsync(DiscoveryDocumentResponse disco, DeviceAuthorizationResponse auth, CancellationToken cancellationToken = default)
+    private async Task<TokenResponse> RequestTokenAsync(DeviceAuthorizationResponse auth, CancellationToken cancellationToken = default)
     {
         while (true)
         {
@@ -83,7 +78,7 @@ internal class LoginCommandHandler : ICommandHandler
 
             var request = new DeviceTokenRequest
             {
-                Address = disco.TokenEndpoint,
+                Address = Constants.TokenEndpoint,
                 ClientId = Constants.ClientId,
                 DeviceCode = auth.DeviceCode ?? throw new InvalidOperationException("Device code in the response cannot be null. Contact support!"),
             };

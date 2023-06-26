@@ -2,7 +2,6 @@
 using Falu.Client;
 using Falu.Config;
 using Falu.Updates;
-using IdentityModel.Client;
 using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -41,13 +40,6 @@ internal static class IServiceCollectionExtensions
     {
         services.AddHttpClient(Constants.OpenIdCategoryOrClientName)
                 .ConfigureHttpClientStandard();
-
-        services.AddTransient<IDiscoveryCache>(p =>
-        {
-            var httpClientFactory = p.GetRequiredService<IHttpClientFactory>();
-            var client = httpClientFactory.CreateOpenIdClient();
-            return new DiscoveryCache(Constants.Authority, () => client);
-        });
 
         return services;
     }

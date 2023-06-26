@@ -10,15 +10,10 @@ internal partial class Constants
     public const string RepositoryName = "falu-cli";
 
     public const string Authority = "https://login.falu.io";
-    public const string ScopeApi = "api";
+    public const string DeviceAuthorizationEndpoint = $"{Authority}/connect/deviceauthorization";
+    public const string TokenEndpoint = $"{Authority}/connect/token";
     public const string ClientId = "cli";
-    public static readonly ICollection<string> ScopesList = new HashSet<string>
-    {
-        IdentityModel.OidcConstants.StandardScopes.OpenId,
-        IdentityModel.OidcConstants.StandardScopes.OfflineAccess,
-        ScopeApi,
-    };
-    public static readonly string Scopes = string.Join(" ", ScopesList);
+    public static readonly string Scopes = string.Join(" ", new[] { "openid", "offline_access", "api", });
 
     public static readonly ByteSizeLib.ByteSize MaxMpesaStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(256);
     public static readonly string MaxMpesaStatementFileSizeString = MaxMpesaStatementFileSize.ToBinaryString();

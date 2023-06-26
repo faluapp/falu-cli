@@ -8,19 +8,16 @@ namespace Falu.Client;
 internal class FaluCliClientHandler : DelegatingHandler
 {
     private readonly IHttpClientFactory httpClientFactory;
-    private readonly IDiscoveryCache discoveryCache;
     private readonly InvocationContext context;
     private readonly IConfigValuesProvider configValuesProvider;
     private readonly ILogger logger;
 
     public FaluCliClientHandler(IHttpClientFactory httpClientFactory,
-                                IDiscoveryCache discoveryCache,
                                 InvocationContext context,
                                 IConfigValuesProvider configValuesProvider,
                                 ILoggerFactory loggerFactory)
     {
         this.httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-        this.discoveryCache = discoveryCache ?? throw new ArgumentNullException(nameof(discoveryCache));
         this.context = context ?? throw new ArgumentNullException(nameof(context));
         this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
         logger = loggerFactory?.CreateOpenIdLogger() ?? throw new ArgumentNullException(nameof(loggerFactory));
@@ -69,13 +66,11 @@ internal class FaluCliClientHandler : DelegatingHandler
             if (!config.Authentication.HasValidAccessToken() && config.Authentication.HasValidRefreshToken())
             {
                 logger.LogInformation("Requesting for a new access token using the saved refresh token");
-                // perform confirguration discovery
-                var disco = await discoveryCache.GetSafelyAsync(cancellationToken);
 
                 // request for a new token using the refresh token
                 var rtr = new RefreshTokenRequest
                 {
-                    Address = disco.TokenEndpoint,
+                    Address = Constants.TokenEndpoint,
                     ClientId = Constants.ClientId,
                     RefreshToken = config.Authentication.RefreshToken,
                 };
