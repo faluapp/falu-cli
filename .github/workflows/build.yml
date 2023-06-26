@@ -28,6 +28,12 @@ on:
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  PKG_NAME: 'falu'
+  PKG_DESCRIPTION: 'Falu CLI'
+  PKG_MAINTAINER: 'Falu <support@falu.io>'
+  PKG_HOMEPAGE: 'https://falu.io'
+  PKG_VENDOR: FALU TECHNOLOGIES LIMITED
+  PKG_LICENSE: MIT
 
 jobs:
   Build:
@@ -39,8 +45,12 @@ jobs:
         # https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.NETCore.Platforms/src/runtime.json
         - rid: linux-x64
           os: ubuntu-latest
+          deb-arch: amd64
+          rpm-arch: x86_64
         - rid: linux-arm64
           os: ubuntu-latest
+          deb-arch: arm64
+          rpm-arch: aarch64
         - rid: win-x64
           os: windows-latest
         - rid: win-arm64
@@ -125,27 +135,89 @@ jobs:
     - name: Create Archive Folder
       run: mkdir ${{ github.workspace }}/releases
 
-    - name: Create Archive
+    - name: Create Archive (zip)
       uses: thedoctor0/zip-release@master
       if: startsWith(matrix.config.rid, 'win-')
       with:
         type: 'zip'
-        filename: '${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-${{ matrix.config.rid }}.zip'
+        filename: '${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ matrix.config.rid }}.zip'
         directory: ${{ github.workspace }}/drop/${{ matrix.config.rid }}
 
-    - name: Create Archive
+    - name: Create Archive (tar)
       uses: thedoctor0/zip-release@master
-      if: startsWith(matrix.config.rid, 'win-') != true
+      if: "!startsWith(matrix.config.rid, 'win-')"
       with:
         type: 'tar'
-        filename: '${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-${{ matrix.config.rid }}.tar.gz'
+        filename: '${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ matrix.config.rid }}.tar.gz'
         directory: ${{ github.workspace }}/drop/${{ matrix.config.rid }}
+
+    - name: Prepare .debpkg and .rpmpkg
+      if: startsWith(matrix.config.rid, 'linux-')
+      run: |
+        mkdir -p .debpkg/usr/bin
+        cp -p ${{ github.workspace }}/drop/${{ matrix.config.rid }}/* .debpkg/usr/bin/
+
+        mkdir -p .rpmpkg/usr/bin
+        cp -p ${{ github.workspace }}/drop/${{ matrix.config.rid }}/* .rpmpkg/usr/bin/
+
+    - name: 'Build DEB package'
+      uses: jiro4989/build-deb-action@v3
+      if: startsWith(matrix.config.rid, 'linux-')
+      with:
+        desc: '${{ env.PKG_DESCRIPTION }}'
+        maintainer: ${{ env.PKG_MAINTAINER }}
+        version: ${{ env.GITVERSION_NUGETVERSIONV2 }}
+        package: ${{ env.PKG_NAME }}
+        package_root: .debpkg
+        arch: '${{ matrix.config.deb-arch}}'
+
+    - name: 'Build RPM package'
+      uses: jiro4989/build-rpm-action@v2
+      # TODO: figure out how to generate RPM package for ARM (it fails)
+      # if: startsWith(matrix.config.rid, 'linux-')
+      if: matrix.config.rid == 'linux-x64'
+      with:
+        summary: '${{ env.PKG_DESCRIPTION }}'
+        desc: '${{ env.PKG_DESCRIPTION }}'
+        maintainer: ${{ env.PKG_MAINTAINER }}
+        vendor: ${{ env.PKG_VENDOR }}
+        license: ${{ env.PKG_LICENSE }}
+        version: ${{ env.GITVERSION_MAJORMINORPATCH }}
+        package: ${{ env.PKG_NAME }}
+        package_root: .rpmpkg
+        arch: '${{ matrix.config.rpm-arch}}'
+
+    - name: Rename deb and rpm packages
+      if: startsWith(matrix.config.rid, 'linux-')
+      run: |
+        src=falu_${{ env.GITVERSION_NUGETVERSIONV2 }}_${{ matrix.config.deb-arch}}.deb
+        dest=${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.config.deb-arch}}.deb
+        mv $src $dest
+
+        src=falu-${{ env.GITVERSION_MAJORMINORPATCH }}-1.el7.${{ matrix.config.rpm-arch}}.rpm
+        dest=${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.config.rpm-arch}}.rpm
+        if [ -f $src ]; then
+          mv $src $dest
+        fi
 
     - name: Publish Artifact (releases)
       uses: actions/upload-artifact@v3
       with:
         path: ${{ github.workspace }}/releases/**
         name: releases
+
+    - name: Test (DEB)
+      if: matrix.config.rid == 'linux-x64'
+      run: |
+        sudo apt-get install -y -f \
+        ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.config.deb-arch}}.deb
+
+    # TODO: investigate why installing .rpm file fails due to requirements
+    # - name: Test (RPM)
+    #   if: matrix.config.rid == 'linux-x64'
+    #   run: |
+    #     sudo rpm --install \
+    #     ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.config.rpm-arch}}.rpm
 
   Checksum:
     runs-on: ubuntu-latest
@@ -164,8 +236,10 @@ jobs:
         method: 'sha256'
         output: 'checksum.txt'
         patterns: |
-          releases/falu-*.zip
+          releases/falu-*.deb
+          releases/falu-*.rpm
           releases/falu-*.tar.gz
+          releases/falu-*.zip
 
     # retain only the file names
     # waiting on https://github.com/jmgilman/actions-generate-checksum/pull/2
@@ -248,8 +322,10 @@ jobs:
         # comma-separated values ('>' will make it a single line)
         artifacts: >
           ${{ github.workspace }}/releases/checksum.txt,
-          ${{ github.workspace }}/releases/falu-*.zip,
-          ${{ github.workspace }}/releases/falu-*.tar.gz
+          ${{ github.workspace }}/releases/falu-*.deb,
+          ${{ github.workspace }}/releases/falu-*.rpm,
+          ${{ github.workspace }}/releases/falu-*.tar.gz,
+          ${{ github.workspace }}/releases/falu-*.zip
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: true
         allowUpdates: true
