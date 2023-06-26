@@ -240,6 +240,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: releases
+        path: ${{ github.workspace }}/releases
 
     - name: Upload Release
       uses: ncipollo/release-action@v1
