@@ -26,7 +26,10 @@ internal static class IServiceCollectionExtensions
 
     public static IServiceCollection AddUpdateChecker(this IServiceCollection services)
     {
-        return services.AddHostedService<UpdateChecker>();
+        services.AddHttpClient<UpdateChecker>()
+                .ConfigureHttpClientStandard();
+
+        return services.AddSingleton<IHostedService>(p => p.GetRequiredService<UpdateChecker>());
     }
 
     public static IServiceCollection AddConfigValuesProvider(this IServiceCollection services)
