@@ -1,5 +1,5 @@
 ﻿using Falu.Config;
-using IdentityModel.Client;
+using Falu.Oidc;
 using System.Net.Http.Headers;
 using Res = Falu.Properties.Resources;
 
@@ -7,20 +7,20 @@ namespace Falu.Client;
 
 internal class FaluCliClientHandler : DelegatingHandler
 {
-    private readonly IHttpClientFactory httpClientFactory;
+    private readonly OidcProvider oidcProvider;
     private readonly InvocationContext context;
     private readonly IConfigValuesProvider configValuesProvider;
     private readonly ILogger logger;
 
-    public FaluCliClientHandler(IHttpClientFactory httpClientFactory,
+    public FaluCliClientHandler(OidcProvider oidcProvider,
                                 InvocationContext context,
                                 IConfigValuesProvider configValuesProvider,
-                                ILoggerFactory loggerFactory)
+                                ILogger<FaluCliClientHandler> logger)
     {
-        this.httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        this.oidcProvider = oidcProvider ?? throw new ArgumentNullException(nameof(oidcProvider));
         this.context = context ?? throw new ArgumentNullException(nameof(context));
         this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-        logger = loggerFactory?.CreateOpenIdLogger() ?? throw new ArgumentNullException(nameof(loggerFactory));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc/>
@@ -68,14 +68,7 @@ internal class FaluCliClientHandler : DelegatingHandler
                 logger.LogInformation("Requesting for a new access token using the saved refresh token");
 
                 // request for a new token using the refresh token
-                var rtr = new RefreshTokenRequest
-                {
-                    Address = Constants.TokenEndpoint,
-                    ClientId = Constants.ClientId,
-                    RefreshToken = config.Authentication.RefreshToken,
-                };
-                var client = httpClientFactory.CreateOpenIdClient();
-                var token_resp = await client.RequestRefreshTokenAsync(rtr, cancellationToken);
+                var token_resp = await oidcProvider.RequestRefreshTokenAsync(config.Authentication.RefreshToken, cancellationToken);
                 if (token_resp.IsError)
                 {
                     throw new FaluException(Res.RefreshingAccessTokenFailed);

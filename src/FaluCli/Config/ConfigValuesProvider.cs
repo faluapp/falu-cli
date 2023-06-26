@@ -1,4 +1,4 @@
-﻿using IdentityModel.Client;
+﻿using Falu.Oidc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -45,7 +45,7 @@ internal class ConfigValuesProvider : IConfigValuesProvider
         await File.WriteAllTextAsync(FilePath, json, cancellationToken);
     }
 
-    public async Task SaveConfigValuesAsync(TokenResponse response, CancellationToken cancellationToken = default)
+    public async Task SaveConfigValuesAsync(OidcTokenResponse response, CancellationToken cancellationToken = default)
     {
         values ??= await GetConfigValuesAsync(cancellationToken);
         values.Authentication = new AuthenticationTokenConfigData

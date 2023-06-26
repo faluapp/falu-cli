@@ -109,7 +109,7 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddFaluClientForCli();
             services.AddUpdateChecker();
             services.AddConfigValuesProvider();
-            services.AddOpenIdServices();
+            services.AddOpenIdProvider();
         });
 
         // System.CommandLine library does not create a scope, so we should skip validation of scopes
