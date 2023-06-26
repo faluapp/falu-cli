@@ -1,4 +1,4 @@
-﻿using Octokit;
+﻿using System.Net.Http.Json;
 
 namespace Falu.Updates;
 
@@ -11,10 +11,12 @@ internal class UpdateChecker : BackgroundService
     private static string? latestVersionBody;
 
     private readonly IHostEnvironment environment;
+    private readonly HttpClient httpClient;
 
-    public UpdateChecker(IHostEnvironment environment)
+    public UpdateChecker(IHostEnvironment environment, HttpClient httpClient)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,9 +28,11 @@ internal class UpdateChecker : BackgroundService
             try
             {
                 await locker.WaitAsync(stoppingToken);
-                var client = new GitHubClient(new ProductHeaderValue(Constants.RepositoryName));
-                var release = await client.Repository.Release.GetLatest(Constants.RepositoryOwner, Constants.RepositoryName);
-                Interlocked.Exchange(ref latestVersion, SemanticVersioning.Version.Parse(release.TagName));
+                var release = await httpClient.GetFromJsonAsync(
+                    requestUri: $"https://api.github.com/repos/{Constants.RepositoryOwner}/{Constants.RepositoryName}/releases/latest",
+                    jsonTypeInfo: FaluCliJsonSerializerContext.Default.GitHubLatestRelease,
+                    cancellationToken: stoppingToken);
+                Interlocked.Exchange(ref latestVersion, SemanticVersioning.Version.Parse(release!.TagName));
                 Interlocked.Exchange(ref latestVersionHtmlUrl, release.HtmlUrl);
                 Interlocked.Exchange(ref latestVersionBody, release.Body);
             }

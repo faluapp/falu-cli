@@ -10,6 +10,8 @@ namespace Falu;
 [JsonSerializable(typeof(Client.Events.WebhookDeliveryAttempt))]
 
 [JsonSerializable(typeof(List<Client.ExtractedStatementRecord>))]
+
+[JsonSerializable(typeof(Updates.GitHubLatestRelease))]
 internal partial class FaluCliJsonSerializerContext : JsonSerializerContext
 {
     private static JsonSerializerOptions DefaultSerializerOptions { get; } = new(JsonSerializerDefaults.Web)
