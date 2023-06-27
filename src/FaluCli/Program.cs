@@ -87,6 +87,7 @@ var builder = new CommandLineBuilder(rootCommand)
                 ["Logging:LogLevel:System.Net.Http.HttpClient"] = "None", // removes all we do not need
                 ["Logging:LogLevel:System.Net.Http.HttpClient.Oidc.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
                 ["Logging:LogLevel:System.Net.Http.HttpClient.FaluCliClient.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
+                ["Logging:LogLevel:System.Net.Http.HttpClient.UpdateChecker.ClientHandler"] = context.HostingEnvironment.IsDevelopment() && verbose ? "Trace" : "Warning", // add what we need
 
                 ["Logging:Console:FormatterName"] = "Falu",
                 ["Logging:Console:FormatterOptions:SingleLine"] = verbose ? "False" : "True",
