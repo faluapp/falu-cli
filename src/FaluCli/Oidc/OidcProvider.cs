@@ -18,7 +18,7 @@ internal class OidcProvider : IOidcProvider
         {
             ["grant_type"] = "refresh_token",
             ["client_id"] = Constants.ClientId,
-            //["scope"] = Constants.Scopes,
+            ["refresh_token"] = refreshToken,
         };
 
         return SendAsync(Constants.TokenEndpoint, parameters, FaluCliJsonSerializerContext.Default.OidcTokenResponse, cancellationToken);
