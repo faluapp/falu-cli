@@ -5,40 +5,26 @@
 /// </summary>
 internal static class ConsoleExtensions
 {
+    private static readonly bool ColorsAreSupported = GetColorsAreSupported();
+
+    private static bool GetColorsAreSupported()
+        => !(OperatingSystem.IsBrowser() || OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() || OperatingSystem.IsTvOS())
+        && !Console.IsOutputRedirected;
+
     internal static void SetTerminalForegroundRed(this IConsole console) => console.SetTerminalForegroundColor(ConsoleColor.Red);
     internal static void SetTerminalForegroundGreen(this IConsole console) => console.SetTerminalForegroundColor(ConsoleColor.Green);
 
-    internal static void SetTerminalForegroundColor(this IConsole console, ConsoleColor color)
+    internal static void SetTerminalForegroundColor(this IConsole _, ConsoleColor color)
     {
-        if (console.GetType().GetInterfaces().Any(i => i.Name == "ITerminal"))
-        {
-            ((dynamic)console).ForegroundColor = color;
-        }
-
-        if (Platform.IsConsoleRedirectionCheckSupported &&
-            !Console.IsOutputRedirected)
-        {
-            Console.ForegroundColor = color;
-        }
-        else if (Platform.IsConsoleRedirectionCheckSupported)
+        if (ColorsAreSupported)
         {
             Console.ForegroundColor = color;
         }
     }
 
-    internal static void ResetTerminalForegroundColor(this IConsole console)
+    internal static void ResetTerminalForegroundColor(this IConsole _)
     {
-        if (console.GetType().GetInterfaces().Any(i => i.Name == "ITerminal"))
-        {
-            ((dynamic)console).ForegroundColor = ConsoleColor.Red;
-        }
-
-        if (Platform.IsConsoleRedirectionCheckSupported &&
-            !Console.IsOutputRedirected)
-        {
-            Console.ResetColor();
-        }
-        else if (Platform.IsConsoleRedirectionCheckSupported)
+        if (ColorsAreSupported)
         {
             Console.ResetColor();
         }
