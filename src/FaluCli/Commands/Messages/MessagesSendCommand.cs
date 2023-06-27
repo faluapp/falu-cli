@@ -2,9 +2,9 @@
 
 namespace Falu.Commands.Messages;
 
-public abstract class AsbtractSendMessagesCommand : Command
+public abstract class AsbtractMessagesSendCommand : Command
 {
-    public AsbtractSendMessagesCommand(string name, string? description = null) : base(name, description)
+    public AsbtractMessagesSendCommand(string name, string? description = null) : base(name, description)
     {
         this.AddOption<string[]>(new[] { "--to", "-t", },
                                  description: "Phone number(s) you are sending to, in E.164 format.",
@@ -74,9 +74,9 @@ public abstract class AsbtractSendMessagesCommand : Command
     }
 }
 
-public class SendRawMessagesCommand : AsbtractSendMessagesCommand
+public class MessagesSendRawCommand : AsbtractMessagesSendCommand
 {
-    public SendRawMessagesCommand() : base("raw", "Send a message with the body defined.")
+    public MessagesSendRawCommand() : base("raw", "Send a message with the body defined.")
     {
         this.AddOption<string>(new[] { "--body", },
                                description: "The actual message content to be sent.",
@@ -84,9 +84,9 @@ public class SendRawMessagesCommand : AsbtractSendMessagesCommand
     }
 }
 
-public class SendTemplatedMessagesCommand : AsbtractSendMessagesCommand
+public class MessagesSendTemplatedCommand : AsbtractMessagesSendCommand
 {
-    public SendTemplatedMessagesCommand() : base("templated", "Send a templated message.")
+    public MessagesSendTemplatedCommand() : base("templated", "Send a templated message.")
     {
         this.AddOption(new[] { "--id", "-i", },
                        description: "The unique template identifier. Example: mtpl_610010be9228355f14ce6e08",

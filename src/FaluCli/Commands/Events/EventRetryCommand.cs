@@ -1,8 +1,8 @@
 ﻿namespace Falu.Commands.Events;
 
-internal class RetryCommand : Command
+internal class EventRetryCommand : Command
 {
-    public RetryCommand() : base("retry", "Retry delivery of an event to a webhook endpoint.")
+    public EventRetryCommand() : base("retry", "Retry delivery of an event to a webhook endpoint.")
     {
         this.AddArgument(name: "event",
                          description: "Unique identifier of the event. Example: evt_610010be9228355f14ce6e08",

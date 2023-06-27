@@ -1,6 +1,6 @@
 ﻿namespace Falu.Commands.Money;
 
-public class UploadMpesaStatementCommand : Command
+public class MoneyUploadStatementCommand : Command
 {
     private static readonly ICollection<FaluObjectKind> AllowedKinds = new HashSet<FaluObjectKind>
     {
@@ -10,7 +10,7 @@ public class UploadMpesaStatementCommand : Command
         FaluObjectKind.TransferReversals,
     };
 
-    public UploadMpesaStatementCommand(FaluObjectKind kind)
+    public MoneyUploadStatementCommand(FaluObjectKind kind)
         : base("mpesa-upload", $"Upload an MPESA statement to Falu for {kind.GetReadableName()}.")
     {
         if (!AllowedKinds.Contains(Kind = kind))

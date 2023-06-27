@@ -3,12 +3,12 @@ using Falu.Client.Money;
 
 namespace Falu.Commands.Money;
 
-internal class UploadMpesaStatementCommandHandler : ICommandHandler
+internal class MoneyUploadStatementCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
     private readonly ILogger logger;
 
-    public UploadMpesaStatementCommandHandler(FaluCliClient client, ILogger<UploadMpesaStatementCommandHandler> logger)
+    public MoneyUploadStatementCommandHandler(FaluCliClient client, ILogger<MoneyUploadStatementCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -21,7 +21,7 @@ internal class UploadMpesaStatementCommandHandler : ICommandHandler
         var cancellationToken = context.GetCancellationToken();
         var filePath = context.ParseResult.ValueForOption<string>("--file")!;
 
-        var kind = ((UploadMpesaStatementCommand)context.ParseResult.CommandResult.Command).Kind;
+        var kind = ((MoneyUploadStatementCommand)context.ParseResult.CommandResult.Command).Kind;
         ISupportsUploadingMpesaStatement uploader = kind switch
         {
             FaluObjectKind.Payments => client.Payments,

@@ -1,8 +1,8 @@
 ﻿namespace Falu.Commands.Templates;
 
-public class PushTemplatesCommand : Command
+public class TemplatesPushCommand : Command
 {
-    public PushTemplatesCommand() : base("push", "Pushes changed templates from the local file system to Falu servers.")
+    public TemplatesPushCommand() : base("push", "Pushes changed templates from the local file system to Falu servers.")
     {
         this.AddArgument<string>(name: "templates-directory",
                                  description: "The directory containing the templates.");

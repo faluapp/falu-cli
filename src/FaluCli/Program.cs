@@ -16,42 +16,42 @@ var rootCommand = new RootCommand
 
     new WorkspacedCommand("events", "Work with events on Falu.")
     {
-        new RetryCommand(),
+        new EventRetryCommand(),
     },
 
     new WorkspacedCommand("messages", "Work with messages.")
     {
         new Command("send", "Send messages.")
         {
-            new SendRawMessagesCommand(),
-            new SendTemplatedMessagesCommand(),
+            new MessagesSendRawCommand(),
+            new MessagesSendTemplatedCommand(),
         }
     },
 
     new WorkspacedCommand("templates", "Manage message templates.")
     {
-        new PullTemplatesCommand(),
-        new PushTemplatesCommand(),
+        new TemplatesPullCommand(),
+        new TemplatesPushCommand(),
     },
 
     new WorkspacedCommand("payments", "Manage payments.")
     {
-        new UploadMpesaStatementCommand(FaluObjectKind.Payments),
+        new MoneyUploadStatementCommand(FaluObjectKind.Payments),
     },
 
     new WorkspacedCommand("payment-refunds", "Manage payment refunds.")
     {
-        new UploadMpesaStatementCommand(FaluObjectKind.PaymentRefunds),
+        new MoneyUploadStatementCommand(FaluObjectKind.PaymentRefunds),
     },
 
     new WorkspacedCommand("transfers", "Manage transfers.")
     {
-        new UploadMpesaStatementCommand(FaluObjectKind.Transfers),
+        new MoneyUploadStatementCommand(FaluObjectKind.Transfers),
     },
 
     new WorkspacedCommand("transfer-reversals", "Manage transfer reversals.")
     {
-        new UploadMpesaStatementCommand(FaluObjectKind.TransferReversals),
+        new MoneyUploadStatementCommand(FaluObjectKind.TransferReversals),
     },
 
     new Command("config", "Manage configuration for the CLI.")
@@ -118,12 +118,12 @@ var builder = new CommandLineBuilder(rootCommand)
 
         host.UseCommandHandlerTrimmable<LoginCommand, LoginCommandHandler>();
         host.UseCommandHandlerTrimmable<LogoutCommand, LogoutCommandHandler>();
-        host.UseCommandHandlerTrimmable<RetryCommand, RetryCommandHandler>();
-        host.UseCommandHandlerTrimmable<SendRawMessagesCommand, SendMessagesCommandHandler>();
-        host.UseCommandHandlerTrimmable<SendTemplatedMessagesCommand, SendMessagesCommandHandler>();
-        host.UseCommandHandlerTrimmable<PullTemplatesCommand, TemplatesCommandHandler>();
-        host.UseCommandHandlerTrimmable<PushTemplatesCommand, TemplatesCommandHandler>();
-        host.UseCommandHandlerTrimmable<UploadMpesaStatementCommand, UploadMpesaStatementCommandHandler>();
+        host.UseCommandHandlerTrimmable<EventRetryCommand, EventRetryCommandHandler>();
+        host.UseCommandHandlerTrimmable<MessagesSendRawCommand, MessagesSendCommandHandler>();
+        host.UseCommandHandlerTrimmable<MessagesSendTemplatedCommand, MessagesSendCommandHandler>();
+        host.UseCommandHandlerTrimmable<TemplatesPullCommand, TemplatesCommandHandler>();
+        host.UseCommandHandlerTrimmable<TemplatesPushCommand, TemplatesCommandHandler>();
+        host.UseCommandHandlerTrimmable<MoneyUploadStatementCommand, MoneyUploadStatementCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigClearAllCommand, ConfigCommandHandler>();

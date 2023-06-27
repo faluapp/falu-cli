@@ -24,8 +24,8 @@ internal class TemplatesCommandHandler : ICommandHandler
     public Task<int> InvokeAsync(InvocationContext context)
     {
         var command = context.ParseResult.CommandResult.Command;
-        if (command is PullTemplatesCommand) return HandlePullAsync(context);
-        else if (command is PushTemplatesCommand) return HandlePushAsync(context);
+        if (command is TemplatesPullCommand) return HandlePullAsync(context);
+        else if (command is TemplatesPushCommand) return HandlePushAsync(context);
         throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
     }
 

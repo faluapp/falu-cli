@@ -7,12 +7,12 @@ using System.Text.Json.Nodes;
 
 namespace Falu.Commands.Events;
 
-internal class RetryCommandHandler : ICommandHandler
+internal class EventRetryCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
     private readonly ILogger logger;
 
-    public RetryCommandHandler(FaluCliClient client, ILogger<RetryCommandHandler> logger)
+    public EventRetryCommandHandler(FaluCliClient client, ILogger<EventRetryCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

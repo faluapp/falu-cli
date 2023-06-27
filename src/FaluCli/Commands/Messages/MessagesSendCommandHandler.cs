@@ -5,12 +5,12 @@ using Falu.MessageTemplates;
 
 namespace Falu.Commands.Messages;
 
-internal class SendMessagesCommandHandler : ICommandHandler
+internal class MessagesSendCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
     private readonly ILogger logger;
 
-    public SendMessagesCommandHandler(FaluCliClient client, ILogger<SendMessagesCommandHandler> logger)
+    public MessagesSendCommandHandler(FaluCliClient client, ILogger<MessagesSendCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -80,8 +80,8 @@ internal class SendMessagesCommandHandler : ICommandHandler
         var cancellationToken = context.GetCancellationToken();
 
         var command = context.ParseResult.CommandResult.Command;
-        if (command is SendRawMessagesCommand) return HandleRawAsync(context, tos, stream, media, schedule, cancellationToken);
-        else if (command is SendTemplatedMessagesCommand) return HandleTemplatedAsync(context, tos, stream, media, schedule, cancellationToken);
+        if (command is MessagesSendRawCommand) return HandleRawAsync(context, tos, stream, media, schedule, cancellationToken);
+        else if (command is MessagesSendTemplatedCommand) return HandleTemplatedAsync(context, tos, stream, media, schedule, cancellationToken);
         throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
     }
 
