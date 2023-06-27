@@ -1,14 +1,13 @@
 ﻿using Falu.Client;
-using Falu.Client.Money;
 
 namespace Falu.Commands.Money;
 
-internal class MoneyUploadStatementCommandHandler : ICommandHandler
+internal class MoneyStatementsUploadCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
     private readonly ILogger logger;
 
-    public MoneyUploadStatementCommandHandler(FaluCliClient client, ILogger<MoneyUploadStatementCommandHandler> logger)
+    public MoneyStatementsUploadCommandHandler(FaluCliClient client, ILogger<MoneyStatementsUploadCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -19,17 +18,9 @@ internal class MoneyUploadStatementCommandHandler : ICommandHandler
     public async Task<int> InvokeAsync(InvocationContext context)
     {
         var cancellationToken = context.GetCancellationToken();
+        var objectKind = context.ParseResult.ValueForArgument<string>("object-kind")!;
         var filePath = context.ParseResult.ValueForOption<string>("--file")!;
-
-        var kind = ((MoneyUploadStatementCommand)context.ParseResult.CommandResult.Command).Kind;
-        ISupportsUploadingMpesaStatement uploader = kind switch
-        {
-            FaluObjectKind.Payments => client.Payments,
-            FaluObjectKind.Transfers => client.Transfers,
-            FaluObjectKind.PaymentRefunds => client.PaymentRefunds,
-            FaluObjectKind.TransferReversals => client.TransferReversals,
-            _ => throw new InvalidOperationException($"'{nameof(FaluObjectKind)}'.'{kind}' is not supported here."),
-        };
+        var provider = context.ParseResult.ValueForOption<string>("--provider")!;
 
         // ensure the file exists
         var info = new FileInfo(filePath);
@@ -41,16 +32,20 @@ internal class MoneyUploadStatementCommandHandler : ICommandHandler
 
         // ensure the file size does not exceed the limit
         var size = ByteSizeLib.ByteSize.FromBytes(info.Length);
-        if (size > Constants.MaxMpesaStatementFileSize)
+        if (size > Constants.MaxStatementFileSize)
         {
-            logger.LogError("The file provided exceeds the size limit of {SizeLimit}. Trying exporting a smaller date range.", Constants.MaxMpesaStatementFileSizeString);
+            logger.LogError("The file provided exceeds the size limit of {SizeLimit}. Trying exporting a smaller date range.", Constants.MaxStatementFileSizeString);
             return -1;
         }
 
         var fileName = Path.GetFileName(filePath);
         logger.LogInformation("Uploading {FileName} ({FileSize})", fileName, size.ToBinaryString());
         using var fileContent = File.OpenRead(filePath);
-        var response = await uploader.UploadMpesaAsync(fileName, fileContent, cancellationToken: cancellationToken);
+        var response = await client.MoneyStatements.UploadAsync(objectKind: objectKind,
+                                                                provider: provider,
+                                                                fileName: fileName,
+                                                                fileContent: fileContent,
+                                                                cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         var extracted = response.Resource!;

@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace Falu;
 
-[JsonSerializable(typeof(Config.ConfigValues))]
-[JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
-
 [JsonSerializable(typeof(Client.Events.EventDeliveryRetry))]
 [JsonSerializable(typeof(Client.Events.WebhookDeliveryAttempt))]
 
-[JsonSerializable(typeof(List<Client.ExtractedStatementRecord>))]
+[JsonSerializable(typeof(List<Client.MoneyStatements.ExtractedStatementRecord>))]
+
+[JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
+[JsonSerializable(typeof(Config.ConfigValues))]
 
 [JsonSerializable(typeof(Oidc.OidcDeviceAuthorizationResponse))]
 [JsonSerializable(typeof(Oidc.OidcTokenResponse))]

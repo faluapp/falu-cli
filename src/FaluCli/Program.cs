@@ -34,24 +34,10 @@ var rootCommand = new RootCommand
         new TemplatesPushCommand(),
     },
 
-    new WorkspacedCommand("payments", "Manage payments.")
+    new WorkspacedCommand("money-statements", "Manage money statments.")
     {
-        new MoneyUploadStatementCommand(FaluObjectKind.Payments),
-    },
-
-    new WorkspacedCommand("payment-refunds", "Manage payment refunds.")
-    {
-        new MoneyUploadStatementCommand(FaluObjectKind.PaymentRefunds),
-    },
-
-    new WorkspacedCommand("transfers", "Manage transfers.")
-    {
-        new MoneyUploadStatementCommand(FaluObjectKind.Transfers),
-    },
-
-    new WorkspacedCommand("transfer-reversals", "Manage transfer reversals.")
-    {
-        new MoneyUploadStatementCommand(FaluObjectKind.TransferReversals),
+        //new MoneyStatementsListCommand(),
+        new MoneyStatementsUploadCommand(),
     },
 
     new Command("config", "Manage configuration for the CLI.")
@@ -123,7 +109,7 @@ var builder = new CommandLineBuilder(rootCommand)
         host.UseCommandHandlerTrimmable<MessagesSendTemplatedCommand, MessagesSendCommandHandler>();
         host.UseCommandHandlerTrimmable<TemplatesPullCommand, TemplatesCommandHandler>();
         host.UseCommandHandlerTrimmable<TemplatesPushCommand, TemplatesCommandHandler>();
-        host.UseCommandHandlerTrimmable<MoneyUploadStatementCommand, MoneyUploadStatementCommandHandler>();
+        host.UseCommandHandlerTrimmable<MoneyStatementsUploadCommand, MoneyStatementsUploadCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigClearAllCommand, ConfigCommandHandler>();
