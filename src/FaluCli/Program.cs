@@ -3,6 +3,7 @@ using Falu.Commands.Config;
 using Falu.Commands.Events;
 using Falu.Commands.Login;
 using Falu.Commands.Messages;
+using Falu.Commands.MoneyBalances;
 using Falu.Commands.MoneyStatements;
 using Falu.Commands.Templates;
 using System.CommandLine.Builder;
@@ -32,6 +33,12 @@ var rootCommand = new RootCommand
     {
         new TemplatesPullCommand(),
         new TemplatesPushCommand(),
+    },
+
+    new WorkspacedCommand("money-balances", "Work with money.")
+    {
+        new MoneyBalancesGetCommand(),
+        new MoneyBalancesRefreshCommand(),
     },
 
     new WorkspacedCommand("money-statements", "Manage money statments.")
@@ -109,6 +116,8 @@ var builder = new CommandLineBuilder(rootCommand)
         host.UseCommandHandlerTrimmable<MessagesSendTemplatedCommand, MessagesSendCommandHandler>();
         host.UseCommandHandlerTrimmable<TemplatesPullCommand, TemplatesCommandHandler>();
         host.UseCommandHandlerTrimmable<TemplatesPushCommand, TemplatesCommandHandler>();
+        host.UseCommandHandlerTrimmable<MoneyBalancesGetCommand, MoneyBalancesGetCommandHandler>();
+        host.UseCommandHandlerTrimmable<MoneyBalancesRefreshCommand, MoneyBalancesRefreshCommandHandler>();
         host.UseCommandHandlerTrimmable<MoneyStatementsUploadCommand, MoneyStatementsUploadCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
