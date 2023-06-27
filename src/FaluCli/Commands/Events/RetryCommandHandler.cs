@@ -9,7 +9,7 @@ namespace Falu.Commands.Events;
 
 internal class RetryCommandHandler : ICommandHandler
 {
-    public FaluCliClient client;
+    private readonly FaluCliClient client;
     private readonly ILogger logger;
 
     public RetryCommandHandler(FaluCliClient client, ILogger<RetryCommandHandler> logger)

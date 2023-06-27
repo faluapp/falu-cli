@@ -10,7 +10,7 @@ internal class TemplatesCommandHandler : ICommandHandler
     private const string BodyFileName = "content.txt";
     private const string InfoFileName = "info.json";
 
-    public FaluCliClient client;
+    private readonly FaluCliClient client;
     private readonly ILogger logger;
 
     public TemplatesCommandHandler(FaluCliClient client, ILogger<TemplatesCommandHandler> logger)

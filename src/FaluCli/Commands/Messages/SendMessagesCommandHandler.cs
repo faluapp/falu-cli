@@ -7,7 +7,7 @@ namespace Falu.Commands.Messages;
 
 internal class SendMessagesCommandHandler : ICommandHandler
 {
-    public FaluCliClient client;
+    private readonly FaluCliClient client;
     private readonly ILogger logger;
 
     public SendMessagesCommandHandler(FaluCliClient client, ILogger<SendMessagesCommandHandler> logger)

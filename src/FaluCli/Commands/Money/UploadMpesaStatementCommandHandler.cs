@@ -5,7 +5,7 @@ namespace Falu.Commands.Money;
 
 internal class UploadMpesaStatementCommandHandler : ICommandHandler
 {
-    public FaluCliClient client;
+    private readonly FaluCliClient client;
     private readonly ILogger logger;
 
     public UploadMpesaStatementCommandHandler(FaluCliClient client, ILogger<UploadMpesaStatementCommandHandler> logger)
