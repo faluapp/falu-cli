@@ -4,8 +4,6 @@ namespace Falu;
 
 internal partial class Constants
 {
-    public const string OpenIdCategoryOrClientName = "Oidc";
-
     public const string RepositoryOwner = "faluapp";
     public const string RepositoryName = "falu-cli";
 

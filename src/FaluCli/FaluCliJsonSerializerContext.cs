@@ -11,6 +11,9 @@ namespace Falu;
 
 [JsonSerializable(typeof(List<Client.ExtractedStatementRecord>))]
 
+[JsonSerializable(typeof(Oidc.OidcDeviceAuthorizationResponse))]
+[JsonSerializable(typeof(Oidc.OidcTokenResponse))]
+
 [JsonSerializable(typeof(Updates.GitHubLatestRelease))]
 internal partial class FaluCliJsonSerializerContext : JsonSerializerContext
 {

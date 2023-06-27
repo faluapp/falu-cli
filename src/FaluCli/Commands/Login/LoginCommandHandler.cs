@@ -1,19 +1,18 @@
 ﻿using Falu.Config;
-using IdentityModel;
-using IdentityModel.Client;
+using Falu.Oidc;
 using System.Diagnostics;
 
 namespace Falu.Commands.Login;
 
 internal class LoginCommandHandler : ICommandHandler
 {
-    private readonly HttpClient client;
+    private readonly OidcProvider oidcProvider;
     private readonly IConfigValuesProvider configValuesProvider;
     private readonly ILogger logger;
 
-    public LoginCommandHandler(IHttpClientFactory httpClientFactory, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger)
+    public LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger)
     {
-        client = httpClientFactory?.CreateOpenIdClient() ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        this.oidcProvider = oidcProvider ?? throw new ArgumentNullException(nameof(oidcProvider));
         this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -38,18 +37,11 @@ internal class LoginCommandHandler : ICommandHandler
         return 0;
     }
 
-    private async Task<DeviceAuthorizationResponse> RequestAuthorizationAsync(bool noBrowser, CancellationToken cancellationToken = default)
+    private async Task<OidcDeviceAuthorizationResponse> RequestAuthorizationAsync(bool noBrowser, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Performing device authentication. You will be redirected to the browser.");
 
-        var request = new DeviceAuthorizationRequest
-        {
-            Address = Constants.DeviceAuthorizationEndpoint,
-            ClientId = Constants.ClientId,
-            ClientCredentialStyle = ClientCredentialStyle.PostBody,
-            Scope = Constants.Scopes,
-        };
-        var response = await client.RequestDeviceAuthorizationAsync(request, cancellationToken);
+        var response = await oidcProvider.RequestDeviceAuthorizationAsync(cancellationToken);
         if (response.IsError) throw new LoginException(response);
 
         // inform the user where to authentication
@@ -70,26 +62,21 @@ internal class LoginCommandHandler : ICommandHandler
         return response;
     }
 
-    private async Task<TokenResponse> RequestTokenAsync(DeviceAuthorizationResponse auth, CancellationToken cancellationToken = default)
+    private async Task<OidcTokenResponse> RequestTokenAsync(OidcDeviceAuthorizationResponse auth, CancellationToken cancellationToken = default)
     {
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var request = new DeviceTokenRequest
-            {
-                Address = Constants.TokenEndpoint,
-                ClientId = Constants.ClientId,
-                DeviceCode = auth.DeviceCode ?? throw new InvalidOperationException("Device code in the response cannot be null. Contact support!"),
-            };
-            var response = await client.RequestDeviceTokenAsync(request, cancellationToken);
+            var deviceCode = auth.DeviceCode ?? throw new InvalidOperationException("Device code in the response cannot be null. Contact support!");
+            var response = await oidcProvider.RequestDeviceTokenAsync(deviceCode, cancellationToken);
 
             if (response.IsError)
             {
                 var msg = response.Error switch
                 {
-                    OidcConstants.TokenErrors.AuthorizationPending => "Authorization is pending",
-                    OidcConstants.TokenErrors.SlowDown => "Slowing down check for authorization.",
+                    "authorization_pending" => "Authorization is pending",
+                    "slow_down" => "Slowing down check for authorization.",
                     _ => throw new LoginException(response),
                 };
 

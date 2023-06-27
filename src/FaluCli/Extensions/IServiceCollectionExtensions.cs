@@ -1,6 +1,7 @@
 ﻿using Falu;
 using Falu.Client;
 using Falu.Config;
+using Falu.Oidc;
 using Falu.Updates;
 using System.Net.Http.Headers;
 
@@ -36,17 +37,24 @@ internal static class IServiceCollectionExtensions
         return services.AddTransient<IConfigValuesProvider, ConfigValuesProvider>();
     }
 
-    public static IServiceCollection AddOpenIdServices(this IServiceCollection services)
+    public static IServiceCollection AddOpenIdProvider(this IServiceCollection services)
     {
-        services.AddHttpClient(Constants.OpenIdCategoryOrClientName)
-                .ConfigureHttpClientStandard();
+        services.AddHttpClient<OidcProvider>(name: "Oidc")
+                .ConfigureHttpClientStandard((_, client) =>
+                {
+                    // only JSON responses
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                });
+
+        services.AddTransient<IOidcProvider>(p => p.GetRequiredService<OidcProvider>());
 
         return services;
     }
 
-    private static IHttpClientBuilder ConfigureHttpClientStandard(this IHttpClientBuilder buidler)
+    private static IHttpClientBuilder ConfigureHttpClientStandard(this IHttpClientBuilder builder, Action<IServiceProvider, HttpClient>? configure = null)
     {
-        return buidler.ConfigureHttpClient((provider, client) =>
+        return builder.ConfigureHttpClient((provider, client) =>
         {
             // change the User-Agent header
             client.DefaultRequestHeaders.UserAgent.Clear();
@@ -56,6 +64,9 @@ internal static class IServiceCollectionExtensions
             var configValuesProvider = provider.GetRequiredService<IConfigValuesProvider>();
             var configValues = configValuesProvider.GetConfigValuesAsync().GetAwaiter().GetResult();
             client.Timeout = TimeSpan.FromSeconds(configValues.Timeout);
+
+            // continue the configuration
+            configure?.Invoke(provider, client);
         });
     }
 }
