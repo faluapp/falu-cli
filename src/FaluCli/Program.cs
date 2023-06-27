@@ -3,7 +3,7 @@ using Falu.Commands.Config;
 using Falu.Commands.Events;
 using Falu.Commands.Login;
 using Falu.Commands.Messages;
-using Falu.Commands.Money;
+using Falu.Commands.MoneyStatements;
 using Falu.Commands.Templates;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
