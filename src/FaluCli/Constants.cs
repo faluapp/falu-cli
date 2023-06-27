@@ -13,8 +13,8 @@ internal partial class Constants
     public const string ClientId = "cli";
     public static readonly string Scopes = string.Join(" ", new[] { "openid", "offline_access", "api", });
 
-    public static readonly ByteSizeLib.ByteSize MaxMpesaStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(256);
-    public static readonly string MaxMpesaStatementFileSizeString = MaxMpesaStatementFileSize.ToBinaryString();
+    public static readonly ByteSizeLib.ByteSize MaxStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(256);
+    public static readonly string MaxStatementFileSizeString = MaxStatementFileSize.ToBinaryString();
 
     public static readonly Regex WorkspaceIdFormat = GetWorkspaceIdFormat();
     public static readonly Regex IdempotencyKeyFormat = GetIdempotencyKeyFormat();

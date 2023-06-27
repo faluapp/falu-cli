@@ -5,9 +5,9 @@ namespace Falu.Tests;
 public class ConstantsTests
 {
     [Fact]
-    public void MaxMpesaStatementFileSizeString_IsCorrect()
+    public void MaxStatementFileSizeString_IsCorrect()
     {
-        Assert.Equal("256 KiB", Constants.MaxMpesaStatementFileSizeString);
+        Assert.Equal("256 KiB", Constants.MaxStatementFileSizeString);
     }
 
     [Theory]
