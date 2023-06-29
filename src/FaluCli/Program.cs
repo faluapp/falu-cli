@@ -3,8 +3,8 @@ using Falu.Commands.Config;
 using Falu.Commands.Events;
 using Falu.Commands.Login;
 using Falu.Commands.Messages;
-using Falu.Commands.MoneyBalances;
-using Falu.Commands.MoneyStatements;
+using Falu.Commands.Money.Balances;
+using Falu.Commands.Money.Statements;
 using Falu.Commands.Templates;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
@@ -35,16 +35,19 @@ var rootCommand = new RootCommand
         new TemplatesPushCommand(),
     },
 
-    new WorkspacedCommand("money-balances", "Work with money.")
+    new WorkspacedCommand("money", "Work with money.")
     {
-        new MoneyBalancesGetCommand(),
-        new MoneyBalancesRefreshCommand(),
-    },
-
-    new WorkspacedCommand("money-statements", "Manage money statments.")
-    {
-        //new MoneyStatementsListCommand(),
-        new MoneyStatementsUploadCommand(),
+        new Command("balances", "Work with money balances.")
+        {
+            new MoneyBalancesGetCommand(),
+            new MoneyBalancesRefreshCommand(),
+        },
+        new Command("statements", "Work with money statements.")
+        {
+            //new MoneyStatementsListCommand(),
+            //new MoneyStatementsGetCommand(),
+            new MoneyStatementsUploadCommand(),
+        },
     },
 
     new Command("config", "Manage configuration for the CLI.")

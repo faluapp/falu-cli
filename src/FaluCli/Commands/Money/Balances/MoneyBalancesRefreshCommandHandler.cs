@@ -1,7 +1,7 @@
 ﻿using Falu.Client;
 using Falu.Payments;
 
-namespace Falu.Commands.MoneyBalances;
+namespace Falu.Commands.Money.Balances;
 
 internal class MoneyBalancesRefreshCommandHandler : ICommandHandler
 {

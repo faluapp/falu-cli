@@ -1,6 +1,6 @@
 ﻿using Falu.Client;
 
-namespace Falu.Commands.MoneyBalances;
+namespace Falu.Commands.Money.Balances;
 
 internal class MoneyBalancesGetCommandHandler : ICommandHandler
 {

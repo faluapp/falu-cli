@@ -1,4 +1,4 @@
-﻿namespace Falu.Commands.MoneyBalances;
+﻿namespace Falu.Commands.Money.Balances;
 
 internal class MoneyBalancesRefreshCommand : Command
 {

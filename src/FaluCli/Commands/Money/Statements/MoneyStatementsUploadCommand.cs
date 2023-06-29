@@ -1,4 +1,4 @@
-﻿namespace Falu.Commands.MoneyStatements;
+﻿namespace Falu.Commands.Money.Statements;
 
 public class MoneyStatementsUploadCommand : Command
 {

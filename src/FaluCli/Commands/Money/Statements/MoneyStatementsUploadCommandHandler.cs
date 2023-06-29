@@ -1,6 +1,6 @@
 ﻿using Falu.Client;
 
-namespace Falu.Commands.MoneyStatements;
+namespace Falu.Commands.Money.Statements;
 
 internal class MoneyStatementsUploadCommandHandler : ICommandHandler
 {
