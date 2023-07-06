@@ -25,6 +25,8 @@ internal class UpdateChecker : BackgroundService
         {
             if (environment.IsDevelopment() || latestVersion is not null) return;
 
+            // TODO: skip if configValues or command option says no update checks
+
             try
             {
                 await locker.WaitAsync(stoppingToken);

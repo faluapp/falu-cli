@@ -1,16 +1,15 @@
 ﻿using Falu.Client;
+using Spectre.Console;
 
 namespace Falu.Commands.Money.Balances;
 
 internal class MoneyBalancesGetCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
-    private readonly ILogger logger;
 
-    public MoneyBalancesGetCommandHandler(FaluCliClient client, ILogger<MoneyBalancesGetCommandHandler> logger)
+    public MoneyBalancesGetCommandHandler(FaluCliClient client)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
@@ -24,14 +23,23 @@ internal class MoneyBalancesGetCommandHandler : ICommandHandler
 
         var balances = response.Resource!;
 
-        // TODO: use a table here instead
+        // Create a table
+        var table = new Table().AddColumn("Type")
+                               .AddColumn("Code")
+                               .AddColumn(new TableColumn("Balance").RightAligned())
+                               .AddColumn(new TableColumn("Updated").Centered());
 
-        logger.LogInformation("Balances were last updated at {Updated:F}", balances.Updated.ToLocalTime());
-        var mpesa = balances.Mpesa ?? new();
-        foreach (var (code, balance) in mpesa)
+        // Add rows
+        var updated = balances.Updated.ToLocalTime().ToString("F");
+        foreach (var (code, balance) in balances.Mpesa ?? new())
         {
-            logger.LogInformation("Balance for {Code}: KES {Balance:n2}", code, balance / 100f);
+            table.AddRow(new Markup("MPESA"),
+                         new Markup(code),
+                         new Markup($"KES {balance / 100f:n2}"),
+                         new Markup(updated).Centered());
         }
+
+        AnsiConsole.Write(table);
 
         return 0;
     }

@@ -1,6 +1,8 @@
 ﻿using Falu.Client;
 using Falu.Client.Realtime;
 using Falu.Websockets;
+using Spectre.Console;
+using System.Text;
 
 namespace Falu.Commands.Events;
 
@@ -51,11 +53,19 @@ internal partial class EventsListenCommandHandler : ICommandHandler
 
             var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
             var @event = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.WebhookEvent)!;
-            var eventType = @event.Type;
+            var eventId = @event.Id!;
+            var eventType = @event.Type!;
+            var eventsTypeUrl = $"https://dashboard.falu.io/{workspaceId}/developer/events?type={eventType}&live={live.ToString().ToLowerInvariant()}";
+            var eventUrl = $"https://dashboard.falu.io/{workspaceId}/developer/events/{eventId}?live={live.ToString().ToLowerInvariant()}";
 
-            logger.LogInformation("--> {EventType} [{EventId}]",
-                                  eventType,
-                                  @event.Id); // TODO: use a link with format https://dashboard.falu.io/{workspaceId}/developer/events/{requestId}?live={live}
+            // write to the console
+            var sb = new StringBuilder();
+            sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
+            sb.Append("  --> ");
+            sb.Append(SpectreFormatter.ForLink(text: eventType, url: eventsTypeUrl));
+            sb.Append(' ');
+            sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: eventId, url: eventUrl)));
+            AnsiConsole.MarkupLine(sb.ToString());
 
             // TODO: forward the event to a provided destination if any
 

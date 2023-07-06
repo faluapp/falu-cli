@@ -1,9 +1,11 @@
 ﻿using Falu;
 using Falu.Commands.Login;
 using Falu.Updates;
+using Spectre.Console;
 using System.CommandLine.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Res = Falu.Properties.Resources;
 
 namespace System.CommandLine.Builder;
@@ -35,74 +37,76 @@ internal static class CommandLineBuilderExtensions
 
         if (exception is OperationCanceledException) return;
 
-        var console = context.Console;
-        console.ResetTerminalForegroundColor();
-        console.SetTerminalForegroundRed();
-
-        var stderr = console.Error;
-
         if (exception is FaluException fe)
         {
             var error = fe.Error;
             if (error is not null)
             {
-                stderr.WriteLine(Res.RequestFailedHeader);
+                var sb = new StringBuilder();
+
+                sb.AppendLine(SpectreFormatter.ColouredRed(Res.RequestFailedHeader));
 
                 var id = fe.RequestId;
                 if (!string.IsNullOrEmpty(id))
                 {
-                    stderr.WriteLine(Res.RequestIdFormat, id);
+                    sb.AppendLine(SpectreFormatter.ColouredRed(string.Format(Res.RequestIdFormat, id)));
                 }
 
                 id = fe.TraceId;
                 if (!string.IsNullOrEmpty(id))
                 {
-                    stderr.WriteLine(Res.TraceIdentifierFormat, id);
+                    sb.AppendLine(SpectreFormatter.ColouredRed(string.Format(Res.TraceIdentifierFormat, id)));
                 }
 
-                stderr.WriteLine(Res.ProblemDetailsErrorCodeFormat, error.Title);
+                sb.AppendLine(SpectreFormatter.ColouredRed(string.Format(Res.ProblemDetailsErrorCodeFormat, error.Title)));
                 if (!string.IsNullOrWhiteSpace(error.Detail))
                 {
-                    stderr.WriteLine(Res.ProblemDetailsErrorDetailFormat, error.Detail);
+                    sb.AppendLine(SpectreFormatter.ColouredRed(string.Format(Res.ProblemDetailsErrorDetailFormat, error.Detail)));
                 }
 
                 if (error.Errors is not null && error.Errors.Count > 0)
                 {
                     var errors = string.Join(Environment.NewLine, error.Errors.Select(k => $"{k.Key}: {string.Join("; ", k.Value)}"));
-                    stderr.WriteLine(Res.ProblemDetailsErrorsFormat, errors);
+                    sb.AppendLine(SpectreFormatter.ColouredRed(string.Format(Res.ProblemDetailsErrorsFormat, errors)));
                 }
             }
             else if (fe.StatusCode == HttpStatusCode.Unauthorized)
             {
-                stderr.WriteLine(Res.Unauthorized401ErrorMessage);
+                AnsiConsole.MarkupLine(SpectreFormatter.ColouredRed(Res.Unauthorized401ErrorMessage));
             }
             else if (fe.StatusCode == HttpStatusCode.Forbidden)
             {
-                stderr.WriteLine(Res.Forbidden403Message);
+                AnsiConsole.MarkupLine(SpectreFormatter.ColouredRed(Res.Forbidden403Message));
             }
             else if (fe.StatusCode == HttpStatusCode.InternalServerError)
             {
-                stderr.WriteLine(Res.InternalServerError500Message);
+                AnsiConsole.MarkupLine(SpectreFormatter.ColouredRed(Res.InternalServerError500Message));
             }
             else
             {
-                stderr.WriteLine(fe.Message);
+                AnsiConsole.MarkupLine(SpectreFormatter.ColouredRed(fe.Message));
             }
         }
         else if (exception is LoginException le)
         {
-            stderr.WriteLine(le.InnerException is null ? Res.LoginFailedWithCodeFormat : Res.LoginFailedFormat, le.Message);
+            AnsiConsole.MarkupLine(
+                SpectreFormatter.ColouredRed(
+                    string.Format(
+                        le.InnerException is null ? Res.LoginFailedWithCodeFormat : Res.LoginFailedFormat,
+                        le.Message)));
         }
         else if (exception is HttpRequestException hre && hre.InnerException is SocketException se && se.SocketErrorCode == SocketError.HostNotFound)
         {
-            stderr.WriteLine(Res.HostNotFoundExceptionFormat);
+            AnsiConsole.MarkupLine(SpectreFormatter.ColouredRed(Res.HostNotFoundExceptionFormat));
         }
         else
         {
-            stderr.WriteLine(Res.UnhandledExceptionFormat, exception.ToString());
+            var format = ExceptionFormats.ShortenPaths
+                       | ExceptionFormats.ShortenTypes
+                       | ExceptionFormats.ShortenMethods
+                       | ExceptionFormats.ShowLinks;
+            AnsiConsole.WriteException(exception, format);
         }
-
-        console.ResetTerminalForegroundColor();
     }
 
     public static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder)
@@ -124,27 +128,23 @@ internal static class CommandLineBuilderExtensions
                 var latest = UpdateChecker.LatestVersion;
                 if (latest is not null && latest > current)
                 {
-                    var console = invocation.Console;
-                    var stdout = console.Out;
+                    var sb = new StringBuilder();
 
-                    stdout.WriteLine(); // empty line
+                    sb.AppendLine(); // empty line
 
-                    console.ResetTerminalForegroundColor();
-                    stdout.Write("New version (");
-                    console.SetTerminalForegroundGreen();
-                    stdout.Write($"{latest}");
-                    console.ResetTerminalForegroundColor();
-                    stdout.WriteLine($") is available. You have version {current.BaseVersion()}");
+                    sb.Append("New version (");
+                    sb.Append(SpectreFormatter.ColouredLightGreen($"{latest}"));
+                    sb.AppendLine($") is available. You have version {current.BaseVersion()}");
 
-                    stdout.Write("Download at: ");
-                    console.SetTerminalForegroundGreen();
-                    stdout.WriteLine(UpdateChecker.LatestVersionHtmlUrl!);
-                    console.ResetTerminalForegroundColor();
+                    sb.Append("Download at: ");
+                    sb.AppendLine(SpectreFormatter.ColouredLightGreen(UpdateChecker.LatestVersionHtmlUrl!));
 
-                    stdout.WriteLine(); // empty line
-                    stdout.WriteLine("Release notes: ");
-                    stdout.WriteLine(UpdateChecker.LatestVersionBody!);
-                    stdout.WriteLine(); // empty line
+                    sb.AppendLine(); // empty line
+                    sb.Append("Release notes: ");
+                    AnsiConsole.MarkupLine(sb.ToString());
+
+                    AnsiConsole.WriteLine(UpdateChecker.LatestVersionBody!);
+                    AnsiConsole.WriteLine(); // empty line
                 }
             }
         });

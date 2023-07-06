@@ -28,7 +28,7 @@ internal class WebsocketHandler
     {
         var remainingTime = negotiation.Expires - DateTimeOffset.UtcNow - TimeSpan.FromSeconds(2);
         using var expiryCts = new CancellationTokenSource(remainingTime);
-        expiryCts.Token.Register(() => logger.LogInformation("Closing the connection because the URL expired."));
+        expiryCts.Token.Register(() => logger.LogInformation("Closing the connection because the token expired."));
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expiryCts.Token);
         cancellationToken = cts.Token;
 
@@ -37,6 +37,7 @@ internal class WebsocketHandler
         var token = negotiation.Token;
         logger.LogInformation("Opening websocket connection to {Url}", maskedUrl);
         logger.LogInformation("Connection valid for {Minutes} minutes", Convert.ToInt32(remainingTime.TotalMinutes));
+        logger.LogDebug("Connection token:\r\n{Token}", token);
 
         ClientWebSocket factory()
         {
@@ -69,9 +70,9 @@ internal class WebsocketHandler
             {
                 WebSocketMessageType.Binary => BinaryData.FromBytes(rm.Binary),
                 WebSocketMessageType.Text => BinaryData.FromString(rm.Text),
-                _ => throw new InvalidOperationException($"Unknown message type {type}")
+                _ => throw new InvalidOperationException($"Unknown message type '{nameof(WebSocketMessageType)}.{type}'")
             };
-            logger.LogTrace("Received message: {Data}", data);
+            logger.LogDebug("Received message: {Data}", data);
 
             // decode the message from JSON and send to handler
             var message = JsonSerializer.Deserialize(data, SC.Default.WebsocketIncomingMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
@@ -91,7 +92,7 @@ internal class WebsocketHandler
                 Live = negotiation.Live,
             };
             var subMessageJson = JsonSerializer.Serialize(message, SC.Default.WebsocketOutgoingMessage);
-            logger.LogTrace("Sending message: {Data}", subMessageJson);
+            logger.LogDebug("Sending message: {Data}", subMessageJson);
             wsClient.Send(subMessageJson);
         }
 

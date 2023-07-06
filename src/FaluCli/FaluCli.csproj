@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <!--<AssemblyName>falu</AssemblyName>-->
@@ -6,7 +6,12 @@
     <Description>Official CLI tool for Falu.</Description>
     <Product>Falu CLI</Product>
     <IsTrimmable>true</IsTrimmable>
+    <NoWarn>$(NoWarn);IL2104</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="TrimmingRoots.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="FaluCli.Tests" />
@@ -17,6 +22,8 @@
     <PackageReference Include="Falu" Version="1.11.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.47.0" />
+    <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="System.Memory.Data" Version="7.0.0" />
     <PackageReference Include="Websocket.Client" Version="4.6.1" />
