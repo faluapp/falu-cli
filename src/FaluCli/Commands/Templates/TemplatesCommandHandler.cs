@@ -1,5 +1,6 @@
 ﻿using Falu.Client;
 using Falu.MessageTemplates;
+using Spectre.Console;
 using System.Text.Json;
 using Tingle.Extensions.JsonPatch;
 
@@ -127,13 +128,32 @@ internal class TemplatesCommandHandler : ICommandHandler
         else
         {
             GenerateChanges(templates, manifests);
-            // TODO: print table with the list of templates and the respective change types
             var modified = manifests.Where(m => m.ChangeType != ChangeType.Unmodified).ToList();
             logger.LogInformation("Pushing {Count} templates to Falu servers.", modified.Count);
+
+            var table = new Table().AddColumn("Change")
+                                   .AddColumn("Alias")
+                                   .AddColumn("Id");
+
+            foreach (var m in modified) table.AddRow(new Markup(ColorizeChangeType(m.ChangeType)), new Markup(m.Alias ?? "-"), new Markup(m.Id ?? "-"));
+            AnsiConsole.Write(table);
+
+            // TODO: seek prompt to push the changes (with an option override: -y/--yes)
+
             await PushTemplatesAsync(modified, cancellationToken);
         }
 
         return 0;
+    }
+
+    private static string ColorizeChangeType(ChangeType changeType)
+    {
+        return changeType switch
+        {
+            ChangeType.Added => SpectreFormatter.Coloured("red", "Added"),
+            ChangeType.Modified => SpectreFormatter.Coloured("yellow", "Modified"),
+            _ => throw new InvalidOperationException($"Unknown change type '{nameof(ChangeType)}.{changeType}'")
+        };
     }
 
     private async Task PushTemplatesAsync(IReadOnlyList<TemplateManifest> manifests, CancellationToken cancellationToken)
