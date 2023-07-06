@@ -3,11 +3,16 @@ using System.Text.Json.Serialization;
 
 namespace Falu;
 
+[JsonSerializable(typeof(Events.WebhookEvent))]
 [JsonSerializable(typeof(Client.Events.EventDeliveryRetry))]
 [JsonSerializable(typeof(Client.Events.WebhookDeliveryAttempt))]
 
 [JsonSerializable(typeof(List<Client.MoneyStatements.ExtractedStatementRecord>))]
 
+[JsonSerializable(typeof(Client.Realtime.RealtimeConnectionNegotiationRequest))]
+[JsonSerializable(typeof(Client.Realtime.RealtimeConnectionNegotiation))]
+
+[JsonSerializable(typeof(Commands.RequestLogs.RequestLog))]
 [JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
 [JsonSerializable(typeof(Config.ConfigValues))]
 
@@ -15,6 +20,8 @@ namespace Falu;
 [JsonSerializable(typeof(Oidc.OidcTokenResponse))]
 
 [JsonSerializable(typeof(Updates.GitHubLatestRelease))]
+[JsonSerializable(typeof(Websockets.WebsocketIncomingMessage))]
+[JsonSerializable(typeof(Websockets.WebsocketOutgoingMessage))]
 internal partial class FaluCliJsonSerializerContext : JsonSerializerContext
 {
     private static JsonSerializerOptions DefaultSerializerOptions { get; } = new(JsonSerializerDefaults.Web)

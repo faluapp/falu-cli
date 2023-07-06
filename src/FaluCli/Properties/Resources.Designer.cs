@@ -111,6 +111,24 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not a valid HTTP request path. It should start with &apos;/v1/&apos;..
+        /// </summary>
+        internal static string InvalidHttpRequestPath {
+            get {
+                return ResourceManager.GetString("InvalidHttpRequestPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not a valid HTTP status code. It should range between 200 and 599 (inclusive)..
+        /// </summary>
+        internal static string InvalidHttpStatusCode {
+            get {
+                return ResourceManager.GetString("InvalidHttpStatusCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value for &apos;{0}&apos; has invalid format. The expected pattern is &apos;{1}&apos;.
         /// </summary>
         internal static string InvalidInputValue {
