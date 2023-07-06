@@ -18,7 +18,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
 
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
-    public Task<int> InvokeAsync(InvocationContext context)
+    public async Task<int> InvokeAsync(InvocationContext context)
     {
         // ensure both to and file are not null or empty
         var tos = context.ParseResult.ValueForOption<string[]>("--to");
@@ -26,14 +26,14 @@ internal class MessagesSendCommandHandler : ICommandHandler
         if ((tos is null || tos.Length == 0) && string.IsNullOrWhiteSpace(filePath))
         {
             logger.LogError("A CSV file path must be specified or the destinations using the --to option.");
-            return Task.FromResult(-1);
+            return -1;
         }
 
         // ensure both to and file are not specified
         if (tos is not null && tos.Length > 0 && !string.IsNullOrWhiteSpace(filePath))
         {
             logger.LogError("Either specify the CSV file path or destinations not both.");
-            return Task.FromResult(-1);
+            return -1;
         }
 
         // read the numbers from the CSV file
@@ -54,7 +54,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
         if (mediaUrl is not null && mediaFileId is not null)
         {
             logger.LogError("Media URL and File ID cannot be specified together.");
-            return Task.FromResult(-1);
+            return -1;
         }
 
         var media = mediaUrl is not null || mediaFileId is not null
@@ -67,7 +67,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
         if (time is not null && delay is not null)
         {
             logger.LogError("Schedule time and delay cannot be specified together.");
-            return Task.FromResult(-1);
+            return -1;
         }
 
         // make the schedule
@@ -80,79 +80,46 @@ internal class MessagesSendCommandHandler : ICommandHandler
         var cancellationToken = context.GetCancellationToken();
 
         var command = context.ParseResult.CommandResult.Command;
-        if (command is MessagesSendRawCommand) return HandleRawAsync(context, tos, stream, media, schedule, cancellationToken);
-        else if (command is MessagesSendTemplatedCommand) return HandleTemplatedAsync(context, tos, stream, media, schedule, cancellationToken);
-        throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
-    }
-
-    private async Task<int> HandleRawAsync(InvocationContext context,
-                                           string[] tos,
-                                           string stream,
-                                           IList<MessageCreateRequestMedia>? media,
-                                           MessageCreateRequestSchedule? schedule,
-                                           CancellationToken cancellationToken)
-    {
-        var body = context.ParseResult.ValueForOption<string>("--body");
-
-        var batch = new MessageBatchCreateRequestMessage { Tos = tos, Body = body, };
-        await SendMessagesAsync(batch, stream, media, schedule, cancellationToken);
-        return 0;
-    }
-
-    private async Task<int> HandleTemplatedAsync(InvocationContext context,
-                                                 string[] tos,
-                                                 string stream,
-                                                 IList<MessageCreateRequestMedia>? media,
-                                                 MessageCreateRequestSchedule? schedule,
-                                                 CancellationToken cancellationToken)
-    {
-        var id = context.ParseResult.ValueForOption<string>("--id");
-        var alias = context.ParseResult.ValueForOption<string>("--alias");
-        var modelJson = context.ParseResult.ValueForOption<string>("--model");
-        var model = modelJson is null ? (MessageTemplateModel?)null : new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
-
-        // ensure both id and alias are not null
-        if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
+        string? body = null;
+        MessageCreateRequestTemplate? template = null;
+        if (command is MessagesSendRawCommand)
         {
-            logger.LogError("A template identifier or template alias must be provided when sending a templated message.");
-            return -1;
+            body = context.ParseResult.ValueForOption<string>("--body")!; // marked required in the command
         }
-
-        // ensure both id and alias are not specified
-        if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(alias))
+        else if (command is MessagesSendTemplatedCommand)
         {
-            logger.LogError("Either specify the template identifier or template alias not both.");
-            return -1;
-        }
+            var id = context.ParseResult.ValueForOption<string>("--id");
+            var alias = context.ParseResult.ValueForOption<string>("--alias");
+            var modelJson = context.ParseResult.ValueForOption<string>("--model")!; // marked required in the command
+            var model = new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
 
-        var batch = new MessageBatchCreateRequestMessage
-        {
-            Tos = tos,
-            Template = new MessageCreateRequestTemplate
+            // ensure both id and alias are not null
+            if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
             {
-                Id = id,
-                Alias = alias,
-                Model = model,
-            },
-        };
-        await SendMessagesAsync(batch, stream, media, schedule, cancellationToken);
-        return 0;
-    }
+                logger.LogError("A template identifier or template alias must be provided when sending a templated message.");
+                return -1;
+            }
 
-    private async Task SendMessagesAsync(MessageBatchCreateRequestMessage batch,
-                                         string stream,
-                                         IList<MessageCreateRequestMedia>? media,
-                                         MessageCreateRequestSchedule? schedule,
-                                         CancellationToken cancellationToken)
-    {
-        if (batch.Tos!.Count == 1)
+            // ensure both id and alias are not specified
+            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(alias))
+            {
+                logger.LogError("Either specify the template identifier or template alias not both.");
+                return -1;
+            }
+
+            template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, };
+        }
+        else throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
+
+        // if there is only a single number, send a single message, otherwise use the batch
+        if (tos.Length == 1)
         {
-            var target = batch.Tos[0];
+            var target = tos[0];
             var request = new MessageCreateRequest
             {
                 To = target,
-                Body = batch.Body,
-                Template = batch.Template,
+                Body = body,
+                Template = template,
                 Stream = stream,
                 Media = media,
                 Schedule = schedule,
@@ -167,7 +134,16 @@ internal class MessagesSendCommandHandler : ICommandHandler
         {
             var request = new MessageBatchCreateRequest
             {
-                Messages = new List<MessageBatchCreateRequestMessage> { batch, },
+                Messages = new List<MessageBatchCreateRequestMessage>
+                {
+                    new MessageBatchCreateRequestMessage
+                    {
+                        Tos = tos,
+                        Body = body,
+                        Template = template,
+                        Media = media,
+                    },
+                },
                 Stream = stream,
                 Schedule = schedule,
             };
@@ -179,5 +155,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
             logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
             logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
         }
+
+        return 0;
     }
 }
