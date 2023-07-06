@@ -129,11 +129,11 @@ internal static class CommandLineBuilderExtensions
                     sb.AppendLine(); // empty line
 
                     sb.Append("New version (");
-                    sb.Append(SpectreFormatter.Coloured("lightgreen", $"{latest}"));
+                    sb.Append(SpectreFormatter.ColouredLightGreen($"{latest}"));
                     sb.AppendLine($") is available. You have version {current.BaseVersion()}");
 
                     sb.Append("Download at: ");
-                    sb.AppendLine(SpectreFormatter.Coloured("lightgreen", UpdateChecker.LatestVersionHtmlUrl!));
+                    sb.AppendLine(SpectreFormatter.ColouredLightGreen(UpdateChecker.LatestVersionHtmlUrl!));
 
                     sb.AppendLine(); // empty line
                     sb.Append("Release notes: ");

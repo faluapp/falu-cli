@@ -150,8 +150,8 @@ internal class TemplatesCommandHandler : ICommandHandler
     {
         return changeType switch
         {
-            ChangeType.Added => SpectreFormatter.Coloured("red", "Added"),
-            ChangeType.Modified => SpectreFormatter.Coloured("yellow", "Modified"),
+            ChangeType.Added => SpectreFormatter.ColouredRed("Added"),
+            ChangeType.Modified => SpectreFormatter.ColouredYellow("Modified"),
             _ => throw new InvalidOperationException($"Unknown change type '{nameof(ChangeType)}.{changeType}'")
         };
     }

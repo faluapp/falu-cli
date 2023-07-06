@@ -60,7 +60,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
 
             // write to the console
             var sb = new StringBuilder();
-            sb.Append(SpectreFormatter.Coloured("grey", $"{DateTime.Now:T} "));
+            sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
             sb.Append("  --> ");
             sb.Append(SpectreFormatter.ForLink(text: eventType, url: eventsTypeUrl));
             sb.Append(' ');

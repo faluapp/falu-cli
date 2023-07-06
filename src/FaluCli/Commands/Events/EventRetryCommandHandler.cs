@@ -46,9 +46,8 @@ internal class EventRetryCommandHandler : ICommandHandler
             data["Http Status"] = $"{statusCode} ({attempt.HttpStatus})";
         }
 
-        var (color, text) = attempt.Successful ? ("green", "Retry succeeded.") : ("red", "Retry failed!");
         var sb = new StringBuilder();
-        sb.AppendLine(SpectreFormatter.Coloured(color, text));
+        sb.AppendLine(attempt.Successful ? SpectreFormatter.ColouredGreen("Retry succeeded.") : SpectreFormatter.ColouredRed("Retry failed!"));
         sb.AppendLine(data.MakePaddedString());
         AnsiConsole.MarkupLine(sb.ToString());
 

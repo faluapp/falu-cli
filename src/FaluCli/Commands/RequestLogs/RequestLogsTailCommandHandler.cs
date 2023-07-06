@@ -67,7 +67,7 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
 
             // write to the console
             var sb = new StringBuilder();
-            sb.Append(SpectreFormatter.Coloured("grey", $"{DateTime.Now:T} "));
+            sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
             sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(log.Response.StatusCode)));
             sb.Append($" {log.Request.Method} {log.Request.Url} ");
             sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: log.Id, url: url)));
