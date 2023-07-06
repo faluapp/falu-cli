@@ -1,7 +1,9 @@
 ﻿using Falu.Client;
 using Falu.Client.Realtime;
 using Falu.Websockets;
+using Spectre.Console;
 using System.Net;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace Falu.Commands.RequestLogs;
@@ -61,13 +63,15 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
 
             var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
             var log = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.RequestLog)!;
+            var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";
 
-            // TODO: log IP, source, and error code if present and based on the filters
-            logger.LogInformation("[{StatusCode}] {Method} {Url} [{Id}]",
-                                  log.Response.StatusCode,
-                                  log.Request.Method,
-                                  log.Request.Url,
-                                  log.Id); // TODO: use a link with format https://dashboard.falu.io/{workspaceId}/developer/logs/{requestId}?live={live}
+            // write to the console
+            var sb = new StringBuilder();
+            sb.Append(SpectreFormatter.Coloured("grey", $"{DateTime.Now:T} "));
+            sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(log.Response.StatusCode)));
+            sb.Append($" {log.Request.Method} {log.Request.Url} ");
+            sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: log.Id, url: url)));
+            AnsiConsole.MarkupLine(sb.ToString());
 
             return Task.CompletedTask;
         }
@@ -89,6 +93,9 @@ internal class RequestLog
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = default!;
+
+    [JsonPropertyName("created")]
+    public DateTimeOffset? Created { get; set; }
 
     [JsonPropertyName("request")]
     public RequestLogItemRequest Request { get; set; } = default!;
