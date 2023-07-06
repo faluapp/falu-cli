@@ -1,8 +1,10 @@
 ﻿using Falu.Client;
 using Falu.Client.Events;
+using Spectre.Console;
+using Spectre.Console.Json;
+using Spectre.Console.Rendering;
 using System.Net;
-using System.Text.Encodings.Web;
-using System.Text.Json;
+using System.Text;
 using System.Text.Json.Nodes;
 
 namespace Falu.Commands.Events;
@@ -10,12 +12,10 @@ namespace Falu.Commands.Events;
 internal class EventRetryCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
-    private readonly ILogger logger;
 
-    public EventRetryCommandHandler(FaluCliClient client, ILogger<EventRetryCommandHandler> logger)
+    public EventRetryCommandHandler(FaluCliClient client)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
@@ -33,10 +33,10 @@ internal class EventRetryCommandHandler : ICommandHandler
         var attempt = response.Resource!;
 
         var time = TimeSpan.FromMilliseconds(attempt.ResponseTime);
-        var data = new Dictionary<string, object?>
+        var data = new Dictionary<string, object>
         {
-            ["Attempted"] = attempt.Attempted,
-            ["Url"] = attempt.Url,
+            ["Attempted"] = $"{attempt.Attempted:F}",
+            ["Url"] = attempt.Url!,
             ["Response Time"] = $"{time.TotalSeconds:n3} seconds",
         };
 
@@ -44,27 +44,40 @@ internal class EventRetryCommandHandler : ICommandHandler
         {
             var statusCode = Enum.Parse<HttpStatusCode>(attempt.HttpStatus.ToString());
             data["Http Status"] = $"{statusCode} ({attempt.HttpStatus})";
-            if (context.IsVerboseEnabled())
-            {
-                data["Request Body"] = PrettyJson(attempt.RequestBody!);
-                data["Response Body"] = attempt.ResponseBody;
-            }
         }
 
-        var str = $"{(attempt.Successful ? "Retry succeeded." : "Retry failed!")}\r\n";
-        str += data.RemoveDefaultAndEmpty().MakePaddedString();
-        logger.LogInformation("{MessageStr}", str);
+        var (color, text) = attempt.Successful ? ("green", "Retry succeeded.") : ("red", "Retry failed!");
+        var sb = new StringBuilder();
+        sb.AppendLine(SpectreFormatter.Coloured(color, text));
+        sb.AppendLine(data.MakePaddedString());
+        AnsiConsole.MarkupLine(sb.ToString());
+
+        if (context.IsVerboseEnabled())
+        {
+            var requestPanel = CreatePanel(new JsonText(attempt.RequestBody!), "Request Body");
+            var responseBody = attempt.ResponseBody!;
+            var responseContent = IsJson(responseBody) ? new JsonText(responseBody) : (IRenderable)new Markup(responseBody);
+            var responsePanel = CreatePanel(responseContent, "Response Body");
+            var layout = new Layout().SplitColumns(new Layout(requestPanel), new Layout(responsePanel));
+            AnsiConsole.Write(layout);
+        }
 
         return 0;
     }
 
-    private static string PrettyJson(string json)
+    private static Panel CreatePanel(IRenderable content, string header)
     {
-        var so = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        var aligned = Align.Center(content, VerticalAlignment.Middle);
+        return new Panel(aligned).Header(header).RoundedBorder();
+    }
+
+    private static bool IsJson(string text)
+    {
+        try
         {
-            WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
-        return JsonNode.Parse(json)!.ToJsonString(so);
+            JsonNode.Parse(text);
+            return true;
+        }
+        catch (Exception) { return false; }
     }
 }
