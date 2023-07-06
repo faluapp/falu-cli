@@ -70,7 +70,7 @@ internal class WebsocketHandler
             {
                 WebSocketMessageType.Binary => BinaryData.FromBytes(rm.Binary),
                 WebSocketMessageType.Text => BinaryData.FromString(rm.Text),
-                _ => throw new InvalidOperationException($"Unknown message type {type}")
+                _ => throw new InvalidOperationException($"Unknown message type '{nameof(WebSocketMessageType)}.{type}'")
             };
             logger.LogDebug("Received message: {Data}", data);
 
