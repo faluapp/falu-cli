@@ -101,7 +101,11 @@ internal static class CommandLineBuilderExtensions
         }
         else
         {
-            AnsiConsole.WriteException(exception);
+            var format = ExceptionFormats.ShortenPaths
+                       | ExceptionFormats.ShortenTypes
+                       | ExceptionFormats.ShortenMethods
+                       | ExceptionFormats.ShowLinks;
+            AnsiConsole.WriteException(exception, format);
         }
     }
 
