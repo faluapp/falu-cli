@@ -138,6 +138,12 @@ You can also check https://status.falu.io to see if there are any server related
   <data name="InvalidE164PhoneNumber" xml:space="preserve">
     <value>Value for '{0}' is not a valid E.164 phone number: '{1}'</value>
   </data>
+  <data name="InvalidHttpRequestPath" xml:space="preserve">
+    <value>Value '{0}' is not a valid HTTP request path. It should start with '/v1/'.</value>
+  </data>
+  <data name="InvalidHttpStatusCode" xml:space="preserve">
+    <value>Value '{0}' is not a valid HTTP status code. It should range between 200 and 599 (inclusive).</value>
+  </data>
   <data name="InvalidInputValue" xml:space="preserve">
     <value>Value for '{0}' has invalid format. The expected pattern is '{1}'</value>
   </data>
