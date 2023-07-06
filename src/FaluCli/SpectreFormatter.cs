@@ -2,10 +2,9 @@
 
 internal static class SpectreFormatter
 {
-    public static string Coloured(string color, object value)
-    {
-        return $"[{color}]{value}[/]";
-    }
+    public static string ColouredRed(string message) => Coloured("red", message);
+    public static string ColouredGreen(string message) => Coloured("green", message);
+    public static string Coloured(string color, object value) => $"[{color}]{value}[/]";
 
     public static string ForColorizedStatus(int code)
     {
