@@ -24,11 +24,10 @@ internal class MoneyBalancesGetCommandHandler : ICommandHandler
         var balances = response.Resource!;
 
         // Create a table
-        var table = new Table();
-        table.AddColumn("Type");
-        table.AddColumn("Code");
-        table.AddColumn(new TableColumn("Balance").RightAligned());
-        table.AddColumn(new TableColumn("Updated").Centered());
+        var table = new Table().AddColumn("Type")
+                               .AddColumn("Code")
+                               .AddColumn(new TableColumn("Balance").RightAligned())
+                               .AddColumn(new TableColumn("Updated").Centered());
 
         // Add rows
         var updated = balances.Updated.ToLocalTime().ToString("F");

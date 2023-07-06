@@ -1,16 +1,15 @@
 ﻿using Falu.Config;
+using Spectre.Console;
 
 namespace Falu.Commands.Config;
 
 internal class ConfigCommandHandler : ICommandHandler
 {
     private readonly IConfigValuesProvider configValuesProvider;
-    private readonly ILogger logger;
 
-    public ConfigCommandHandler(IConfigValuesProvider configValuesProvider, ILogger<ConfigCommandHandler> logger)
+    public ConfigCommandHandler(IConfigValuesProvider configValuesProvider)
     {
         this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
@@ -24,6 +23,7 @@ internal class ConfigCommandHandler : ICommandHandler
             case ConfigShowCommand:
                 {
                     var values = await configValuesProvider.GetConfigValuesAsync(cancellationToken);
+
                     var data = new Dictionary<string, object?>
                     {
                         ["retries"] = values.Retries,
@@ -32,14 +32,18 @@ internal class ConfigCommandHandler : ICommandHandler
                         ["livemode"] = values.DefaultLiveMode,
                     }.RemoveDefaultAndEmpty();
 
-                    var str = context.IsVerboseEnabled() ? data.MakePaddedString(" = ") : data.MakeString("=");
-                    if (string.IsNullOrWhiteSpace(str))
+                    if (data.Count == 0)
                     {
-                        logger.LogInformation("Configuration values are empty or only contain sensitive information.");
+                        AnsiConsole.Write("Configuration values are empty or only contain sensitive information.");
                     }
                     else
                     {
-                        logger.LogInformation("Configuration values:\r\n{Values}", str);
+                        var table = new Table().AddColumn("Key")
+                                               .AddColumn(new TableColumn("Value").Centered());
+
+                        foreach (var (key, value) in data) table.AddRow(new Markup(key), new Markup($"{value}"));
+
+                        AnsiConsole.Write(table);
                     }
 
                     break;
@@ -68,19 +72,19 @@ internal class ConfigCommandHandler : ICommandHandler
                             throw new NotSupportedException($"The key '{key}' is no supported yet.");
                     }
                     await configValuesProvider.SaveConfigValuesAsync(cancellationToken);
-                    logger.LogInformation("Successfully set configuration '{Key}={Value}'.", key, value);
+                    AnsiConsole.Write("Successfully set configuration '{0}={1}'.", key, value);
                     break;
                 }
             case ConfigClearAuthCommand:
                 {
                     await configValuesProvider.ClearAuthenticationAsync(cancellationToken);
-                    logger.LogInformation("Successfully removed all authentication configuration values.");
+                    AnsiConsole.Write("Successfully removed all authentication configuration values.");
                     break;
                 }
             case ConfigClearAllCommand:
                 {
                     configValuesProvider.ClearAll();
-                    logger.LogInformation("Successfully removed all configuration values and the configuration file.");
+                    AnsiConsole.Write("Successfully removed all configuration values and the configuration file.");
                     break;
                 }
         }
