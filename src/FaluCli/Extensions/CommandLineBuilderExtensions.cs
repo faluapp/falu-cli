@@ -1,9 +1,11 @@
 ﻿using Falu;
 using Falu.Commands.Login;
 using Falu.Updates;
+using Spectre.Console;
 using System.CommandLine.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Res = Falu.Properties.Resources;
 
 namespace System.CommandLine.Builder;
@@ -124,27 +126,23 @@ internal static class CommandLineBuilderExtensions
                 var latest = UpdateChecker.LatestVersion;
                 if (latest is not null && latest > current)
                 {
-                    var console = invocation.Console;
-                    var stdout = console.Out;
+                    var sb = new StringBuilder();
 
-                    stdout.WriteLine(); // empty line
+                    sb.AppendLine(); // empty line
 
-                    console.ResetTerminalForegroundColor();
-                    stdout.Write("New version (");
-                    console.SetTerminalForegroundGreen();
-                    stdout.Write($"{latest}");
-                    console.ResetTerminalForegroundColor();
-                    stdout.WriteLine($") is available. You have version {current.BaseVersion()}");
+                    sb.Append("New version (");
+                    sb.Append(SpectreFormatter.Coloured("lightgreen", $"{latest}"));
+                    sb.AppendLine($") is available. You have version {current.BaseVersion()}");
 
-                    stdout.Write("Download at: ");
-                    console.SetTerminalForegroundGreen();
-                    stdout.WriteLine(UpdateChecker.LatestVersionHtmlUrl!);
-                    console.ResetTerminalForegroundColor();
+                    sb.Append("Download at: ");
+                    sb.AppendLine(SpectreFormatter.Coloured("lightgreen", UpdateChecker.LatestVersionHtmlUrl!));
 
-                    stdout.WriteLine(); // empty line
-                    stdout.WriteLine("Release notes: ");
-                    stdout.WriteLine(UpdateChecker.LatestVersionBody!);
-                    stdout.WriteLine(); // empty line
+                    sb.AppendLine(); // empty line
+                    sb.Append("Release notes: ");
+                    AnsiConsole.MarkupLine(sb.ToString());
+
+                    AnsiConsole.WriteLine(UpdateChecker.LatestVersionBody!);
+                    AnsiConsole.WriteLine(); // empty line
                 }
             }
         });
