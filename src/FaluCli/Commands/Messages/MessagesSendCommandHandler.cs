@@ -94,8 +94,8 @@ internal class MessagesSendCommandHandler : ICommandHandler
     {
         var body = context.ParseResult.ValueForOption<string>("--body");
 
-        var messages = CreateMessages(tos, r => r.Body = body);
-        await SendMessagesAsync(messages, stream, media, schedule, cancellationToken);
+        var batch = new MessageBatchCreateRequestMessage { Tos = tos, Body = body, };
+        await SendMessagesAsync(batch, stream, media, schedule, cancellationToken);
         return 0;
     }
 
@@ -125,25 +125,34 @@ internal class MessagesSendCommandHandler : ICommandHandler
             return -1;
         }
 
-        var messages = CreateMessages(tos, r => r.Template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, });
-        await SendMessagesAsync(messages, stream, media, schedule, cancellationToken);
+        var batch = new MessageBatchCreateRequestMessage
+        {
+            Tos = tos,
+            Template = new MessageCreateRequestTemplate
+            {
+                Id = id,
+                Alias = alias,
+                Model = model,
+            },
+        };
+        await SendMessagesAsync(batch, stream, media, schedule, cancellationToken);
         return 0;
     }
 
-    private async Task SendMessagesAsync(List<MessageBatchCreateRequestMessage> messages,
+    private async Task SendMessagesAsync(MessageBatchCreateRequestMessage batch,
                                          string stream,
                                          IList<MessageCreateRequestMedia>? media,
                                          MessageCreateRequestSchedule? schedule,
                                          CancellationToken cancellationToken)
     {
-        if (messages.Sum(m => m.Tos!.Count) == 1)
+        if (batch.Tos!.Count == 1)
         {
-            var target = messages[0];
+            var target = batch.Tos[0];
             var request = new MessageCreateRequest
             {
-                To = target.Tos![0],
-                Body = target.Body,
-                Template = target.Template,
+                To = target,
+                Body = batch.Body,
+                Template = batch.Template,
                 Stream = stream,
                 Media = media,
                 Schedule = schedule,
@@ -158,7 +167,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
         {
             var request = new MessageBatchCreateRequest
             {
-                Messages = messages,
+                Messages = new List<MessageBatchCreateRequestMessage> { batch, },
                 Stream = stream,
                 Schedule = schedule,
             };
@@ -170,22 +179,5 @@ internal class MessagesSendCommandHandler : ICommandHandler
             logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
             logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
         }
-    }
-
-    private static List<MessageBatchCreateRequestMessage> CreateMessages(string[] tos, Action<MessageBatchCreateRequestMessage> setupFunc)
-    {
-        ArgumentNullException.ThrowIfNull(tos);
-        ArgumentNullException.ThrowIfNull(setupFunc);
-
-        // a maximum of 500 tos per batch
-        var groups = tos.Distinct(StringComparer.OrdinalIgnoreCase).Chunk(500).ToList();
-        var messages = new List<MessageBatchCreateRequestMessage>(groups.Count);
-        foreach (var group in groups)
-        {
-            var message = new MessageBatchCreateRequestMessage { Tos = group, };
-            setupFunc(message);
-            messages.Add(message);
-        }
-        return messages;
     }
 }
