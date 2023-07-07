@@ -56,6 +56,7 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
             var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";
 
             // write to the console
+            // example: 12:48:32  [200] POST https://api.falu.io/v1/messages [req_123]
             var sb = new StringBuilder();
             sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
             sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(log.Response.StatusCode)));

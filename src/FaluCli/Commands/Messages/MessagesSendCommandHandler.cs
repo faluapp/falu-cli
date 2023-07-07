@@ -153,7 +153,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
             var response = rr.Resource!;
             var ids = response.Messages!;
             logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
-            logger.LogDebug("Message Id(s):\r\n-{Ids}", string.Join("\r\n-", ids));
+            logger.LogDebug("Message Id(s):\r\n- {Ids}", string.Join("\r\n- ", ids));
         }
 
         return 0;

@@ -53,7 +53,7 @@ internal class MoneyStatementsUploadCommandHandler : ICommandHandler
         logger.LogInformation("Uploaded statement successfully. Imported/Updated {ImportedCount} records.", extracted.Count);
         if (extracted.Count > 0)
         {
-            logger.LogDebug("Imported/Updated Receipt Numbers:\r\n-{ReceiptNumbers}", string.Join("\r\n-", receiptNumbers));
+            logger.LogDebug("Imported/Updated Receipt Numbers:\r\n- {ReceiptNumbers}", string.Join("\r\n- ", receiptNumbers));
         }
 
         return 0;
