@@ -30,10 +30,33 @@ internal partial class EventsListenCommandHandler : ICommandHandler
 
         var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
         var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
+        var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
         var types = context.ParseResult.ValueForOption<string[]>("--event-type");
         var forwardTo = context.ParseResult.ValueForOption<Uri?>("--forward-to");
         var skipValidation = context.ParseResult.ValueForOption<bool>("--skip-validation");
         var secret = context.ParseResult.ValueForOption<string?>("--webhook-secret");
+
+        // fetch the webhook endpoint if provided
+        Webhooks.WebhookEndpoint? webhookEndpoint = null;
+        if (webhookEndpointId is not null)
+        {
+            logger.LogInformation("Fetching webhook endpoint {WebhookEndpoint} ...", webhookEndpointId);
+            var rr = await client.Webhooks.GetAsync(webhookEndpointId, cancellationToken: cancellationToken);
+            rr.EnsureSuccess();
+            webhookEndpoint = rr.Resource;
+            if (webhookEndpoint is null)
+            {
+                logger.LogWarning("Webhook endpoint '{WebhookEndpointId}' could not be found, or exists in a different live mode or workspace", webhookEndpointId);
+                return -1;
+            }
+        }
+
+        // if there are no types specified and there is a webhook endpoint, we can use it's types
+        if ((types is null || types.Length == 0) && webhookEndpoint is not null)
+        {
+            types = webhookEndpoint.Events?.ToArray() ?? Array.Empty<string>();
+            logger.LogInformation("Filtering event types using the provided webhook:\r\n- {EventTypes}", string.Join("\r\n- ", types));
+        }
 
         // prepare the client to use for forwarding
         var forwardingClientHandler = new HttpClientHandler();
