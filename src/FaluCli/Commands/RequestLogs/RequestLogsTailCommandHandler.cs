@@ -35,18 +35,6 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
         var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address");
         var sources = context.ParseResult.ValueForOption<string[]>("--source");
 
-        var filters = new RealtimeConnectionFilters
-        {
-            Logs = new RealtimeConnectionFilterLogs
-            {
-                IPAddresses = ipAddresses,
-                Methods = methods,
-                Paths = paths,
-                Sources = sources,
-                StatusCodes = statusCodes,
-            },
-        };
-
         // negotiate a realtime connection
         logger.LogInformation("Negotiating connection information ...");
         var request = new RealtimeConnectionNegotiationRequest { Purpose = "logs", };
@@ -82,6 +70,19 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
         using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
         cancellationToken = cts.Token;
         await websocketHandler.StartAsync(negotiation, handleMessage, cts);
+
+        // prepare filters
+        var filters = new RealtimeConnectionFilters
+        {
+            Logs = new RealtimeConnectionFilterLogs
+            {
+                IPAddresses = ipAddresses,
+                Methods = methods,
+                Paths = paths,
+                Sources = sources,
+                StatusCodes = statusCodes,
+            },
+        };
 
         // send message
         var message = new WebsocketOutgoingMessage("subscribe_request_logs", filters, negotiation);

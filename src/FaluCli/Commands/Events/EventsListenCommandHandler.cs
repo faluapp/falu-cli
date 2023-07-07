@@ -29,14 +29,6 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
         var types = context.ParseResult.ValueForOption<string[]>("--event-type");
 
-        var filters = new RealtimeConnectionFilters
-        {
-            Events = new RealtimeConnectionFilterEvents
-            {
-                Types = types,
-            },
-        };
-
         // negotiate a realtime connection
         logger.LogInformation("Negotiating connection information ...");
         var request = new RealtimeConnectionNegotiationRequest { /*Type = "websocket",*/ Purpose = "events", };
@@ -78,6 +70,15 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
         cancellationToken = cts.Token;
         await websocketHandler.StartAsync(negotiation, handleMessage, cts);
+
+        // prepare filters
+        var filters = new RealtimeConnectionFilters
+        {
+            Events = new RealtimeConnectionFilterEvents
+            {
+                Types = types,
+            },
+        };
 
         // send message
         var message = new WebsocketOutgoingMessage("subscribe_events", filters, negotiation);
