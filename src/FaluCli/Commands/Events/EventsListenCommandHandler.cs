@@ -9,11 +9,13 @@ namespace Falu.Commands.Events;
 internal partial class EventsListenCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
+    private readonly WebsocketHandler websocketHandler;
     private readonly ILogger logger;
 
-    public EventsListenCommandHandler(FaluCliClient client, ILogger<EventsListenCommandHandler> logger)
+    public EventsListenCommandHandler(FaluCliClient client, WebsocketHandler websocketHandler, ILogger<EventsListenCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
+        this.websocketHandler = websocketHandler ?? throw new ArgumentNullException(nameof(websocketHandler));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -37,7 +39,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
 
         // negotiate a realtime connection
         logger.LogInformation("Negotiating connection information ...");
-        var request = new RealtimeConnectionNegotiationRequest { Purpose = "events", };
+        var request = new RealtimeConnectionNegotiationRequest { /*Type = "websocket",*/ Purpose = "events", };
         var response = await client.Realtime.NegotiateAsync(request, cancellationToken: cancellationToken);
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiotion cannot be null or empty");
@@ -72,14 +74,17 @@ internal partial class EventsListenCommandHandler : ICommandHandler
             return Task.CompletedTask;
         }
 
-        // create handler
-        var handler = new WebsocketHandler(negotiation: negotiation,
-                                           filters: filters,
-                                           handler: handleMessage,
-                                           logger: logger);
+        // start the handler
+        using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
+        cancellationToken = cts.Token;
+        await websocketHandler.StartAsync(negotiation, handleMessage, cts);
 
-        // run the handler                  
-        await handler.RunAsync(topic: "subscribe_events", cancellationToken);
+        // send message
+        var message = new WebsocketOutgoingMessage("subscribe_events", filters, negotiation);
+        await websocketHandler.SendMessageAsync(message, cancellationToken);
+
+        // run until cancelled
+        await Task.Delay(Timeout.Infinite, cancellationToken);
 
         return 0;
     }

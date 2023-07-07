@@ -11,11 +11,13 @@ namespace Falu.Commands.RequestLogs;
 internal class RequestLogsTailCommandHandler : ICommandHandler
 {
     private readonly FaluCliClient client;
+    private readonly WebsocketHandler websocketHandler;
     private readonly ILogger logger;
 
-    public RequestLogsTailCommandHandler(FaluCliClient client, ILogger<RequestLogsTailCommandHandler> logger)
+    public RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHandler websocketHandler, ILogger<RequestLogsTailCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
+        this.websocketHandler = websocketHandler;
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -76,14 +78,17 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
             return Task.CompletedTask;
         }
 
-        // create handler
-        var handler = new WebsocketHandler(negotiation: negotiation,
-                                           filters: filters,
-                                           handler: handleMessage,
-                                           logger: logger);
+        // start the handler
+        using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
+        cancellationToken = cts.Token;
+        await websocketHandler.StartAsync(negotiation, handleMessage, cts);
 
-        // run the handler                  
-        await handler.RunAsync(topic: "subscribe_request_logs", cancellationToken);
+        // send message
+        var message = new WebsocketOutgoingMessage("subscribe_request_logs", filters, negotiation);
+        await websocketHandler.SendMessageAsync(message, cancellationToken);
+
+        // run until cancelled
+        await Task.Delay(Timeout.Infinite, cancellationToken);
 
         return 0;
     }

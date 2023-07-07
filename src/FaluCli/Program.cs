@@ -7,6 +7,7 @@ using Falu.Commands.Money.Balances;
 using Falu.Commands.Money.Statements;
 using Falu.Commands.RequestLogs;
 using Falu.Commands.Templates;
+using Falu.Websockets;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 
@@ -116,6 +117,7 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddUpdateChecker();
             services.AddConfigValuesProvider();
             services.AddOpenIdProvider();
+            services.AddTransient<WebsocketHandler>();
         });
 
         // System.CommandLine library does not create a scope, so we should skip validation of scopes

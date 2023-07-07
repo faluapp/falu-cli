@@ -6,37 +6,27 @@ using SC = Falu.FaluCliJsonSerializerContext;
 
 namespace Falu.Websockets;
 
-internal class WebsocketHandler
+internal class WebsocketHandler : IDisposable
 {
-    private readonly RealtimeConnectionNegotiation negotiation;
-    private readonly RealtimeConnectionFilters filters;
-    private readonly Func<WebsocketIncomingMessage, CancellationToken, Task> handler;
     private readonly ILogger logger;
 
-    public WebsocketHandler(RealtimeConnectionNegotiation negotiation,
-                            RealtimeConnectionFilters filters,
-                            Func<WebsocketIncomingMessage, CancellationToken, Task> handler,
-                            ILogger logger)
+    private WebsocketClient? client;
+
+    public WebsocketHandler(ILogger<WebsocketHandler> logger)
     {
-        this.negotiation = negotiation ?? throw new ArgumentNullException(nameof(negotiation));
-        this.filters = filters ?? throw new ArgumentNullException(nameof(filters));
-        this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task RunAsync(string? topic, CancellationToken cancellationToken = default)
+    public async Task StartAsync(RealtimeConnectionNegotiation negotiation,
+                                 Func<WebsocketIncomingMessage, CancellationToken, Task> handler,
+                                 CancellationTokenSource cancellationTokenSource)
     {
-        var remainingTime = negotiation.Expires - DateTimeOffset.UtcNow - TimeSpan.FromSeconds(2);
-        using var expiryCts = new CancellationTokenSource(remainingTime);
-        expiryCts.Token.Register(() => logger.LogInformation("Closing the connection because the token expired."));
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expiryCts.Token);
-        cancellationToken = cts.Token;
-
+        var cancellationToken = cancellationTokenSource.Token;
         var url = negotiation.Url;
         var maskedUrl = MaskAccessToken(url);
         var token = negotiation.Token;
         logger.LogInformation("Opening websocket connection to {Url}", maskedUrl);
-        logger.LogInformation("Connection valid for {Minutes} minutes", Convert.ToInt32(remainingTime.TotalMinutes));
+        logger.LogInformation("Connection valid for {Minutes} minutes", Convert.ToInt32((negotiation.Expires - DateTimeOffset.UtcNow).TotalMinutes));
         logger.LogDebug("Connection token:\r\n{Token}", token);
 
         ClientWebSocket factory()
@@ -52,17 +42,21 @@ internal class WebsocketHandler
             return inner;
         }
 
-        // create client, connect and subscribe
-        using var wsClient = new WebsocketClient(url, factory);
-        wsClient.ReconnectTimeout = null; // disable auto disconnect and reconnect becase we want to stay online even when no data comes in
-        wsClient.MessageReceived.Subscribe(rm =>
+        // create client
+        client = new WebsocketClient(url, factory)
+        {
+            ReconnectTimeout = null, // disable auto disconnect and reconnect becase we want to stay online even when no data comes in
+        };
+
+        // subscribe to incoming messages
+        client.MessageReceived.Subscribe(rm =>
         {
             // when the server closes the connection, cancel the token
             var type = rm.MessageType;
             if (type is WebSocketMessageType.Close)
             {
                 logger.LogInformation("Server closed the websocket");
-                cts.Cancel();
+                cancellationTokenSource.Cancel();
             }
 
             // create BinaryData for ease of manipulation and logging
@@ -78,27 +72,34 @@ internal class WebsocketHandler
             var message = JsonSerializer.Deserialize(data, SC.Default.WebsocketIncomingMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
             handler(message, cancellationToken);
         });
-        await wsClient.StartOrFail();
-        logger.LogInformation("Connected to websocket server.");
 
-        // subscribe to the topic if supplied
-        if (topic is not null)
+        // connect
+        await client.StartOrFail();
+        logger.LogInformation("Connected to websocket server.");
+    }
+
+    public Task SendMessageAsync(WebsocketOutgoingMessage message, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+        var json = JsonSerializer.Serialize(message, SC.Default.WebsocketOutgoingMessage);
+        logger.LogDebug("Sending message: {Data}", json);
+        client.Send(json);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        client?.Dispose();
+    }
+
+    private WebsocketClient GetClient()
+    {
+        if (client is null)
         {
-            var message = new WebsocketOutgoingMessage
-            {
-                Type = topic,
-                Filters = filters,
-                Workspace = negotiation.Workspace,
-                Live = negotiation.Live,
-            };
-            var subMessageJson = JsonSerializer.Serialize(message, SC.Default.WebsocketOutgoingMessage);
-            logger.LogDebug("Sending message: {Data}", subMessageJson);
-            wsClient.Send(subMessageJson);
+            throw new InvalidOperationException($"The websocket client has not been initialized. '{nameof(StartAsync)}(...)' must be called first.");
         }
 
-        // wait for cancellation
-        try { await Task.Delay(Timeout.Infinite, cancellationToken); }
-        catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested) { } // ignore user cancels or URL expires
+        return client;
     }
 
     private static string MaskAccessToken(Uri url, string key = "access_token")
