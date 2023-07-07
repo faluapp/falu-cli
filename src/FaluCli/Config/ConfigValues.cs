@@ -1,9 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace Falu.Config;
 
 internal record ConfigValues
 {
+    [JsonPropertyName("skip-update-checks")]
+    public bool SkipUpdateChecks { get; set; }
+
     public int Retries { get; set; } = 0;
     public int Timeout { get; set; } = 120;
     public string? DefaultWorkspaceId { get; set; }
