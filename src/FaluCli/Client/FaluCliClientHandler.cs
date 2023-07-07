@@ -26,33 +26,33 @@ internal class FaluCliClientHandler : DelegatingHandler
     /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // (1) Override the X-Workspace-Id header if CLI contains the --workspace option
-        var workspaceId = context.ParseResult.ValueForOption<string>("--workspace");
-        if (!string.IsNullOrWhiteSpace(workspaceId))
-        {
-            request.Headers.Replace("X-Workspace-Id", workspaceId);
-        }
-
-        // (2) Override the X-Idempotency-Key header if CLI contains the --idempotency-key option
+        // Override the X-Idempotency-Key header if CLI contains the --idempotency-key option
         var idempotencyKey = context.ParseResult.ValueForOption<string>("--idempotency-key");
         if (!string.IsNullOrWhiteSpace(idempotencyKey))
         {
             request.Headers.Replace("X-Idempotency-Key", idempotencyKey);
         }
 
-        // (3) Override the X-Live-Mode header if CLI contains the --live option
-        var live = context.ParseResult.ValueForOption<bool?>("--live");
-        if (live is not null)
-        {
-            request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant());
-        }
-
-        // (4) Handle appropriate authentication
-
-        // if we do not have a key, we need to have it pulled from the configuration
+        // if we do not have a key, we use the user credentials in the configuration
         var key = context.ParseResult.ValueForOption<string>("--apikey");
         if (string.IsNullOrWhiteSpace(key))
         {
+            // (1) Override the X-Workspace-Id header if CLI contains the --workspace option
+            var workspaceId = context.ParseResult.ValueForOption<string>("--workspace");
+            if (!string.IsNullOrWhiteSpace(workspaceId))
+            {
+                request.Headers.Replace("X-Workspace-Id", workspaceId);
+            }
+
+            // (2) Override the X-Live-Mode header if CLI contains the --live option
+            var live = context.ParseResult.ValueForOption<bool?>("--live");
+            if (live is not null)
+            {
+                request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant());
+            }
+
+            // (3) Handle appropriate authentication
+
             var config = await configValuesProvider.GetConfigValuesAsync(cancellationToken);
 
             // ensure we have login information and that it contains a valid access token or refresh token
