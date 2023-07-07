@@ -177,6 +177,11 @@ falu config clear auth</value>
   <data name="RequestIdFormat" xml:space="preserve">
     <value>Request Id: {0}</value>
   </data>
+  <data name="SkipUpdateCheckOptionDescription" xml:space="preserve">
+    <value>Whether to skip update checks.
+This value can also be set globally using 'falu config set skip-update-check true'
+This option overrides any value set in the configuration.</value>
+  </data>
   <data name="TooManyMessagesToBeSent" xml:space="preserve">
     <value>Message destinations (to) cannot exceed {0:n0} in one request.</value>
   </data>

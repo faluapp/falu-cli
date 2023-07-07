@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Falu.Config;
+using System.Net.Http.Json;
 
 namespace Falu.Updates;
 
@@ -11,11 +12,15 @@ internal class UpdateChecker : BackgroundService
     private static string? latestVersionBody;
 
     private readonly IHostEnvironment environment;
+    private readonly IConfigValuesProvider configValuesProvider;
+    private readonly InvocationContext invocationContext;
     private readonly HttpClient httpClient;
 
-    public UpdateChecker(IHostEnvironment environment, HttpClient httpClient)
+    public UpdateChecker(IHostEnvironment environment, IConfigValuesProvider configValuesProvider, InvocationContext invocationContext, HttpClient httpClient)
     {
         this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
+        this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
+        this.invocationContext = invocationContext ?? throw new ArgumentNullException(nameof(invocationContext));
         this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
@@ -25,7 +30,11 @@ internal class UpdateChecker : BackgroundService
         {
             if (environment.IsDevelopment() || latestVersion is not null) return;
 
-            // TODO: skip if configValues or command option says no update checks
+            // skip update checks if the configuration values say so or the command has overriden the value.
+            var skipUpdateChecks = (await configValuesProvider.GetConfigValuesAsync(stoppingToken)).SkipUpdateChecks;
+            var skipUpdateChecksOption = invocationContext.ParseResult.ValueForOption<bool?>("--skip-update-checks");
+            if (skipUpdateChecksOption is not null) skipUpdateChecks = skipUpdateChecksOption.Value;
+            if (skipUpdateChecks) return;
 
             try
             {

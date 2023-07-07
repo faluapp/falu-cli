@@ -10,6 +10,7 @@ using Falu.Commands.Templates;
 using Falu.Websockets;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
+using Res = Falu.Properties.Resources;
 
 // Create a root command with some options
 var rootCommand = new RootCommand
@@ -72,6 +73,7 @@ var rootCommand = new RootCommand
 
 rootCommand.Description = "Official CLI tool for Falu.";
 rootCommand.AddGlobalOption(new[] { "-v", "--verbose" }, "Whether to output verbosely.", false);
+rootCommand.AddGlobalOption<bool?>(new[] { "--skip-update-checks", }, Res.SkipUpdateCheckOptionDescription); // nullable so as to allow checking if specified
 
 var builder = new CommandLineBuilder(rootCommand)
     .UseHost(_ => Host.CreateDefaultBuilder(args), host =>

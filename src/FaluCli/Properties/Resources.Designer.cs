@@ -221,6 +221,17 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Whether to skip update checks.
+        ///This value can also be set globally using &apos;falu config set skip-update-check true&apos;
+        ///This option overrides any value set in the configuration..
+        /// </summary>
+        internal static string SkipUpdateCheckOptionDescription {
+            get {
+                return ResourceManager.GetString("SkipUpdateCheckOptionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Message destinations (to) cannot exceed {0:n0} in one request..
         /// </summary>
         internal static string TooManyMessagesToBeSent {

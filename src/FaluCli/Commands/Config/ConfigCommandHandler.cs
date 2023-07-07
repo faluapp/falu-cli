@@ -26,6 +26,7 @@ internal class ConfigCommandHandler : ICommandHandler
 
                     var data = new Dictionary<string, object?>
                     {
+                        ["skip-update-check"] = values.SkipUpdateChecks,
                         ["retries"] = values.Retries,
                         ["timeout"] = $"{values.Timeout} seconds",
                         ["workspace"] = values.DefaultWorkspaceId,
@@ -56,6 +57,9 @@ internal class ConfigCommandHandler : ICommandHandler
                     var value = context.ParseResult.ValueForArgument<string>("value")!;
                     switch (key)
                     {
+                        case "skip-update-check":
+                            values.SkipUpdateChecks = bool.Parse(value);
+                            break;
                         case "retries":
                             values.Retries = int.Parse(value);
                             break;
