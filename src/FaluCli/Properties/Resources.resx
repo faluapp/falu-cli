@@ -161,6 +161,26 @@ You can also check https://status.falu.io to see if there are any server related
     <value>The API key to use for the command. Use this for non-interractive setups such as process automation or when you cannot login using your account.
 Looks like: fskt_LdVyn0upN...</value>
   </data>
+  <data name="OptionDescriptionEventListenEventTypes" xml:space="preserve">
+    <value>The event to listen for. When not provided all events are listened to or only those on the specified webhook endpoint. Setting this value overrides those from the webhook endpoint but does not edit it.</value>
+  </data>
+  <data name="OptionDescriptionEventListenForwardTo" xml:space="preserve">
+    <value>The URL that webhook events will be forwarded to. This can be localhost or a server somewhere.
+Examples:
+http://localhost:8080
+https://localhost:8081
+https://webhook.site/680567ce-6467-4d88-b7d1-266eebbcad6e</value>
+  </data>
+  <data name="OptionDescriptionEventListenSkipValidation" xml:space="preserve">
+    <value>Whether to skip certificate verification when forwarding to a HTTPS endpoint. This option has no effect when forarding to a HTTP endpoint</value>
+  </data>
+  <data name="OptionDescriptionEventListenWebhookEndpoint" xml:space="preserve">
+    <value>Unique identifier of the webhook endpoint to mirror. When specified, the event types and secret are pulled from it.
+Example: we_610010be9228355f14ce6e08</value>
+  </data>
+  <data name="OptionDescriptionEventListenWebhookSecret" xml:space="preserve">
+    <value>The webhook secret to use when generating values for X-Falu-Signature header. You can generate a random one or copy one from the webhook endpoint on the dashboard. This is useful for testing signature validation.</value>
+  </data>
   <data name="OptionDescriptionIdempotencyKey" xml:space="preserve">
     <value>The key to make the request idempotent. This is only useful if you intend to repeat operations/requests that modify data but you only want the operation to effect once. For more information on idempotency see https://falu.io/docs/developers/idempotency
 Example: my-awesome-op</value>

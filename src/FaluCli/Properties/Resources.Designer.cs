@@ -175,6 +175,56 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The event to listen for. When not provided all events are listened to or only those on the specified webhook endpoint. Setting this value overrides those from the webhook endpoint but does not edit it..
+        /// </summary>
+        internal static string OptionDescriptionEventListenEventTypes {
+            get {
+                return ResourceManager.GetString("OptionDescriptionEventListenEventTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The URL that webhook events will be forwarded to. This can be localhost or a server somewhere.
+        ///Examples:
+        ///http://localhost:8080
+        ///https://localhost:8081
+        ///https://webhook.site/680567ce-6467-4d88-b7d1-266eebbcad6e.
+        /// </summary>
+        internal static string OptionDescriptionEventListenForwardTo {
+            get {
+                return ResourceManager.GetString("OptionDescriptionEventListenForwardTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to skip certificate verification when forwarding to a HTTPS endpoint. This option has no effect when forarding to a HTTP endpoint.
+        /// </summary>
+        internal static string OptionDescriptionEventListenSkipValidation {
+            get {
+                return ResourceManager.GetString("OptionDescriptionEventListenSkipValidation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unique identifier of the webhook endpoint to mirror. When specified, the event types and secret are pulled from it.
+        ///Example: we_610010be9228355f14ce6e08.
+        /// </summary>
+        internal static string OptionDescriptionEventListenWebhookEndpoint {
+            get {
+                return ResourceManager.GetString("OptionDescriptionEventListenWebhookEndpoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webhook secret to use when generating values for X-Falu-Signature header. You can generate a random one or copy one from the webhook endpoint on the dashboard. This is useful for testing signature validation..
+        /// </summary>
+        internal static string OptionDescriptionEventListenWebhookSecret {
+            get {
+                return ResourceManager.GetString("OptionDescriptionEventListenWebhookSecret", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The key to make the request idempotent. This is only useful if you intend to repeat operations/requests that modify data but you only want the operation to effect once. For more information on idempotency see https://falu.io/docs/developers/idempotency
         ///Example: my-awesome-op.
         /// </summary>
