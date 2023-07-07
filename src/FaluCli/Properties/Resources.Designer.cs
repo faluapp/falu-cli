@@ -165,6 +165,54 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The API key to use for the command. Use this for non-interractive setups such as process automation or when you cannot login using your account.
+        ///Looks like: fskt_LdVyn0upN....
+        /// </summary>
+        internal static string OptionDescriptionApiKey {
+            get {
+                return ResourceManager.GetString("OptionDescriptionApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The key to make the request idempotent. This is only useful if you intend to repeat operations/requests that modify data but you only want the operation to effect once. For more information on idempotency see https://falu.io/docs/developers/idempotency
+        ///Example: my-awesome-op.
+        /// </summary>
+        internal static string OptionDescriptionIdempotencyKey {
+            get {
+                return ResourceManager.GetString("OptionDescriptionIdempotencyKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether the entity resides or the operation should happen in live mode or not. Using this when you are logged into you account. It has no effect when using an API key..
+        /// </summary>
+        internal static string OptionDescriptionLive {
+            get {
+                return ResourceManager.GetString("OptionDescriptionLive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to skip update checks. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set skip-update-check true&apos;.
+        /// </summary>
+        internal static string OptionDescriptionSkipUpdateCheck {
+            get {
+                return ResourceManager.GetString("OptionDescriptionSkipUpdateCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The identifier of the workspace being accessed. Use this when you are logged into your account and you want to specify which workspace to target.
+        ///Example: wksp_610010be9228355f14ce6e08.
+        /// </summary>
+        internal static string OptionDescriptionWorkspace {
+            get {
+                return ResourceManager.GetString("OptionDescriptionWorkspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Code: {0} (See docs at https://falu.io/docs/error-codes#{0}).
         /// </summary>
         internal static string ProblemDetailsErrorCodeFormat {
@@ -217,17 +265,6 @@ namespace Falu.Properties {
         internal static string RequestIdFormat {
             get {
                 return ResourceManager.GetString("RequestIdFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Whether to skip update checks.
-        ///This value can also be set globally using &apos;falu config set skip-update-check true&apos;
-        ///This option overrides any value set in the configuration..
-        /// </summary>
-        internal static string SkipUpdateCheckOptionDescription {
-            get {
-                return ResourceManager.GetString("SkipUpdateCheckOptionDescription", resourceCulture);
             }
         }
         

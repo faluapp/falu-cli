@@ -157,6 +157,24 @@ You can also check https://status.falu.io to see if there are any server related
   <data name="LoginFailedWithCodeFormat" xml:space="preserve">
     <value>Login request failed with code: {0}</value>
   </data>
+  <data name="OptionDescriptionApiKey" xml:space="preserve">
+    <value>The API key to use for the command. Use this for non-interractive setups such as process automation or when you cannot login using your account.
+Looks like: fskt_LdVyn0upN...</value>
+  </data>
+  <data name="OptionDescriptionIdempotencyKey" xml:space="preserve">
+    <value>The key to make the request idempotent. This is only useful if you intend to repeat operations/requests that modify data but you only want the operation to effect once. For more information on idempotency see https://falu.io/docs/developers/idempotency
+Example: my-awesome-op</value>
+  </data>
+  <data name="OptionDescriptionLive" xml:space="preserve">
+    <value>Whether the entity resides or the operation should happen in live mode or not. Using this when you are logged into you account. It has no effect when using an API key.</value>
+  </data>
+  <data name="OptionDescriptionSkipUpdateCheck" xml:space="preserve">
+    <value>Whether to skip update checks. Using this option overrides any value set in the configuration. This value can also be set globally using 'falu config set skip-update-check true'</value>
+  </data>
+  <data name="OptionDescriptionWorkspace" xml:space="preserve">
+    <value>The identifier of the workspace being accessed. Use this when you are logged into your account and you want to specify which workspace to target.
+Example: wksp_610010be9228355f14ce6e08</value>
+  </data>
   <data name="ProblemDetailsErrorCodeFormat" xml:space="preserve">
     <value>Error Code: {0} (See docs at https://falu.io/docs/error-codes#{0})</value>
   </data>
@@ -176,11 +194,6 @@ falu config clear auth</value>
   </data>
   <data name="RequestIdFormat" xml:space="preserve">
     <value>Request Id: {0}</value>
-  </data>
-  <data name="SkipUpdateCheckOptionDescription" xml:space="preserve">
-    <value>Whether to skip update checks.
-This value can also be set globally using 'falu config set skip-update-check true'
-This option overrides any value set in the configuration.</value>
   </data>
   <data name="TooManyMessagesToBeSent" xml:space="preserve">
     <value>Message destinations (to) cannot exceed {0:n0} in one request.</value>

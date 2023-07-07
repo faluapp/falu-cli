@@ -73,7 +73,7 @@ var rootCommand = new RootCommand
 
 rootCommand.Description = "Official CLI tool for Falu.";
 rootCommand.AddGlobalOption(new[] { "-v", "--verbose" }, "Whether to output verbosely.", false);
-rootCommand.AddGlobalOption<bool?>(new[] { "--skip-update-checks", }, Res.SkipUpdateCheckOptionDescription); // nullable so as to allow checking if specified
+rootCommand.AddGlobalOption<bool?>(new[] { "--skip-update-checks", }, Res.OptionDescriptionSkipUpdateCheck); // nullable so as to allow checking if specified
 
 var builder = new CommandLineBuilder(rootCommand)
     .UseHost(_ => Host.CreateDefaultBuilder(args), host =>
