@@ -88,8 +88,7 @@ var builder = new CommandLineBuilder(rootCommand)
                 ["Logging:LogLevel:Default"] = "Information",
                 ["Logging:LogLevel:Microsoft"] = "Warning",
                 ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Warning",
-                [$"Logging:LogLevel:{typeof(EventsListenCommandHandler).FullName}"] = verbose ? "Trace" : "Information",
-                [$"Logging:LogLevel:{typeof(RequestLogsTailCommandHandler).FullName}"] = verbose ? "Trace" : "Information",
+                [$"Logging:LogLevel:{typeof(WebsocketHandler).FullName}"] = verbose ? "Trace" : "Information",
 
                 // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#logging
                 ["Logging:LogLevel:System.Net.Http.HttpClient"] = "None", // removes all we do not need

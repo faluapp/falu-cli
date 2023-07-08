@@ -42,35 +42,10 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiotion cannot be null or empty");
 
-        Task handleMessage(WebsocketIncomingMessage message, CancellationToken cancellationToken)
-        {
-            var type = message.Type;
-            if (!string.Equals(type, "request_log", StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogWarning("Received unknown message of type {Type}", type);
-                return Task.CompletedTask;
-            }
-
-            var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
-            var log = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.RequestLog)!;
-            var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";
-
-            // write to the console
-            // example: 12:48:32  [200] POST https://api.falu.io/v1/messages [req_123]
-            var sb = new StringBuilder();
-            sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
-            sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(log.Response.StatusCode)));
-            sb.Append($" {log.Request.Method} {log.Request.Url} ");
-            sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: log.Id, url: url)));
-            AnsiConsole.MarkupLine(sb.ToString());
-
-            return Task.CompletedTask;
-        }
-
         // start the handler
         using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
         cancellationToken = cts.Token;
-        await websocketHandler.StartAsync(negotiation, handleMessage, cts);
+        await websocketHandler.StartAsync(negotiation, (msg, _) => HandleIncomingMessage(workspaceId, live, msg), cts);
 
         // prepare filters
         var filters = new RealtimeConnectionFilters
@@ -93,6 +68,31 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
         await Task.Delay(Timeout.Infinite, cancellationToken);
 
         return 0;
+    }
+
+    private Task HandleIncomingMessage(string workspaceId, bool live, WebsocketIncomingMessage message)
+    {
+        var type = message.Type;
+        if (!string.Equals(type, "request_log", StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogWarning("Received unknown message of type {Type}", type);
+            return Task.CompletedTask;
+        }
+
+        var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
+        var log = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.RequestLog)!;
+        var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";
+
+        // write to the console
+        // example: 12:48:32  [200] POST https://api.falu.io/v1/messages [req_123]
+        var sb = new StringBuilder();
+        sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
+        sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(log.Response.StatusCode)));
+        sb.Append($" {log.Request.Method} {log.Request.Url} ");
+        sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: log.Id, url: url)));
+        AnsiConsole.MarkupLine(sb.ToString());
+
+        return Task.CompletedTask;
     }
 }
 

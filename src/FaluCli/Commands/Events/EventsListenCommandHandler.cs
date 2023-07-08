@@ -15,11 +15,17 @@ internal partial class EventsListenCommandHandler : ICommandHandler
     private readonly WebsocketHandler websocketHandler;
     private readonly ILogger logger;
 
+    private readonly HttpClientHandler forwardingClientHandler;
+    private readonly HttpClient forwardingClient;
+
     public EventsListenCommandHandler(FaluCliClient client, WebsocketHandler websocketHandler, ILogger<EventsListenCommandHandler> logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.websocketHandler = websocketHandler ?? throw new ArgumentNullException(nameof(websocketHandler));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        forwardingClientHandler = new HttpClientHandler();
+        forwardingClient = new HttpClient(forwardingClientHandler);
     }
 
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
@@ -59,9 +65,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         }
 
         // prepare the client to use for forwarding
-        var forwardingClientHandler = new HttpClientHandler();
         if (skipValidation) forwardingClientHandler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
-        var forwardingClient = new HttpClient(forwardingClientHandler);
         if (forwardTo is not null && secret is null)
         {
             logger.LogWarning("Forwarding without a secret does not test for security concerns."
@@ -76,46 +80,10 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiotion cannot be null or empty");
 
-        Task handleMessage(WebsocketIncomingMessage message, CancellationToken cancellationToken)
-        {
-            var type = message.Type;
-            if (!string.Equals(type, "event", StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogWarning("Received unknown message of type {Type}", type);
-                return Task.CompletedTask;
-            }
-
-            var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
-            var @event = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.WebhookEvent)!;
-            var eventId = @event.Id!;
-            var eventType = @event.Type!;
-            var eventTypeUrl = DashboardUrlForEventType(workspaceId, live, eventType);
-            var eventUrl = DashboardUrlForEvent(workspaceId, live, eventId);
-
-            // write to the console
-            // example: 12:48:32  -->  message.delivered [evt_123]
-            var sb = new StringBuilder();
-            sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
-            sb.Append("  --> ");
-            sb.Append(SpectreFormatter.ForLink(text: eventType, url: eventTypeUrl));
-            sb.Append(' ');
-            sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: eventId, url: eventUrl)));
-            AnsiConsole.MarkupLine(sb.ToString());
-
-            // forward the event to a provided destination if any
-            if (forwardTo is not null)
-            {
-                // we do not wait so that we do not block incoming messages
-                _ = ForwardAsync(forwardingClient, workspaceId, live, forwardTo, secret, @event, cancellationToken);
-            }
-
-            return Task.CompletedTask;
-        }
-
         // start the handler
         using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
         cancellationToken = cts.Token;
-        await websocketHandler.StartAsync(negotiation, handleMessage, cts);
+        await websocketHandler.StartAsync(negotiation, (msg, ct) => HandleIncomingMessage(workspaceId, live, forwardTo, secret, msg, ct), cts);
 
         // prepare filters
         var filters = new RealtimeConnectionFilters
@@ -134,6 +102,42 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         await Task.Delay(Timeout.Infinite, cancellationToken);
 
         return 0;
+    }
+
+    private Task HandleIncomingMessage(string workspaceId, bool live, Uri? forwardTo, string? secret, WebsocketIncomingMessage message, CancellationToken cancellationToken)
+    {
+        var type = message.Type;
+        if (!string.Equals(type, "event", StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogWarning("Received unknown message of type {Type}", type);
+            return Task.CompletedTask;
+        }
+
+        var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
+        var @event = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.WebhookEvent)!;
+        var eventId = @event.Id!;
+        var eventType = @event.Type!;
+        var eventTypeUrl = DashboardUrlForEventType(workspaceId, live, eventType);
+        var eventUrl = DashboardUrlForEvent(workspaceId, live, eventId);
+
+        // write to the console
+        // example: 12:48:32  -->  message.delivered [evt_123]
+        var sb = new StringBuilder();
+        sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
+        sb.Append("  --> ");
+        sb.Append(SpectreFormatter.ForLink(text: eventType, url: eventTypeUrl));
+        sb.Append(' ');
+        sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: eventId, url: eventUrl)));
+        AnsiConsole.MarkupLine(sb.ToString());
+
+        // forward the event to a provided destination if any
+        if (forwardTo is not null)
+        {
+            // we do not wait so that we do not block incoming messages
+            _ = ForwardAsync(forwardingClient, workspaceId, live, forwardTo, secret, @event, cancellationToken);
+        }
+
+        return Task.CompletedTask;
     }
 
     internal static async Task ForwardAsync(HttpClient client, string workspaceId, bool live, Uri forwardTo, string? secret, Falu.Events.WebhookEvent @event, CancellationToken cancellationToken)
