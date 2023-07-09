@@ -23,7 +23,7 @@ internal class RequestLogsTailCommand : Command
                                      {
                                          foreach (var v in values)
                                          {
-                                             if (!v.StartsWith("/v1/"))
+                                             if (Constants.RequestPathWildcardFormat.IsMatch(v))
                                              {
                                                  or.ErrorMessage = string.Format(Res.InvalidHttpRequestPath, v);
                                                  break;

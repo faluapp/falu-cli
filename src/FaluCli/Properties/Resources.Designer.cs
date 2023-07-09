@@ -111,7 +111,24 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not a valid HTTP request path. It should start with &apos;/v1/&apos;..
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not a valid event type for filtering.
+        ///
+        ///Valid examples:
+        ///message.delivered
+        ///payment_refund.*.
+        /// </summary>
+        internal static string InvalidEventTypeWildcard {
+            get {
+                return ResourceManager.GetString("InvalidEventTypeWildcard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not a valid HTTP request path.
+        ///
+        ///Valid examples:
+        ////v1/messages
+        ////v1/payments/*.
         /// </summary>
         internal static string InvalidHttpRequestPath {
             get {
@@ -175,7 +192,10 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The event to listen for. When not provided all events are listened to or only those on the specified webhook endpoint. Setting this value overrides those from the webhook endpoint but does not edit it..
+        ///   Looks up a localized string similar to The event to listen for. When not provided all events are listened to or only those on the specified webhook endpoint. Setting this value overrides those from the webhook endpoint but does not edit it.
+        ///Examples:
+        ///message.delivered
+        ///payment_refund.*.
         /// </summary>
         internal static string OptionDescriptionEventListenEventTypes {
             get {

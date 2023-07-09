@@ -50,6 +50,16 @@ public class ConstantsTests
     }
 
     [Theory]
+    [InlineData("message.delivered")]
+    [InlineData("payment_refund.*")]
+    [InlineData("transfer_reversal.created")]
+    [InlineData("test-test.test")]
+    public void EventTypeWildcardFormat_IsCorrect(string input)
+    {
+        Assert.Matches(Constants.EventTypeWildcardFormat, input);
+    }
+
+    [Theory]
     [InlineData("we_602cd2747409e867a240d000")]
     [InlineData("we_60ffe3f79c1deb8060f91312")]
     [InlineData("we_27e868O6xW4NYrQb3WvxDb8iW6D")]
@@ -94,5 +104,14 @@ public class ConstantsTests
     public void Iso8061DurationFormat_IsCorrect(string input)
     {
         Assert.Matches(Constants.Iso8061DurationFormat, input);
+    }
+
+    [Theory]
+    [InlineData("/v1/messages")]
+    [InlineData("/v1/payments/*")]
+    [InlineData("/v1/message_batches/*/redact")]
+    public void RequestPathWildcardFormat_IsCorrect(string input)
+    {
+        Assert.Matches(Constants.RequestPathWildcardFormat, input);
     }
 }

@@ -138,8 +138,19 @@ You can also check https://status.falu.io to see if there are any server related
   <data name="InvalidE164PhoneNumber" xml:space="preserve">
     <value>Value for '{0}' is not a valid E.164 phone number: '{1}'</value>
   </data>
+  <data name="InvalidEventTypeWildcard" xml:space="preserve">
+    <value>Value '{0}' is not a valid event type for filtering.
+
+Valid examples:
+message.delivered
+payment_refund.*</value>
+  </data>
   <data name="InvalidHttpRequestPath" xml:space="preserve">
-    <value>Value '{0}' is not a valid HTTP request path. It should start with '/v1/'.</value>
+    <value>Value '{0}' is not a valid HTTP request path.
+
+Valid examples:
+/v1/messages
+/v1/payments/*</value>
   </data>
   <data name="InvalidHttpStatusCode" xml:space="preserve">
     <value>Value '{0}' is not a valid HTTP status code. It should range between 200 and 599 (inclusive).</value>
@@ -162,7 +173,10 @@ You can also check https://status.falu.io to see if there are any server related
 Looks like: fskt_LdVyn0upN...</value>
   </data>
   <data name="OptionDescriptionEventListenEventTypes" xml:space="preserve">
-    <value>The event to listen for. When not provided all events are listened to or only those on the specified webhook endpoint. Setting this value overrides those from the webhook endpoint but does not edit it.</value>
+    <value>The event to listen for. When not provided all events are listened to or only those on the specified webhook endpoint. Setting this value overrides those from the webhook endpoint but does not edit it.
+Examples:
+message.delivered
+payment_refund.*</value>
   </data>
   <data name="OptionDescriptionEventListenForwardTo" xml:space="preserve">
     <value>The URL that webhook events will be forwarded to. This can be localhost or a server somewhere.
