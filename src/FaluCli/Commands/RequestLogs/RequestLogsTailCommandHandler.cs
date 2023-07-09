@@ -37,7 +37,7 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
 
         // negotiate a realtime connection
         logger.LogInformation("Negotiating connection information ...");
-        var request = new RealtimeConnectionNegotiationRequest { Purpose = "logs", };
+        var request = new RealtimeConnectionNegotiationRequest { Type = "websocket", Purpose = "logs", };
         var response = await client.Realtime.NegotiateAsync(request, cancellationToken: cancellationToken);
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiotion cannot be null or empty");

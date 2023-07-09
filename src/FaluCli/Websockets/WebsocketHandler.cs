@@ -23,9 +23,8 @@ internal class WebsocketHandler : IDisposable
     {
         var cancellationToken = cancellationTokenSource.Token;
         var url = negotiation.Url;
-        var maskedUrl = MaskAccessToken(url);
         var token = negotiation.Token;
-        logger.LogInformation("Opening websocket connection to {Url}", maskedUrl);
+        logger.LogInformation("Opening websocket connection to {Url}", url);
         logger.LogInformation("Connection valid for {Minutes} minutes", Convert.ToInt32((negotiation.Expires - DateTimeOffset.UtcNow).TotalMinutes));
         logger.LogDebug("Connection token:\r\n{Token}", token);
 
@@ -33,12 +32,7 @@ internal class WebsocketHandler : IDisposable
         {
             var inner = new ClientWebSocket();
             inner.Options.AddSubProtocol("json.devproxy.falu.v1");
-
-            if (!url.ToString().Contains(token))
-            {
-                inner.Options.SetRequestHeader("Authorization", token);
-            }
-
+            inner.Options.SetRequestHeader("Authorization", $"Bearer {token}");
             return inner;
         }
 
@@ -100,20 +94,5 @@ internal class WebsocketHandler : IDisposable
         }
 
         return client;
-    }
-
-    private static string MaskAccessToken(Uri url, string key = "access_token")
-    {
-        var query = url.Query;
-        if (string.IsNullOrWhiteSpace(query)) return url.ToString();
-
-        var dict = query.TrimStart('?').Split('&').Select(q => q.Split('=')).ToDictionary(q => q.First(), q => q.Last(), StringComparer.OrdinalIgnoreCase);
-        if (dict.TryGetValue(key, out _))
-        {
-            dict[key] = "***";
-        }
-
-        query = $"?{string.Join('&', dict.Select(p => $"{p.Key}={p.Value}"))}";
-        return new UriBuilder(url) { Query = query, }.Uri.ToString();
     }
 }
