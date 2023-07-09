@@ -10,28 +10,46 @@ public class RealtimeConnectionFilters
 
     [JsonPropertyName("events")]
     public RealtimeConnectionFilterEvents? Events { get; set; }
+
+    public RealtimeConnectionFilters? NullIfEmpty()
+    {
+        var objects = new object?[] { Logs, Events, };
+        return objects.Any(o => o is null) ? null : this;
+    }
 }
 
 public class RealtimeConnectionFilterLogs
 {
     [JsonPropertyName("ip_addresses")]
-    public IEnumerable<IPAddress>? IPAddresses { get; set; }
+    public IPAddress[]? IPAddresses { get; set; }
 
     [JsonPropertyName("paths")]
-    public IEnumerable<string>? Paths { get; set; }
+    public string[]? Paths { get; set; }
 
     [JsonPropertyName("methods")]
-    public IEnumerable<string>? Methods { get; set; }
+    public string[]? Methods { get; set; }
 
     [JsonPropertyName("status_codes")]
-    public IEnumerable<int>? StatusCodes { get; set; }
+    public int[]? StatusCodes { get; set; }
 
     [JsonPropertyName("sources")]
-    public IEnumerable<string>? Sources { get; set; }
+    public string[]? Sources { get; set; }
+
+    public RealtimeConnectionFilterLogs? NullIfEmpty()
+    {
+        var objects = new object?[] { IPAddresses, Paths, Methods, StatusCodes, Sources, };
+        return objects.Any(o => o is null) ? null : this;
+    }
 }
 
 public class RealtimeConnectionFilterEvents
 {
     [JsonPropertyName("types")]
-    public IEnumerable<string>? Types { get; set; }
+    public string[]? Types { get; set; }
+
+    public RealtimeConnectionFilterEvents? NullIfEmpty()
+    {
+        var objects = new object?[] { Types, };
+        return objects.Any(o => o is null) ? null : this;
+    }
 }

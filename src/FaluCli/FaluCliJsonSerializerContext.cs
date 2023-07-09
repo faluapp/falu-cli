@@ -20,8 +20,8 @@ namespace Falu;
 [JsonSerializable(typeof(Oidc.OidcTokenResponse))]
 
 [JsonSerializable(typeof(Updates.GitHubLatestRelease))]
-[JsonSerializable(typeof(Websockets.WebsocketIncomingMessage))]
-[JsonSerializable(typeof(Websockets.WebsocketOutgoingMessage))]
+[JsonSerializable(typeof(Websockets.RealtimeConnectionIncomingMessage))]
+[JsonSerializable(typeof(Websockets.RealtimeConnectionOutgoingMessage))]
 internal partial class FaluCliJsonSerializerContext : JsonSerializerContext
 {
     private static JsonSerializerOptions DefaultSerializerOptions { get; } = new(JsonSerializerDefaults.Web)

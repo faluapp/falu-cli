@@ -18,7 +18,7 @@ internal class WebsocketHandler : IDisposable
     }
 
     public async Task StartAsync(RealtimeConnectionNegotiation negotiation,
-                                 Func<WebsocketIncomingMessage, CancellationToken, Task> handler,
+                                 Func<RealtimeConnectionIncomingMessage, CancellationToken, Task> handler,
                                  CancellationTokenSource cancellationTokenSource)
     {
         var cancellationToken = cancellationTokenSource.Token;
@@ -63,7 +63,7 @@ internal class WebsocketHandler : IDisposable
             logger.LogDebug("Received message: {Data}", data);
 
             // decode the message from JSON and send to handler
-            var message = JsonSerializer.Deserialize(data, SC.Default.WebsocketIncomingMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
+            var message = JsonSerializer.Deserialize(data, SC.Default.RealtimeConnectionIncomingMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
             handler(message, cancellationToken);
         });
 
@@ -72,10 +72,10 @@ internal class WebsocketHandler : IDisposable
         logger.LogInformation("Connected to websocket server.");
     }
 
-    public Task SendMessageAsync(WebsocketOutgoingMessage message, CancellationToken cancellationToken = default)
+    public Task SendMessageAsync(RealtimeConnectionOutgoingMessage message, CancellationToken cancellationToken = default)
     {
         var client = GetClient();
-        var json = JsonSerializer.Serialize(message, SC.Default.WebsocketOutgoingMessage);
+        var json = JsonSerializer.Serialize(message, SC.Default.RealtimeConnectionOutgoingMessage);
         logger.LogDebug("Sending message: {Data}", json);
         client.Send(json);
         return Task.CompletedTask;

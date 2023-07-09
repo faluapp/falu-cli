@@ -37,7 +37,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
         var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
-        var types = context.ParseResult.ValueForOption<string[]>("--event-type");
+        var types = context.ParseResult.ValueForOption<string[]>("--event-type")?.NullIfEmpty();
         var forwardTo = context.ParseResult.ValueForOption<Uri?>("--forward-to");
         var skipValidation = context.ParseResult.ValueForOption<bool>("--skip-validation");
         var secret = context.ParseResult.ValueForOption<string?>("--webhook-secret");
@@ -91,11 +91,11 @@ internal partial class EventsListenCommandHandler : ICommandHandler
             Events = new RealtimeConnectionFilterEvents
             {
                 Types = types,
-            },
-        };
+            }.NullIfEmpty(),
+        }.NullIfEmpty();
 
         // send message
-        var message = new WebsocketOutgoingMessage("subscribe_events", filters, negotiation);
+        var message = new RealtimeConnectionOutgoingMessage("subscribe_events", filters);
         await websocketHandler.SendMessageAsync(message, cancellationToken);
 
         // run until cancelled
@@ -104,7 +104,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         return 0;
     }
 
-    private Task HandleIncomingMessage(string workspaceId, bool live, Uri? forwardTo, string? secret, WebsocketIncomingMessage message, CancellationToken cancellationToken)
+    private Task HandleIncomingMessage(string workspaceId, bool live, Uri? forwardTo, string? secret, RealtimeConnectionIncomingMessage message, CancellationToken cancellationToken)
     {
         var type = message.Type;
         if (!string.Equals(type, "event", StringComparison.OrdinalIgnoreCase))

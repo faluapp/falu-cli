@@ -2,6 +2,8 @@
 
 internal static class CollectionExtensions
 {
+    public static T[]? NullIfEmpty<T>(this T[]? source) => source is null || source.Length == 0 ? null : source;
+
     public static string MakePaddedString(this IDictionary<string, object> dictionary, out int width, string separator = " : ")
     {
         if (dictionary is null) throw new ArgumentNullException(nameof(dictionary));

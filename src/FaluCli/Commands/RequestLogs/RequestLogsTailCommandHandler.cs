@@ -29,11 +29,11 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
 
         var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
         var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
-        var methods = context.ParseResult.ValueForOption<string[]>("--http-method");
-        var paths = context.ParseResult.ValueForOption<string[]>("--request-path");
-        var statusCodes = context.ParseResult.ValueForOption<int[]>("--status-code");
-        var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address");
-        var sources = context.ParseResult.ValueForOption<string[]>("--source");
+        var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address").NullIfEmpty();
+        var methods = context.ParseResult.ValueForOption<string[]>("--http-method").NullIfEmpty();
+        var paths = context.ParseResult.ValueForOption<string[]>("--request-path").NullIfEmpty();
+        var statusCodes = context.ParseResult.ValueForOption<int[]>("--status-code").NullIfEmpty();
+        var sources = context.ParseResult.ValueForOption<string[]>("--source").NullIfEmpty();
 
         // negotiate a realtime connection
         logger.LogInformation("Negotiating connection information ...");
@@ -55,13 +55,13 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
                 IPAddresses = ipAddresses,
                 Methods = methods,
                 Paths = paths,
-                Sources = sources,
                 StatusCodes = statusCodes,
-            },
-        };
+                Sources = sources,
+            }.NullIfEmpty(),
+        }.NullIfEmpty();
 
         // send message
-        var message = new WebsocketOutgoingMessage("subscribe_request_logs", filters, negotiation);
+        var message = new RealtimeConnectionOutgoingMessage("subscribe_request_logs", filters);
         await websocketHandler.SendMessageAsync(message, cancellationToken);
 
         // run until cancelled
@@ -70,7 +70,7 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
         return 0;
     }
 
-    private Task HandleIncomingMessage(string workspaceId, bool live, WebsocketIncomingMessage message)
+    private Task HandleIncomingMessage(string workspaceId, bool live, RealtimeConnectionIncomingMessage message)
     {
         var type = message.Type;
         if (!string.Equals(type, "request_log", StringComparison.OrdinalIgnoreCase))
