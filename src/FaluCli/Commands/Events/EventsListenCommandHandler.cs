@@ -123,7 +123,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         // write to the console
         // example: 12:48:32  -->  message.delivered [evt_123]
         var sb = new StringBuilder();
-        sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
+        sb.Append(SpectreFormatter.Dim($"{DateTime.Now:T} "));
         sb.Append("  --> ");
         sb.Append(SpectreFormatter.ForLink(text: eventType, url: eventTypeUrl));
         sb.Append(' ');
@@ -206,7 +206,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         // write to the console
         // example: 12:48:32  <--  [200] POST https://localhost:8080/falu 230.3ms [evt_123]
         var sb = new StringBuilder();
-        sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
+        sb.Append(SpectreFormatter.Dim($"{DateTime.Now:T} "));
         sb.Append("  <--  ");
         sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(statusCode)));
         sb.Append($" {request.Method} {request.RequestUri} ");

@@ -86,7 +86,7 @@ internal class RequestLogsTailCommandHandler : ICommandHandler
         // write to the console
         // example: 12:48:32  [200] POST https://api.falu.io/v1/messages [req_123]
         var sb = new StringBuilder();
-        sb.Append(SpectreFormatter.ColouredGrey($"{DateTime.Now:T} "));
+        sb.Append(SpectreFormatter.Dim($"{DateTime.Now:T} "));
         sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForColorizedStatus(log.Response.StatusCode)));
         sb.Append($" {log.Request.Method} {log.Request.Url} ");
         sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: log.Id, url: url)));
