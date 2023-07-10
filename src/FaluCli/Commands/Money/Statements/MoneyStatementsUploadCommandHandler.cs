@@ -57,14 +57,14 @@ internal class MoneyStatementsUploadCommandHandler : ICommandHandler
         var fileName = Path.GetFileName(filePath);
         logger.LogInformation("Uploading {FileName} ({FileSize})", fileName, size.ToBinaryString());
         using var fileContent = File.OpenRead(filePath);
-        var response = await client.MoneyStatements.UploadAsync(objectKind: objectKind,
-                                                                provider: provider,
+        var response = await client.MoneyStatements.UploadAsync(provider: provider,
+                                                                objectKind: objectKind,
                                                                 fileName: fileName,
                                                                 fileContent: fileContent,
                                                                 cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
-        var extracted = response.Resource!;
+        var extracted = response.Resource!.Extracted;
         var receiptNumbers = extracted.Select(r => r.Mpesa?.Receipt).ToList();
         logger.LogInformation("Uploaded statement successfully. Imported/Updated {ImportedCount} records.", extracted.Count);
         if (extracted.Count > 0)

@@ -48,7 +48,7 @@ var rootCommand = new RootCommand
         },
         new Command("statements", "Work with money statements.")
         {
-            //new MoneyStatementsListCommand(),
+            new MoneyStatementsListCommand(),
             //new MoneyStatementsGetCommand(),
             new MoneyStatementsUploadCommand(),
         },
@@ -134,6 +134,7 @@ var builder = new CommandLineBuilder(rootCommand)
         host.UseCommandHandlerTrimmable<TemplatesPushCommand, TemplatesCommandHandler>();
         host.UseCommandHandlerTrimmable<MoneyBalancesGetCommand, MoneyBalancesGetCommandHandler>();
         host.UseCommandHandlerTrimmable<MoneyBalancesRefreshCommand, MoneyBalancesRefreshCommandHandler>();
+        host.UseCommandHandlerTrimmable<MoneyStatementsListCommand, MoneyStatementsListCommandHandler>();
         host.UseCommandHandlerTrimmable<MoneyStatementsUploadCommand, MoneyStatementsUploadCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
