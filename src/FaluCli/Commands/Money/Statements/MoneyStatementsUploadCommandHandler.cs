@@ -1,4 +1,5 @@
-﻿using Falu.Client;
+﻿using ClosedXML.Excel;
+using Falu.Client;
 
 namespace Falu.Commands.Money.Statements;
 
@@ -36,6 +37,21 @@ internal class MoneyStatementsUploadCommandHandler : ICommandHandler
         {
             logger.LogError("The file provided exceeds the size limit of {SizeLimit}. Trying exporting a smaller date range.", Constants.MaxStatementFileSizeString);
             return -1;
+        }
+
+        // ensure the file can be opened
+        if (provider == "mpesa")
+        {
+            using var stream = File.OpenRead(filePath);
+            try
+            {
+                using var workbook = new XLWorkbook(stream);
+            }
+            catch (Exception)
+            {
+                logger.LogError("The provided for MPESA must be a valid Excel file without a password.");
+                return -1;
+            }
         }
 
         var fileName = Path.GetFileName(filePath);
