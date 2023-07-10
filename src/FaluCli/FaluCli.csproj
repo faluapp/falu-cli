@@ -6,7 +6,6 @@
     <Description>Official CLI tool for Falu.</Description>
     <Product>Falu CLI</Product>
     <IsTrimmable>true</IsTrimmable>
-    <NoWarn>$(NoWarn);IL2104</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
