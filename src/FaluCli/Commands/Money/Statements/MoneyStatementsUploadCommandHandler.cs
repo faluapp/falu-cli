@@ -64,12 +64,14 @@ internal class MoneyStatementsUploadCommandHandler : ICommandHandler
                                                                 cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
-        var extracted = response.Resource!.Extracted;
-        var receiptNumbers = extracted.Select(r => r.Mpesa?.Receipt).ToList();
-        logger.LogInformation("Uploaded statement successfully. Imported/Updated {ImportedCount} records.", extracted.Count);
+        var statement = response.Resource!;
+        var extracted = statement.Extracted;
+        logger.LogInformation("Uploaded statement {StatementId} successfully.", statement.Id);
+        logger.LogInformation("Imported/Updated {ImportedCount} records.", extracted.Count);
         if (extracted.Count > 0)
         {
-            logger.LogDebug("Imported/Updated Receipt Numbers:\r\n- {ReceiptNumbers}", string.Join("\r\n- ", receiptNumbers));
+            var receiptNumbers = extracted.Select(r => r.Mpesa?.Receipt).ToList();
+            logger.LogDebug("MPESA Receipt Numbers:\r\n- {ReceiptNumbers}", string.Join("\r\n- ", receiptNumbers));
         }
 
         return 0;
