@@ -7,6 +7,7 @@ namespace Falu;
 [JsonSerializable(typeof(Client.Events.EventDeliveryRetry))]
 [JsonSerializable(typeof(Client.Events.WebhookDeliveryAttempt))]
 
+[JsonSerializable(typeof(List<Client.MoneyStatements.MoneyStatement>))]
 [JsonSerializable(typeof(Client.MoneyStatements.MoneyStatementUploadResponse))]
 
 [JsonSerializable(typeof(Client.Realtime.RealtimeConnectionNegotiationRequest))]

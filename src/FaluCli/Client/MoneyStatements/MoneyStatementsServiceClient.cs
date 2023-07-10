@@ -1,11 +1,40 @@
 ﻿using Falu.Core;
+using System.Text.Json.Serialization.Metadata;
 using SC = Falu.FaluCliJsonSerializerContext;
 
 namespace Falu.Client.MoneyStatements;
 
-internal class MoneyStatementsServiceClient : BaseServiceClient
+internal class MoneyStatementsServiceClient : BaseServiceClient<MoneyStatement>,
+                                              ISupportsListing<MoneyStatement, MoneyStatementsListOptions>
 {
     public MoneyStatementsServiceClient(HttpClient backChannel, FaluClientOptions options) : base(backChannel, options) { }
+
+    /// <inheritdoc/>
+    protected override string BasePath => "/v1/money/statements";
+
+    /// <inheritdoc/>
+    protected override JsonTypeInfo<MoneyStatement> JsonTypeInfo => SC.Default.MoneyStatement;
+
+    /// <inheritdoc/>
+    protected override JsonTypeInfo<List<MoneyStatement>> ListJsonTypeInfo => SC.Default.ListMoneyStatement;
+
+    /// <summary>Retrieve money statements.</summary>
+    /// <inheritdoc/>
+    public virtual Task<ResourceResponse<List<MoneyStatement>>> ListAsync(MoneyStatementsListOptions? options = null,
+                                                                          RequestOptions? requestOptions = null,
+                                                                          CancellationToken cancellationToken = default)
+    {
+        return ListResourcesAsync(options, requestOptions, cancellationToken);
+    }
+
+    /// <summary>Retrieve money statements recursively.</summary>
+    /// <inheritdoc/>
+    public virtual IAsyncEnumerable<MoneyStatement> ListRecursivelyAsync(MoneyStatementsListOptions? options = null,
+                                                                         RequestOptions? requestOptions = null,
+                                                                         CancellationToken cancellationToken = default)
+    {
+        return ListResourcesRecursivelyAsync(options, requestOptions, cancellationToken);
+    }
 
     public virtual Task<ResourceResponse<MoneyStatementUploadResponse>> UploadAsync(string provider,
                                                                                     string objectKind,
