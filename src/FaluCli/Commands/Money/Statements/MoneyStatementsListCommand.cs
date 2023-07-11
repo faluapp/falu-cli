@@ -16,7 +16,7 @@ public class MoneyStatementsListCommand : Command
                               description: "Whether to only list uploaded statements");
 
         this.AddOption(new[] { "--count", },
-                       description: "Number of records to retreive",
+                       description: "Number of records to retrieve",
                        defaultValue: 10);
     }
 }
