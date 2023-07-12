@@ -37,13 +37,13 @@ Check out the [wiki](/wiki) for more on using the CLI.
 
 Falu CLI is available for macOS, Windows and Linux (Ubuntu). You can download each of the binaries in the [releases][releases] or you can use package managers in the respective platforms.
 
-<!-- ### Windows
+### macOS
 
-Falu CLI is available on Windows via [Chocolatey][chocolatey] package manager:
+Falu CLI is available on macOS via [Homebrew](https://brew.sh/):
 
-```bash
-choco install falu
-``` -->
+```sh
+brew install faluapp/falu-cli/falu
+```
 
 ## Issues & Comments
 
