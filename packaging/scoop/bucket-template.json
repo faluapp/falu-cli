@@ -1,0 +1,22 @@
+{
+    "homepage": "#{PKG_HOMEPAGE}#",
+    "version": "#{BINARIES_VERSION}#",
+    "license": "#{PKG_LICENSE}#",
+    "description": "#{PKG_DESCRIPTION}#",
+    "architecture": {
+        "arm64": {
+            "url": "https://github.com/faluapp/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-win-arm64.zip",
+            "bin": [
+                "falu.exe"
+            ],
+            "hash": "#{WINDOWS_ARM64_BINARY_SHA256}#"
+        },
+        "64bit": {
+            "url": "https://github.com/faluapp/falu-cli/releases/download/#{BINARIES_VERSION}#/falu-#{BINARIES_VERSION}#-win-x64.zip",
+            "bin": [
+                "falu.exe"
+            ],
+            "hash": "#{WINDOWS_X64_BINARY_SHA256}#"
+        }
+    }
+}
