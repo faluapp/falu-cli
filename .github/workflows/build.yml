@@ -272,10 +272,12 @@ jobs:
         name: releases
         path: ${{ github.workspace }}/releases
 
-    - name: Prepare template
+    - name: Prepare templates
       run: |
         mkdir -p ${{ github.workspace }}/generated/homebrew/
         mv packaging/homebrew/formula-template.rb ${{ github.workspace }}/generated/homebrew/falu.rb
+        mkdir -p ${{ github.workspace }}/generated/scoop/
+        mv packaging/scoop/bucket-template.json ${{ github.workspace }}/generated/scoop/falu.json
 
     - name: Prepare variables
       working-directory: ${{ github.workspace }}/releases
@@ -286,17 +288,21 @@ jobs:
         checksumMacX64=$(shasum -a 256 falu-$BINARIES_VERSION-osx-x64.tar.gz | cut -d " " -f 1)
         checksumLinuxARM64=$(shasum -a 256 falu-$BINARIES_VERSION-linux-arm64.tar.gz | cut -d " " -f 1)
         checksumLinuxX64=$(shasum -a 256 falu-$BINARIES_VERSION-linux-x64.tar.gz | cut -d " " -f 1)
+        checksumWindowsARM64=$(shasum -a 256 falu-$BINARIES_VERSION-win-arm64.zip | cut -d " " -f 1)
+        checksumWindowsX64=$(shasum -a 256 falu-$BINARIES_VERSION-win-x64.zip | cut -d " " -f 1)
         echo "MACOS_ARM64_BINARY_SHA256=$checksumMacARM64" >> "$GITHUB_ENV"
         echo "MACOS_X64_BINARY_SHA256=$checksumMacX64" >> "$GITHUB_ENV"
         echo "LINUX_ARM64_BINARY_SHA256=$checksumLinuxARM64" >> "$GITHUB_ENV"
         echo "LINUX_X64_BINARY_SHA256=$checksumLinuxX64" >> "$GITHUB_ENV"
+        echo "WINDOWS_ARM64_BINARY_SHA256=$checksumWindowsARM64" >> "$GITHUB_ENV"
+        echo "WINDOWS_X64_BINARY_SHA256=$checksumWindowsX64" >> "$GITHUB_ENV"
       env:
         BINARIES_VERSION: ${{ needs.Build.outputs.BINARIES_VERSION }}
 
     - name: Replace tokens
       uses: cschleiden/replace-tokens@v1
       with:
-        files: '["${{ github.workspace }}/generated/homebrew/falu.rb"]'
+        files: '["${{ github.workspace }}/generated/homebrew/falu.rb","${{ github.workspace }}/generated/scoop/falu.json"]'
 
     - name: Publish Artifact (releases)
       uses: actions/upload-artifact@v3
@@ -333,10 +339,21 @@ jobs:
     - name: Update homebrew tap repository
       uses: dmnemec/copy_file_to_another_repo_action@main
       env:
-        API_TOKEN_GITHUB: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
+        API_TOKEN_GITHUB: ${{ secrets.RELEASING_GITHUB_TOKEN }}
       with:
         source_file: '${{ github.workspace }}/releases/homebrew/falu.rb'
         destination_repo: 'faluapp/homebrew-falu-cli'
         user_email: 'support@falu.io'
         user_name: 'falu-ci'
         commit_message: 'Update homebrew tap to ${{ needs.Packaging.outputs.BINARIES_VERSION }}'
+
+    - name: Update scoop bucket repository
+      uses: dmnemec/copy_file_to_another_repo_action@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.RELEASING_GITHUB_TOKEN }}
+      with:
+        source_file: '${{ github.workspace }}/releases/scoop/falu.json'
+        destination_repo: 'faluapp/scoop-falu-cli'
+        user_email: 'support@falu.io'
+        user_name: 'falu-ci'
+        commit_message: 'Update scoop bucket to ${{ needs.Packaging.outputs.BINARIES_VERSION }}'
