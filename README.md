@@ -45,6 +45,15 @@ Falu CLI is available on macOS via [Homebrew](https://brew.sh/):
 brew install faluapp/falu-cli/falu
 ```
 
+### Windows
+
+Falu CLI is available on Windows via [Scoop](https://scoop.sh/) package manager:
+
+```bash
+scoop bucket add falu https://github.com/faluapp/scoop-falu-cli.git
+scoop install falu
+```
+
 ## Issues & Comments
 
 Feel free to contact us if you encounter any issues with the library.
