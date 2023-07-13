@@ -47,8 +47,6 @@ internal static class IServiceCollectionExtensions
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 });
 
-        services.AddTransient<IOidcProvider>(p => p.GetRequiredService<OidcProvider>());
-
         return services;
     }
 

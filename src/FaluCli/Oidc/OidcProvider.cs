@@ -3,7 +3,7 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Falu.Oidc;
 
-internal class OidcProvider : IOidcProvider
+internal class OidcProvider
 {
     private readonly HttpClient httpClient;
 
