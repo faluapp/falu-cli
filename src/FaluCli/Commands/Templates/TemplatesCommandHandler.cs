@@ -146,6 +146,12 @@ internal partial class TemplatesCommandHandler : ICommandHandler
         {
             GenerateChanges(templates, manifests);
             var modified = manifests.Where(m => m.ChangeType != ChangeType.Unmodified).ToList();
+            if (modified.Count == 0)
+            {
+                logger.LogInformation("There are no changes to the templates.");
+                return 0;
+            }
+
             logger.LogInformation("Pushing {Count} templates to Falu servers.", modified.Count);
 
             var table = new Table().AddColumn("Change")
@@ -179,6 +185,12 @@ internal partial class TemplatesCommandHandler : ICommandHandler
         {
             var changeType = mani.ChangeType;
             var alias = mani.Alias;
+            if (changeType is ChangeType.Unmodified)
+            {
+                logger.LogDebug("Template with alias {Alias} has not changes. Skipping it ...", alias);
+                continue;
+            }
+
             var body = mani.Body;
             var translations = mani.Translations.ToDictionary(p => p.Key, p => new MessageTemplateTranslation { Body = p.Value, });
             var description = mani.Info.Description;
