@@ -10,7 +10,7 @@ internal class TemplateInfo : IHasDescription, IHasMetadata
     public TemplateInfo(MessageTemplate template)
     {
         Alias = template.Alias;
-        Description = template.Alias;
+        Description = template.Description;
         Metadata = template.Metadata;
     }
 

@@ -33,22 +33,22 @@ public abstract class AsbtractMessagesSendCommand : Command
                                });
 
         this.AddOption(new[] { "--stream", "-s", },
-                       description: "The stream to use, either the name or unique identifier. Example: mstr_610010be9228355f14ce6e08 or transactional",
+                       description: "The stream to use, either the name or unique identifier.\r\nExample: mstr_610010be9228355f14ce6e08 or transactional",
                        defaultValue: "transactional",
                        configure: o => o.IsRequired = true);
 
         this.AddOption<Uri?>(new[] { "--media-url", },
-                             description: "Publicly accessible URL of the media to include in the message(s). Example: https://c1.staticflickr.com/3/2899/14341091933_1e92e62d12_b.jpg");
+                             description: "Publicly accessible URL of the media to include in the message(s).\r\nExample: https://c1.staticflickr.com/3/2899/14341091933_1e92e62d12_b.jpg");
 
         this.AddOption(new[] { "--media-file-id", },
-                       description: "The unique identifier of the pre-uploaded file containing the media to include in the message(s). Example: file_602a8dd0a54847479a874de4",
+                       description: "The unique identifier of the pre-uploaded file containing the media to include in the message(s).\r\nExample: file_602a8dd0a54847479a874de4",
                        format: Constants.Iso8061DurationFormat);
 
         this.AddOption<DateTimeOffset?>(new[] { "--schedule-time", "--time", },
-                                        description: $"The time at which the message(s) should be in the future. Example: {DateTime.Today.AddDays(1):O}");
+                                        description: $"The time at which the message(s) should be in the future.\r\nExample: {DateTime.Today.AddDays(1):O}");
 
         this.AddOption(new[] { "--schedule-delay", "--delay", },
-                       description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s). Example: PT10M for 10 minutes",
+                       description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s).\r\nExample: PT10M for 10 minutes",
                        format: Constants.Iso8061DurationFormat);
     }
 
@@ -89,15 +89,18 @@ public class MessagesSendTemplatedCommand : AsbtractMessagesSendCommand
     public MessagesSendTemplatedCommand() : base("templated", "Send a templated message.")
     {
         this.AddOption(new[] { "--id", "-i", },
-                       description: "The unique template identifier. Example: mtpl_610010be9228355f14ce6e08",
+                       description: "The unique template identifier.\r\nExample: mtpl_610010be9228355f14ce6e08",
                        format: Constants.MessageTemplateIdFormat);
 
         this.AddOption(new[] { "--alias", "-a", },
                        description: "The template alias, unique to your workspace.",
                        format: Constants.MessageTemplateAliasFormat);
 
+        this.AddOption<string>(new[] { "--language", "--lang", },
+                               description: "The language or translation to use in the template. This is represented as the ISO-639-3 code.\r\nExample: swa for Swahili or fra for French");
+
         this.AddOption(new[] { "--model", "-m", },
-                       description: "The model to use with the template. Example --model '{\"name\": \"John\"}'",
+                       description: "The model to use with the template.\r\nExample --model '{\"name\": \"John\"}'",
                        defaultValue: "{}",
                        validate: (or) =>
                        {
