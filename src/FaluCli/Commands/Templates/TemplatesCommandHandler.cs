@@ -108,6 +108,7 @@ internal partial class TemplatesCommandHandler : ICommandHandler
         if (exists) File.Delete(path);
 
         // write to file
+        logger.LogDebug("Writing to file at {Path}", path);
         using var stream = File.OpenWrite(path);
         await contents.CopyToAsync(stream, cancellationToken);
     }
@@ -193,6 +194,7 @@ internal partial class TemplatesCommandHandler : ICommandHandler
                     Description = description,
                     Metadata = metadata,
                 };
+                logger.LogDebug("Creating template with alias {Alias} ...", alias);
                 await client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
             }
             else if (changeType is ChangeType.Modified)
@@ -204,12 +206,13 @@ internal partial class TemplatesCommandHandler : ICommandHandler
                     .Replace(mt => mt.Translations, translations)
                     .Replace(mt => mt.Description, description)
                     .Replace(mt => mt.Metadata, metadata);
+                logger.LogDebug("Updating template with alias {Alias} ...", alias);
                 await client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
             }
         }
     }
 
-    private static void GenerateChanges(in IReadOnlyList<MessageTemplate> templates, in IReadOnlyList<TemplateManifest> manifests)
+    private void GenerateChanges(in IReadOnlyList<MessageTemplate> templates, in IReadOnlyList<TemplateManifest> manifests)
     {
         if (templates is null) throw new ArgumentNullException(nameof(templates));
         if (manifests is null) throw new ArgumentNullException(nameof(manifests));
@@ -220,16 +223,18 @@ internal partial class TemplatesCommandHandler : ICommandHandler
             var remote = templates.SingleOrDefault(t => string.Equals(t.Alias, local.Alias, StringComparison.OrdinalIgnoreCase));
             if (remote is null)
             {
+                logger.LogDebug("Template with alias {Alias} does not exist on the server. It will be created.", local.Alias);
                 local.ChangeType = ChangeType.Added;
                 continue;
             }
 
             local.Id = remote.Id;
             local.ChangeType = HasChanged(remote, local) ? ChangeType.Modified : ChangeType.Unmodified;
+            logger.LogDebug("Template with alias {Alias} has {Suffix}.", local.ChangeType is ChangeType.Modified ? "changed" : "not changed");
         }
     }
 
-    private static bool HasChanged(MessageTemplate remote, TemplateManifest local)
+    private bool HasChanged(MessageTemplate remote, TemplateManifest local)
     {
         // check if the default body changed
         var bodyChanged = !string.Equals(remote.Body, local.Body, StringComparison.InvariantCulture);
@@ -273,10 +278,17 @@ internal partial class TemplatesCommandHandler : ICommandHandler
             }
         }
 
+        logger.LogDebug("Checked for changes on template alias '{Alias}'."
+                      + "\r\nBody:{bodyChanged}, Translations:{translationsChanged}, Description:{descriptionChanged}, Metadata:{metadataChanged}",
+                        remote.Alias,
+                        bodyChanged,
+                        translationsChanged,
+                        descriptionChanged,
+                        metadataChanged);
         return bodyChanged || translationsChanged || descriptionChanged || metadataChanged;
     }
 
-    private static async Task<IReadOnlyList<TemplateManifest>> ReadManifestsAsync(string templatesDirectory, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<TemplateManifest>> ReadManifestsAsync(string templatesDirectory, CancellationToken cancellationToken)
     {
         var results = new List<TemplateManifest>();
         var directories = Directory.EnumerateDirectories(templatesDirectory);
@@ -284,7 +296,13 @@ internal partial class TemplatesCommandHandler : ICommandHandler
         {
             // there is no info file, we skip the folder/directory
             var infoPath = Path.Combine(dirPath, InfoFileName);
-            if (!File.Exists(infoPath)) continue;
+            if (!File.Exists(infoPath))
+            {
+                logger.LogDebug("Skipping directory at {Directory} because it does not have an info file", dirPath);
+                continue;
+            }
+
+            logger.LogDebug("Reading manifest from {Directory}", dirPath);
 
             // read the info
             using var stream = File.OpenRead(infoPath);
@@ -314,8 +332,9 @@ internal partial class TemplatesCommandHandler : ICommandHandler
         return results;
     }
 
-    private static async Task<string> ReadFromFileAsync(string path, CancellationToken cancellationToken)
+    private async Task<string> ReadFromFileAsync(string path, CancellationToken cancellationToken)
     {
+        logger.LogDebug("Reading file at {Path}", path);
         using var stream = File.OpenRead(path);
         using var reader = new StreamReader(stream);
         return await reader.ReadToEndAsync(cancellationToken);
