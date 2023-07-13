@@ -2,14 +2,17 @@
 using Falu.MessageTemplates;
 using Spectre.Console;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Tingle.Extensions.JsonPatch;
 
 namespace Falu.Commands.Templates;
 
-internal class TemplatesCommandHandler : ICommandHandler
+internal partial class TemplatesCommandHandler : ICommandHandler
 {
-    private const string BodyFileName = "content.txt";
     private const string InfoFileName = "info.json";
+    private const string DefaultBodyFileName = "content.txt";
+    private const string TranslatedBodyFileNameFormat = "content-{0}.txt";
+    private static readonly Regex TranslatedBodyFileNamePattern = GetTranslatedBodyFileNamePattern();
 
     private readonly FaluCliClient client;
     private readonly ILogger logger;
@@ -66,9 +69,16 @@ internal class TemplatesCommandHandler : ICommandHandler
         var dirPath = Path.Combine(outputPath, template.Alias!);
         if (!Directory.Exists(dirPath)) Directory.CreateDirectory(dirPath);
 
-        // write the template body
-        var contentPath = Path.Combine(dirPath, BodyFileName);
+        // write the default body
+        var contentPath = Path.Combine(dirPath, DefaultBodyFileName);
         await WriteToFileAsync(contentPath, overwrite, template.Body!, cancellationToken);
+
+        // write the translations
+        foreach (var (language, translation) in template.Translations)
+        {
+            contentPath = Path.Combine(dirPath, string.Format(TranslatedBodyFileNameFormat, language));
+            await WriteToFileAsync(contentPath, overwrite, translation.Body!, cancellationToken);
+        }
 
         // write the template info
         var infoPath = Path.Combine(dirPath, InfoFileName);
@@ -126,6 +136,8 @@ internal class TemplatesCommandHandler : ICommandHandler
         var manifests = await ReadManifestsAsync(templatesDirectory, cancellationToken);
         if (all)
         {
+            // TODO: seek prompt to push the changes (with an option override: -y/--yes)
+
             logger.LogInformation("Pushing {Count} templates to Falu servers.", manifests.Count);
             await PushTemplatesAsync(manifests, cancellationToken);
         }
@@ -164,26 +176,34 @@ internal class TemplatesCommandHandler : ICommandHandler
     {
         foreach (var mani in manifests)
         {
-            if (mani.ChangeType == ChangeType.Added)
+            var changeType = mani.ChangeType;
+            var alias = mani.Alias;
+            var body = mani.Body;
+            var translations = mani.Translations.ToDictionary(p => p.Key, p => new MessageTemplateTranslation { Body = p.Value, });
+            var description = mani.Info.Description;
+            var metadata = mani.Info.Metadata;
+            if (changeType is ChangeType.Added)
             {
                 // prepare the request and send to server
                 var request = new MessageTemplateCreateRequest
                 {
-                    Alias = mani.Alias,
-                    Body = mani.Body,
-                    Description = mani.Info.Description,
-                    Metadata = mani.Info.Metadata,
+                    Alias = alias,
+                    Body = body,
+                    Translations = mani.Translations.ToDictionary(p => p.Key, p => new MessageTemplateTranslation { Body = p.Value, }),
+                    Description = description,
+                    Metadata = metadata,
                 };
                 await client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
             }
-            else if (mani.ChangeType == ChangeType.Modified)
+            else if (changeType is ChangeType.Modified)
             {
                 // prepare the patch details and send to server
                 var patch = new JsonPatchDocument<MessageTemplatePatchModel>()
-                    .Replace(mt => mt.Alias, mani.Alias)
-                    .Replace(mt => mt.Body, mani.Body)
-                    .Replace(mt => mt.Description, mani.Info.Description)
-                    .Replace(mt => mt.Metadata, mani.Info.Metadata);
+                    .Replace(mt => mt.Alias, alias)
+                    .Replace(mt => mt.Body, body)
+                    .Replace(mt => mt.Translations, translations)
+                    .Replace(mt => mt.Description, description)
+                    .Replace(mt => mt.Metadata, metadata);
                 await client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
             }
         }
@@ -211,13 +231,34 @@ internal class TemplatesCommandHandler : ICommandHandler
 
     private static bool HasChanged(MessageTemplate remote, TemplateManifest local)
     {
+        // check if the default body changed
         var bodyChanged = !string.Equals(remote.Body, local.Body, StringComparison.InvariantCulture);
+
+        // check if translations changed (either it is null or the counts are different)
+        var translationsChanged = remote.Translations is null && local.Translations is not null
+                               || remote.Translations is not null && local.Translations is null
+                               || remote.Translations?.Count != local.Translations?.Count;
+        if (!translationsChanged && remote.Translations is not null && local.Translations is not null)
+        {
+            // if a key does not exist or the body does not match, it changed
+            foreach (var kvp in local.Translations)
+            {
+                if (!remote.Translations.TryGetValue(kvp.Key, out var translation)
+                    || !string.Equals(kvp.Value, translation.Body, StringComparison.InvariantCulture))
+                {
+                    translationsChanged = true;
+                    break;
+                }
+            }
+        }
+
+        // check if description changed
         var descriptionChanged = !string.Equals(remote.Description, local.Info.Description, StringComparison.InvariantCulture);
 
-        // if either is null or the counts are different, metadata changed
-        var metadataChanged = (remote.Metadata is null && local.Info.Metadata is not null)
-                              || (remote.Metadata is not null && local.Info.Metadata is null)
-                              || (remote.Metadata?.Count != local.Info.Metadata?.Count);
+        // check if metadata changed (either it is null or the counts are different)
+        var metadataChanged = remote.Metadata is null && local.Info.Metadata is not null
+                           || remote.Metadata is not null && local.Info.Metadata is null
+                           || remote.Metadata?.Count != local.Info.Metadata?.Count;
         if (!metadataChanged && remote.Metadata is not null && local.Info.Metadata is not null)
         {
             // if a key does not exist or the value does not match, it changed
@@ -232,7 +273,7 @@ internal class TemplatesCommandHandler : ICommandHandler
             }
         }
 
-        return bodyChanged || descriptionChanged || metadataChanged;
+        return bodyChanged || translationsChanged || descriptionChanged || metadataChanged;
     }
 
     private static async Task<IReadOnlyList<TemplateManifest>> ReadManifestsAsync(string templatesDirectory, CancellationToken cancellationToken)
@@ -249,10 +290,25 @@ internal class TemplatesCommandHandler : ICommandHandler
             using var stream = File.OpenRead(infoPath);
             var info = (await JsonSerializer.DeserializeAsync(stream, FaluCliJsonSerializerContext.Default.TemplateInfo, cancellationToken))!;
 
-            var contentPath = Path.Combine(dirPath, BodyFileName);
+            // read default content
+            var contentPath = Path.Combine(dirPath, DefaultBodyFileName);
             var body = await ReadFromFileAsync(contentPath, cancellationToken);
 
-            results.Add(new TemplateManifest(info, body));
+            // read translations
+            var translations = new Dictionary<string, string>();
+            var files = Directory.EnumerateFiles(dirPath);
+            foreach (var file in files)
+            {
+                var match = TranslatedBodyFileNamePattern.Match(file);
+                if (!match.Success) continue;
+
+                contentPath = file;
+                var translated = await ReadFromFileAsync(contentPath, cancellationToken);
+                var language = match.Groups[1].Value;
+                translations[language] = translated;
+            }
+
+            results.Add(new TemplateManifest(info, body, translations));
         }
 
         return results;
@@ -269,7 +325,7 @@ internal class TemplatesCommandHandler : ICommandHandler
 
     private async Task<IReadOnlyList<MessageTemplate>> DownloadTemplatesAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Fetching templates ...");
+        logger.LogInformation("Fetching templates from server ...");
         var result = new List<MessageTemplate>();
         var options = new MessageTemplatesListOptions { Count = 100, };
         var templates = client.MessageTemplates.ListRecursivelyAsync(options, cancellationToken: cancellationToken);
@@ -281,4 +337,7 @@ internal class TemplatesCommandHandler : ICommandHandler
 
         return result;
     }
+
+    [GeneratedRegex("content-([a-zA-Z0-9]{3}).txt")]
+    private static partial Regex GetTranslatedBodyFileNamePattern();
 }
