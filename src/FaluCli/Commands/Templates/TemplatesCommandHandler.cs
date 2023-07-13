@@ -195,7 +195,9 @@ internal partial class TemplatesCommandHandler : ICommandHandler
                     Metadata = metadata,
                 };
                 logger.LogDebug("Creating template with alias {Alias} ...", alias);
-                await client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
+                var response = await client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
+                response.EnsureSuccess();
+                logger.LogDebug("Template with alias {Alias} created with Id: '{Id}'", alias, response.Resource!.Id);
             }
             else if (changeType is ChangeType.Modified)
             {
@@ -207,7 +209,8 @@ internal partial class TemplatesCommandHandler : ICommandHandler
                     .Replace(mt => mt.Description, description)
                     .Replace(mt => mt.Metadata, metadata);
                 logger.LogDebug("Updating template with alias {Alias} ...", alias);
-                await client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
+                var response = await client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
+                response.EnsureSuccess();
             }
         }
     }
