@@ -90,6 +90,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
         {
             var id = context.ParseResult.ValueForOption<string>("--id");
             var alias = context.ParseResult.ValueForOption<string>("--alias");
+            var language = context.ParseResult.ValueForOption<string>("--language");
             var modelJson = context.ParseResult.ValueForOption<string>("--model")!; // marked required in the command
             var model = new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
 
@@ -107,7 +108,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
                 return -1;
             }
 
-            template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Model = model, };
+            template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Language = language, Model = model, };
         }
         else throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
 

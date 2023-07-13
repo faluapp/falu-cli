@@ -96,6 +96,9 @@ public class MessagesSendTemplatedCommand : AsbtractMessagesSendCommand
                        description: "The template alias, unique to your workspace.",
                        format: Constants.MessageTemplateAliasFormat);
 
+        this.AddOption<string>(new[] { "--language", "--lang", },
+                               description: "The language or translation to use in the template. This is represented as the ISO-639-3 code.\r\nExample: swa for Swahili or fra for French");
+
         this.AddOption(new[] { "--model", "-m", },
                        description: "The model to use with the template.\r\nExample --model '{\"name\": \"John\"}'",
                        defaultValue: "{}",
