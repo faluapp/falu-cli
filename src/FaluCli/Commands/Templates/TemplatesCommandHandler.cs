@@ -94,6 +94,10 @@ internal class TemplatesCommandHandler : ICommandHandler
             return;
         }
 
+        // delete existing file
+        if (exists) File.Delete(path);
+
+        // write to file
         using var stream = File.OpenWrite(path);
         await contents.CopyToAsync(stream, cancellationToken);
     }
