@@ -54,13 +54,22 @@ internal class MoneyStatementsUploadCommandHandler : ICommandHandler
             }
         }
 
+        using var fileContent = File.OpenRead(filePath);
+        var fileFormats = new FileSignatures.FileFormat[] {
+            new FileSignatures.Formats.Excel(),
+            new FileSignatures.Formats.ExcelLegacy(),
+        };
+        var formatInspector = new FileSignatures.FileFormatInspector(fileFormats);
+        var fileFormat = formatInspector.DetermineFileFormat(fileContent);
+        var fileContentType = fileFormat?.MediaType;
+
         var fileName = Path.GetFileName(filePath);
         logger.LogInformation("Uploading {FileName} ({FileSize})", fileName, size.ToBinaryString());
-        using var fileContent = File.OpenRead(filePath);
         var response = await client.MoneyStatements.UploadAsync(provider: provider,
                                                                 objectKind: objectKind,
                                                                 fileName: fileName,
                                                                 fileContent: fileContent,
+                                                                fileContentType: fileContentType,
                                                                 cancellationToken: cancellationToken);
         response.EnsureSuccess();
 

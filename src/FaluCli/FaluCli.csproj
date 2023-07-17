@@ -21,6 +21,7 @@
     <PackageReference Include="ClosedXML" Version="0.102.0" />
     <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.6.0" />
     <PackageReference Include="Falu" Version="1.12.0" />
+    <PackageReference Include="FileSignatures" Version="4.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
     <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
