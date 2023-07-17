@@ -1,4 +1,5 @@
 ﻿using Falu.Core;
+using System.Net.Http.Headers;
 using System.Text.Json.Serialization.Metadata;
 using SC = Falu.FaluCliJsonSerializerContext;
 
@@ -40,11 +41,18 @@ internal class MoneyStatementsServiceClient : BaseServiceClient<MoneyStatement>,
                                                                                     string objectKind,
                                                                                     string fileName,
                                                                                     Stream fileContent,
+                                                                                    string? fileContentType,
                                                                                     RequestOptions? options = null,
                                                                                     CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(fileName, nameof(fileName));
         ArgumentNullException.ThrowIfNull(fileContent, nameof(fileContent));
+
+        var streamContent = new StreamContent(fileContent);
+        if (fileContentType is not null)
+        {
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(fileContentType);
+        }
 
         // prepare the request and execute
         var uri = $"/v1/money/statements/upload";
@@ -52,7 +60,7 @@ internal class MoneyStatementsServiceClient : BaseServiceClient<MoneyStatement>,
         {
             { new StringContent(provider), "type" },
             { new StringContent(objectKind), "objects_kind" },
-            { new StreamContent(fileContent), "file", fileName },
+            { streamContent, "file", fileName },
         };
 
         return RequestAsync(uri, HttpMethod.Post, SC.Default.MoneyStatementUploadResponse, content, options, cancellationToken);
