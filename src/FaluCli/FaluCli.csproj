@@ -27,7 +27,6 @@
     <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="System.Memory.Data" Version="7.0.0" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
   </ItemGroup>
 
 </Project>
