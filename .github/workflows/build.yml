@@ -50,9 +50,9 @@ jobs:
         - { os: ubuntu, rid-prefix: 'linux' }
         - { os: windows, rid-prefix: 'win' }
         - { os: macos, rid-prefix: 'osx' }
-        # macos-latest uses macos-12 which fails to build the app
-        # macos-13 is in preview, we can switch when it becomes the latest one
-        - { os: macos, runs-on: 'macos-13' }
+        # macos-latest uses macos-12 which fails to build the app (macos-13 is currently in preview)
+        - { os: macos, runs-on: 'macos-13' } # macos-latest
+        - { os: windows, archive-type: 'zip' } # windows creates zip files, others default to 'tar'
 
     runs-on: ${{ matrix.runs-on || format('{0}-{1}', matrix.os, 'latest') }}
 
@@ -130,20 +130,11 @@ jobs:
     - name: Create Archive Folder
       run: mkdir ${{ github.workspace }}/releases
 
-    - name: Create Archive (zip)
-      uses: thedoctor0/zip-release@master
-      if: startsWith(matrix.os, 'win')
-      with:
-        type: 'zip'
-        filename: '${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ env.DOTNET_RID }}.zip'
-        directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
-
     - name: Create Archive (tar)
       uses: thedoctor0/zip-release@master
-      if: ${{ !startsWith(matrix.os, 'win') }}
       with:
-        type: 'tar'
-        filename: '${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ env.DOTNET_RID }}.tar.gz'
+        type: ${{ matrix.archive-type || 'tar' }}
+        filename: ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ env.DOTNET_RID }}.${{ matrix.archive-type || 'tar.gz' }}
         directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
 
     - name: Prepare .debpkg and .rpmpkg
