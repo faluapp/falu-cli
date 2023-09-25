@@ -1,0 +1,11 @@
+**/.dockerignore
+# we need git to get proper version details during build
+# **/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/bin
+**/obj
+**/docker-compose*
+**/Dockerfile*

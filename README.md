@@ -54,6 +54,15 @@ scoop bucket add falu https://github.com/faluapp/scoop-falu-cli.git
 scoop install falu
 ```
 
+### Docker
+
+The CLI is also available as a Docker image: [`faluapp/falu-cli`](https://github.com/faluapp/falu-cli/pkgs/container/falu-cli).
+
+```sh
+docker run --rm -it faluapp/falu-cli --version
+1.9.0+9f98eefe4c52fab43dbb4d5c0fc5f0f6f2daa0f1
+```
+
 ## Issues & Comments
 
 Feel free to contact us if you encounter any issues with the library.
