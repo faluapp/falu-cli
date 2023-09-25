@@ -43,14 +43,14 @@ jobs:
         config:
         # list of RIDs (Runtime Identifiers) can be found at:
         # https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.NETCore.Platforms/src/runtime.json
-        - { rid: linux-x64, os: ubuntu-latest, deb-arch: amd64, rpm-arch: x86_64}
-        - { rid: linux-arm64, os: ubuntu-latest, deb-arch: arm64, rpm-arch: aarch64}
-        - { rid: win-x64, os: windows-latest}
-        - { rid: win-arm64, os: windows-latest}
+        - { os: ubuntu-latest, rid: linux-x64, deb-arch: amd64, rpm-arch: x86_64 }
+        - { os: ubuntu-latest, rid: linux-arm64, deb-arch: arm64, rpm-arch: aarch64 }
+        - { os: windows-latest, rid: win-x64 }
+        - { os: windows-latest, rid: win-arm64 }
         # macos-latest uses macos-12 which fails to build the app
         # macos-13 is in preview, we can switch when it becomes the latest one
-        - { rid: osx-x64, os: macos-13} # macos-latest
-        - { rid: osx-arm64, os: macos-13} # macos-latest
+        - { os: macos-13, rid: osx-x64 } # macos-latest
+        - { os: macos-13, rid: osx-arm64 } # macos-latest
 
     runs-on: ${{ matrix.config.os }}
 
@@ -152,7 +152,7 @@ jobs:
 
     - name: 'Build DEB package'
       uses: jiro4989/build-deb-action@v3
-      if: startsWith(matrix.config.rid, 'linux-')
+      if: ${{ matrix.config.deb-arch }}
       with:
         desc: '${{ env.PKG_DESCRIPTION }}'
         maintainer: ${{ env.PKG_MAINTAINER }}
@@ -164,7 +164,7 @@ jobs:
     - name: 'Build RPM package'
       uses: jiro4989/build-rpm-action@v2
       # TODO: figure out how to generate RPM package for ARM (it fails)
-      # if: startsWith(matrix.config.rid, 'linux-')
+      # if: ${{ matrix.config.deb-arch }}
       if: matrix.config.rid == 'linux-x64'
       with:
         summary: '${{ env.PKG_DESCRIPTION }}'
@@ -178,7 +178,7 @@ jobs:
         arch: '${{ matrix.config.rpm-arch}}'
 
     - name: Rename deb and rpm packages
-      if: startsWith(matrix.config.rid, 'linux-')
+      if: ${{ matrix.config.deb-arch || matrix.config.rpm-arch }}
       run: |
         src=falu_${{ env.GITVERSION_NUGETVERSIONV2 }}_${{ matrix.config.deb-arch}}.deb
         dest=${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.config.deb-arch}}.deb
@@ -197,6 +197,7 @@ jobs:
         name: releases
 
     - name: Test (DEB)
+      # if: ${{ matrix.config.deb-arch }}
       if: matrix.config.rid == 'linux-x64'
       run: |
         sudo apt-get install -y -f \
@@ -204,7 +205,7 @@ jobs:
 
     # TODO: investigate why installing .rpm file fails due to requirements
     # - name: Test (RPM)
-    #   if: matrix.config.rid == 'linux-x64'
+    #   if: ${{ matrix.config.rpm-arch }}
     #   run: |
     #     sudo rpm --install \
     #     ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.config.rpm-arch}}.rpm
