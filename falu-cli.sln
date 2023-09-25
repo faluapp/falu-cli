@@ -4,18 +4,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{08B40617-9B88-4F7E-A294-1365BE71D353}"
-	ProjectSection(SolutionItems) = preProject
-		src\Directory.Build.props = src\Directory.Build.props
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaluCli", "src\FaluCli\FaluCli.csproj", "{FE48265D-93DF-4B00-9EFD-A8DB2815CA2B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{03C404AC-4BD7-48D3-8973-07AAC9F1D84B}"
-	ProjectSection(SolutionItems) = preProject
-		tests\Directory.Build.props = tests\Directory.Build.props
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaluCli.Tests", "tests\FaluCli.Tests\FaluCli.Tests.csproj", "{B975D593-4EBF-41C8-BF36-B124B9D1A86B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaluCli.Tests", "tests\FaluCli.Tests\FaluCli.Tests.csproj", "{B975D593-4EBF-41C8-BF36-B124B9D1A86B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
