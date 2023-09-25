@@ -169,8 +169,8 @@ jobs:
     - name: 'Build RPM package'
       uses: jiro4989/build-rpm-action@v2
       # TODO: figure out how to generate RPM package for ARM (it fails)
-      # if: ${{ matrix.deb-arch }}
-      if: ${{ matrix.deb-arch && env.DOTNET_RID == 'linux-x64' }}
+      # if: ${{ matrix.rpm-arch }}
+      if: ${{ matrix.rpm-arch && matrix.arch == 'x64' }}
       with:
         summary: '${{ env.PKG_DESCRIPTION }}'
         desc: '${{ env.PKG_DESCRIPTION }}'
@@ -202,8 +202,9 @@ jobs:
         name: releases
 
     - name: Test (DEB)
+      # TODO: test RPM package once we can build for ARM
       # if: ${{ matrix.deb-arch }}
-      if: ${{ matrix.deb-arch && env.DOTNET_RID == 'linux-x64' }}
+      if: ${{ matrix.deb-arch && matrix.arch == 'x64' }}
       run: |
         sudo apt-get install -y -f \
         ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.deb-arch}}.deb
