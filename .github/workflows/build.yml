@@ -127,7 +127,7 @@ jobs:
     - name: Create Archive Folder
       run: mkdir ${{ github.workspace }}/releases
 
-    - name: Create Archive (tar)
+    - name: Create Archive (${{ matrix.archive-type || 'tar.gz' }})
       uses: thedoctor0/zip-release@master
       with:
         type: ${{ matrix.archive-type || 'tar' }}
