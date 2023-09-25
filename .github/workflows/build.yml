@@ -112,7 +112,7 @@ jobs:
     - name: Test (CLI) # ensure the CLI can launch (catches global DI issues)
       # ARM agents are in preview and we cannot use them, so we skip this test
       # TODO: consider using QEMU emulator for ARM?
-      if: "!contains(matrix.config.rid, 'arm')"
+      if: ${{ !contains(matrix.config.rid, 'arm') }}
       run: ./falu logout
       working-directory: ${{ github.workspace }}/drop/${{ matrix.config.rid }}
 
@@ -135,7 +135,7 @@ jobs:
 
     - name: Create Archive (tar)
       uses: thedoctor0/zip-release@master
-      if: "!startsWith(matrix.config.rid, 'win-')"
+      if: ${{ !startsWith(matrix.config.rid, 'win-') }}
       with:
         type: 'tar'
         filename: '${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ matrix.config.rid }}.tar.gz'
