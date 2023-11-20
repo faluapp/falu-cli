@@ -1,7 +1,7 @@
 # Falu CLI
 
 [![Release](https://img.shields.io/github/release/faluapp/falu-cli.svg?style=flat-square)](https://github.com/faluapp/falu-cli/releases/latest)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/faluapp/falu-cli/build.yml?branch=main&style=flat-square)
+[![GitHub Workflow Status](https://github.com/faluapp/falu-cli/actions/workflows/build.yml/badge.svg)](https://github.com/faluapp/falu-cli/actions/workflows/build.yml)
 
 The official CLI tool for [Falu][falu] to help you build, test and managed your Falu integration right from the terminal.
 
