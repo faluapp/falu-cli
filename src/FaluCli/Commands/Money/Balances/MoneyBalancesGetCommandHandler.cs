@@ -3,15 +3,8 @@ using Spectre.Console;
 
 namespace Falu.Commands.Money.Balances;
 
-internal class MoneyBalancesGetCommandHandler : ICommandHandler
+internal class MoneyBalancesGetCommandHandler(FaluCliClient client) : ICommandHandler
 {
-    private readonly FaluCliClient client;
-
-    public MoneyBalancesGetCommandHandler(FaluCliClient client)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

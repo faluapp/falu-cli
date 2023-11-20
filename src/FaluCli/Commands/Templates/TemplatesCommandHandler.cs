@@ -7,21 +7,12 @@ using Tingle.Extensions.JsonPatch;
 
 namespace Falu.Commands.Templates;
 
-internal partial class TemplatesCommandHandler : ICommandHandler
+internal partial class TemplatesCommandHandler(FaluCliClient client, ILogger<TemplatesCommandHandler> logger) : ICommandHandler
 {
     private const string InfoFileName = "info.json";
     private const string DefaultBodyFileName = "content.txt";
     private const string TranslatedBodyFileNameFormat = "content-{0}.txt";
     private static readonly Regex TranslatedBodyFileNamePattern = GetTranslatedBodyFileNamePattern();
-
-    private readonly FaluCliClient client;
-    private readonly ILogger logger;
-
-    public TemplatesCommandHandler(FaluCliClient client, ILogger<TemplatesCommandHandler> logger)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
@@ -229,8 +220,8 @@ internal partial class TemplatesCommandHandler : ICommandHandler
 
     private void GenerateChanges(in IReadOnlyList<MessageTemplate> templates, in IReadOnlyList<TemplateManifest> manifests)
     {
-        if (templates is null) throw new ArgumentNullException(nameof(templates));
-        if (manifests is null) throw new ArgumentNullException(nameof(manifests));
+        ArgumentNullException.ThrowIfNull(templates);
+        ArgumentNullException.ThrowIfNull(manifests);
 
         foreach (var local in manifests)
         {
@@ -245,7 +236,7 @@ internal partial class TemplatesCommandHandler : ICommandHandler
 
             local.Id = remote.Id;
             local.ChangeType = HasChanged(remote, local) ? ChangeType.Modified : ChangeType.Unmodified;
-            logger.LogDebug("Template with alias {Alias} has {Suffix}.", local.ChangeType is ChangeType.Modified ? "changed" : "not changed");
+            logger.LogDebug("Template with alias {Alias} has {Suffix}.", local.Alias, local.ChangeType is ChangeType.Modified ? "changed" : "not changed");
         }
     }
 
@@ -321,7 +312,8 @@ internal partial class TemplatesCommandHandler : ICommandHandler
 
             // read the info
             using var stream = File.OpenRead(infoPath);
-            var info = (await JsonSerializer.DeserializeAsync(stream, FaluCliJsonSerializerContext.Default.TemplateInfo, cancellationToken))!;
+            var info = await JsonSerializer.DeserializeAsync(stream, FaluCliJsonSerializerContext.Default.TemplateInfo, cancellationToken)
+                    ?? throw new InvalidOperationException($"Could not read template info from {infoPath}.");
 
             // read default content
             var contentPath = Path.Combine(dirPath, DefaultBodyFileName);

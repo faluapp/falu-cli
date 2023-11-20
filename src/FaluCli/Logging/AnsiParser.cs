@@ -2,14 +2,8 @@
 
 namespace Falu.Logging;
 
-internal sealed class AnsiParser
+internal sealed class AnsiParser(Action<string, int, int, ConsoleColor?, ConsoleColor?> onParseWrite)
 {
-    private readonly Action<string, int, int, ConsoleColor?, ConsoleColor?> _onParseWrite;
-    public AnsiParser(Action<string, int, int, ConsoleColor?, ConsoleColor?> onParseWrite)
-    {
-        _onParseWrite = onParseWrite ?? throw new ArgumentNullException(nameof(onParseWrite));
-    }
-
     /// <summary>
     /// Parses a subset of display attributes
     /// Set Display Attributes
@@ -58,7 +52,7 @@ internal sealed class AnsiParser
                         escapeCode = (int)(span[i + 2] - '0');
                         if (startIndex != -1)
                         {
-                            _onParseWrite(message, startIndex, length, background, foreground);
+                            onParseWrite(message, startIndex, length, background, foreground);
                             startIndex = -1;
                             length = 0;
                         }
@@ -76,7 +70,7 @@ internal sealed class AnsiParser
                         escapeCode = (int)(span[i + 2] - '0') * 10 + (int)(span[i + 3] - '0');
                         if (startIndex != -1)
                         {
-                            _onParseWrite(message, startIndex, length, background, foreground);
+                            onParseWrite(message, startIndex, length, background, foreground);
                             startIndex = -1;
                             length = 0;
                         }
@@ -113,7 +107,7 @@ internal sealed class AnsiParser
         }
         if (startIndex != -1)
         {
-            _onParseWrite(message, startIndex, length, background, foreground);
+            onParseWrite(message, startIndex, length, background, foreground);
         }
     }
 

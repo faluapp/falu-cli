@@ -6,11 +6,11 @@ internal class EventsListenCommand : Command
 {
     public EventsListenCommand() : base("listen", "Listen to events")
     {
-        this.AddOption(aliases: new[] { "--webhook-endpoint" },
+        this.AddOption(aliases: ["--webhook-endpoint"],
                        description: Res.OptionDescriptionEventListenWebhookEndpoint,
                        format: Constants.WebhookEndpointIdFormat);
 
-        this.AddOption<string[]>(new[] { "--event-type", "--type", "-t", },
+        this.AddOption<string[]>(["--event-type", "--type", "-t"],
                                  description: Res.OptionDescriptionEventListenEventTypes,
                                  validate: or =>
                                  {
@@ -28,14 +28,14 @@ internal class EventsListenCommand : Command
                                      }
                                  });
 
-        this.AddOption<Uri>(new[] { "--forward-to", "-f", },
+        this.AddOption<Uri>(["--forward-to", "-f"],
                             description: Res.OptionDescriptionEventListenForwardTo);
 
-        this.AddOption(new[] { "--skip-validation", },
+        this.AddOption(["--skip-validation"],
                        description: Res.OptionDescriptionEventListenSkipValidation,
                        defaultValue: false);
 
-        this.AddOption<string>(new[] { "--webhook-secret", "--secret", },
+        this.AddOption<string>(["--webhook-secret", "--secret"],
                                description: Res.OptionDescriptionEventListenWebhookSecret);
     }
 }

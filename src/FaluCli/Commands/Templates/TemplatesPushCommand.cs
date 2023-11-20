@@ -7,7 +7,7 @@ public class TemplatesPushCommand : Command
         this.AddArgument<string>(name: "templates-directory",
                                  description: "The directory containing the templates.");
 
-        this.AddOption(new[] { "-a", "--all", },
+        this.AddOption(["-a", "--all"],
                        description: "Push all local templates up to Falu regardless of whether they changed.",
                        defaultValue: false);
     }

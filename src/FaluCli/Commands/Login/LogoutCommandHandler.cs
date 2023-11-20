@@ -2,17 +2,8 @@
 
 namespace Falu.Commands.Login;
 
-internal class LogoutCommandHandler : ICommandHandler
+internal class LogoutCommandHandler(IConfigValuesProvider configValuesProvider, ILogger<LogoutCommandHandler> logger) : ICommandHandler
 {
-    private readonly IConfigValuesProvider configValuesProvider;
-    private readonly ILogger logger;
-
-    public LogoutCommandHandler(IConfigValuesProvider configValuesProvider, ILogger<LogoutCommandHandler> logger)
-    {
-        this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

@@ -1,5 +1,4 @@
 ﻿using Falu.Oidc;
-using System.Runtime.Serialization;
 
 namespace Falu.Commands.Login;
 
@@ -13,7 +12,6 @@ public class LoginException : Exception
     {
         Response = response;
     }
-    protected LoginException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 
     public OidcResponse? Response { get; set; }
 }

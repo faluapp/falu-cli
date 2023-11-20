@@ -5,24 +5,11 @@ using Res = Falu.Properties.Resources;
 
 namespace Falu.Client;
 
-internal class FaluCliClientHandler : DelegatingHandler
+internal class FaluCliClientHandler(OidcProvider oidcProvider,
+                                    InvocationContext context,
+                                    IConfigValuesProvider configValuesProvider,
+                                    ILogger<FaluCliClientHandler> logger) : DelegatingHandler
 {
-    private readonly OidcProvider oidcProvider;
-    private readonly InvocationContext context;
-    private readonly IConfigValuesProvider configValuesProvider;
-    private readonly ILogger logger;
-
-    public FaluCliClientHandler(OidcProvider oidcProvider,
-                                InvocationContext context,
-                                IConfigValuesProvider configValuesProvider,
-                                ILogger<FaluCliClientHandler> logger)
-    {
-        this.oidcProvider = oidcProvider ?? throw new ArgumentNullException(nameof(oidcProvider));
-        this.context = context ?? throw new ArgumentNullException(nameof(context));
-        this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {

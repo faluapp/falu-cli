@@ -1,23 +1,15 @@
 ﻿using Falu.Core;
 using System.Net.Http.Headers;
-using System.Text.Json.Serialization.Metadata;
 using SC = Falu.FaluCliJsonSerializerContext;
 
 namespace Falu.Client.MoneyStatements;
 
-internal class MoneyStatementsServiceClient : BaseServiceClient<MoneyStatement>,
-                                              ISupportsListing<MoneyStatement, MoneyStatementsListOptions>
+internal class MoneyStatementsServiceClient(HttpClient backChannel, FaluClientOptions options) : BaseServiceClient<MoneyStatement>(backChannel, options, SC.Default.MoneyStatement, SC.Default.ListMoneyStatement),
+                                                                                                 ISupportsListing<MoneyStatement, MoneyStatementsListOptions>
 {
-    public MoneyStatementsServiceClient(HttpClient backChannel, FaluClientOptions options) : base(backChannel, options) { }
 
     /// <inheritdoc/>
     protected override string BasePath => "/v1/money/statements";
-
-    /// <inheritdoc/>
-    protected override JsonTypeInfo<MoneyStatement> JsonTypeInfo => SC.Default.MoneyStatement;
-
-    /// <inheritdoc/>
-    protected override JsonTypeInfo<List<MoneyStatement>> ListJsonTypeInfo => SC.Default.ListMoneyStatement;
 
     /// <summary>Retrieve money statements.</summary>
     /// <inheritdoc/>

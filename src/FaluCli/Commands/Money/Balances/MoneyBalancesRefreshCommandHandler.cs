@@ -3,17 +3,8 @@ using Falu.Payments;
 
 namespace Falu.Commands.Money.Balances;
 
-internal class MoneyBalancesRefreshCommandHandler : ICommandHandler
+internal class MoneyBalancesRefreshCommandHandler(FaluCliClient client, ILogger<MoneyBalancesRefreshCommandHandler> logger) : ICommandHandler
 {
-    private readonly FaluCliClient client;
-    private readonly ILogger logger;
-
-    public MoneyBalancesRefreshCommandHandler(FaluCliClient client, ILogger<MoneyBalancesRefreshCommandHandler> logger)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

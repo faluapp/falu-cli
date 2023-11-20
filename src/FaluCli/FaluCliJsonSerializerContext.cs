@@ -23,24 +23,19 @@ namespace Falu;
 [JsonSerializable(typeof(Updates.GitHubLatestRelease))]
 [JsonSerializable(typeof(Websockets.RealtimeConnectionIncomingMessage))]
 [JsonSerializable(typeof(Websockets.RealtimeConnectionOutgoingMessage))]
-internal partial class FaluCliJsonSerializerContext : JsonSerializerContext
-{
-    private static JsonSerializerOptions DefaultSerializerOptions { get; } = new(JsonSerializerDefaults.Web)
-    {
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
 
-        // Ignore default values to reduce the data sent after serialization
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+[JsonSourceGenerationOptions(
+    AllowTrailingCommas = true,
+    ReadCommentHandling = JsonCommentHandling.Skip,
 
-        // Do not indent content to reduce data usage
-        WriteIndented = false,
+    // Ignore default values to reduce the data sent after serialization
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 
-        // TODO; change to snake case in .NET 8
-        //// Use SnakeCase because it is what the server provides
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DictionaryKeyPolicy = null,
-    };
+    // Do not indent content to reduce data usage
+    WriteIndented = false,
 
-    static FaluCliJsonSerializerContext() => s_defaultContext = new FaluCliJsonSerializerContext(new JsonSerializerOptions(DefaultSerializerOptions));
-}
+    // Use SnakeCase because it is what the server provides
+    PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
+    DictionaryKeyPolicy = JsonKnownNamingPolicy.Unspecified
+)]
+internal partial class FaluCliJsonSerializerContext : JsonSerializerContext { }

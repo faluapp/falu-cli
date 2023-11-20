@@ -5,17 +5,8 @@ using Falu.MessageTemplates;
 
 namespace Falu.Commands.Messages;
 
-internal class MessagesSendCommandHandler : ICommandHandler
+internal class MessagesSendCommandHandler(FaluCliClient client, ILogger<MessagesSendCommandHandler> logger) : ICommandHandler
 {
-    private readonly FaluCliClient client;
-    private readonly ILogger logger;
-
-    public MessagesSendCommandHandler(FaluCliClient client, ILogger<MessagesSendCommandHandler> logger)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)
@@ -135,8 +126,8 @@ internal class MessagesSendCommandHandler : ICommandHandler
         {
             var request = new MessageBatchCreateRequest
             {
-                Messages = new List<MessageBatchCreateRequestMessage>
-                {
+                Messages =
+                [
                     new MessageBatchCreateRequestMessage
                     {
                         Tos = tos,
@@ -144,7 +135,7 @@ internal class MessagesSendCommandHandler : ICommandHandler
                         Template = template,
                         Media = media,
                     },
-                },
+                ],
                 Stream = stream,
                 Schedule = schedule,
             };

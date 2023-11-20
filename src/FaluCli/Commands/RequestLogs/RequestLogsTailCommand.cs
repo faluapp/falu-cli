@@ -7,14 +7,14 @@ internal class RequestLogsTailCommand : Command
 {
     public RequestLogsTailCommand() : base("tail", "Tail request logs")
     {
-        this.AddOption<IPAddress[]>(new[] { "--ip-address", "--ip", },
+        this.AddOption<IPAddress[]>(["--ip-address", "--ip"],
                                     description: "The IP address to filter for.");
 
-        this.AddOption<string[]>(new[] { "--http-method", "--method", },
+        this.AddOption<string[]>(["--http-method", "--method"],
                                  description: "The HTTP method to filter for.",
                                  configure: o => o.FromAmong("get", "patch", "post", "put", "delete"));
 
-        this.AddOption<string[]>(new[] { "--request-path", "--path", },
+        this.AddOption<string[]>(["--request-path", "--path"],
                                  description: "The request path to filter for. For example: \"/v1/messages\"",
                                  validate: or =>
                                  {
@@ -32,11 +32,11 @@ internal class RequestLogsTailCommand : Command
                                      }
                                  });
 
-        this.AddOption<string[]>(new[] { "--source", },
+        this.AddOption<string[]>(["--source"],
                                  description: "The request source to filter for.",
                                  configure: o => o.FromAmong("dashboard", "api"));
 
-        this.AddOption<int[]>(new[] { "--status-code", },
+        this.AddOption<int[]>(["--status-code"],
                               description: "The HTTP status code to filter for.",
                               validate: (or) =>
                               {
