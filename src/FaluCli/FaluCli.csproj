@@ -49,7 +49,7 @@
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
     <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
-    <PackageReference Include="System.Memory.Data" Version="7.0.0" />
+    <PackageReference Include="System.Memory.Data" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
