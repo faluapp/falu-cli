@@ -43,7 +43,7 @@
     <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="ClosedXML" Version="0.102.1" />
     <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.7.1" />
-    <PackageReference Include="Falu" Version="1.12.0" />
+    <PackageReference Include="Falu" Version="1.13.0" />
     <PackageReference Include="FileSignatures" Version="4.4.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
