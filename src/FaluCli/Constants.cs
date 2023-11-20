@@ -11,7 +11,7 @@ internal partial class Constants
     public const string DeviceAuthorizationEndpoint = $"{Authority}/connect/deviceauthorization";
     public const string TokenEndpoint = $"{Authority}/connect/token";
     public const string ClientId = "cli";
-    public static readonly string Scopes = string.Join(" ", new[] { "openid", "offline_access", "api", });
+    public static readonly string Scopes = string.Join(" ", ["openid", "offline_access", "api"]);
 
     public static readonly ByteSizeLib.ByteSize MaxStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(256);
     public static readonly string MaxStatementFileSizeString = MaxStatementFileSize.ToBinaryString();

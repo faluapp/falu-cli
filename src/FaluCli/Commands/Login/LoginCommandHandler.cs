@@ -4,19 +4,8 @@ using System.Diagnostics;
 
 namespace Falu.Commands.Login;
 
-internal class LoginCommandHandler : ICommandHandler
+internal class LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger) : ICommandHandler
 {
-    private readonly OidcProvider oidcProvider;
-    private readonly IConfigValuesProvider configValuesProvider;
-    private readonly ILogger logger;
-
-    public LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger)
-    {
-        this.oidcProvider = oidcProvider ?? throw new ArgumentNullException(nameof(oidcProvider));
-        this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

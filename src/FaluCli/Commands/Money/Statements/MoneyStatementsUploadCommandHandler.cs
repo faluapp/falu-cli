@@ -3,17 +3,8 @@ using Falu.Client;
 
 namespace Falu.Commands.Money.Statements;
 
-internal class MoneyStatementsUploadCommandHandler : ICommandHandler
+internal class MoneyStatementsUploadCommandHandler(FaluCliClient client, ILogger<MoneyStatementsUploadCommandHandler> logger) : ICommandHandler
 {
-    private readonly FaluCliClient client;
-    private readonly ILogger logger;
-
-    public MoneyStatementsUploadCommandHandler(FaluCliClient client, ILogger<MoneyStatementsUploadCommandHandler> logger)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

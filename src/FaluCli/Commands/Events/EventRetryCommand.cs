@@ -8,7 +8,7 @@ internal class EventRetryCommand : Command
                          description: "Unique identifier of the event. Example: evt_610010be9228355f14ce6e08",
                          format: Constants.EventIdFormat);
 
-        this.AddOption(aliases: new[] { "--webhook-endpoint" },
+        this.AddOption(aliases: ["--webhook-endpoint"],
                        description: "Unique identifier of the webhook endpoint. Example: we_610010be9228355f14ce6e08",
                        format: Constants.WebhookEndpointIdFormat,
                        configure: o => o.IsRequired = true);

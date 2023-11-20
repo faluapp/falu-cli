@@ -3,15 +3,8 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Falu.Oidc;
 
-internal class OidcProvider
+internal class OidcProvider(HttpClient httpClient)
 {
-    private readonly HttpClient httpClient;
-
-    public OidcProvider(HttpClient httpClient)
-    {
-        this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-    }
-
     public Task<OidcTokenResponse> RequestRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         var parameters = new Dictionary<string, string>

@@ -8,19 +8,8 @@ using System.Text.Json.Serialization;
 
 namespace Falu.Commands.RequestLogs;
 
-internal class RequestLogsTailCommandHandler : ICommandHandler
+internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHandler websocketHandler, ILogger<RequestLogsTailCommandHandler> logger) : ICommandHandler
 {
-    private readonly FaluCliClient client;
-    private readonly WebsocketHandler websocketHandler;
-    private readonly ILogger logger;
-
-    public RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHandler websocketHandler, ILogger<RequestLogsTailCommandHandler> logger)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-        this.websocketHandler = websocketHandler;
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

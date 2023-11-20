@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <Description>Official CLI tool for Falu.</Description>
@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <Deterministic>true</Deterministic>
     <IsPackable>true</IsPackable> <!-- Needed when OutputType is Exe -->
@@ -43,13 +43,13 @@
     <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="ClosedXML" Version="0.102.1" />
     <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.7.1" />
-    <PackageReference Include="Falu" Version="1.12.0" />
+    <PackageReference Include="Falu" Version="1.13.1" />
     <PackageReference Include="FileSignatures" Version="4.4.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
     <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
-    <PackageReference Include="System.Memory.Data" Version="7.0.0" />
+    <PackageReference Include="System.Memory.Data" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,15 +9,8 @@ using System.Text.Json.Nodes;
 
 namespace Falu.Commands.Events;
 
-internal class EventRetryCommandHandler : ICommandHandler
+internal class EventRetryCommandHandler(FaluCliClient client) : ICommandHandler
 {
-    private readonly FaluCliClient client;
-
-    public EventRetryCommandHandler(FaluCliClient client)
-    {
-        this.client = client ?? throw new ArgumentNullException(nameof(client));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)

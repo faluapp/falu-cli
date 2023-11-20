@@ -8,11 +8,11 @@ public class MoneyStatementsUploadCommand : Command
                                  description: "The object type to upload the statement against.",
                                  configure: o => o.FromAmong("payments", "payment_refunds", "transfers", "transfer_reversals"));
 
-        this.AddOption<string>(new[] { "-f", "--file", },
+        this.AddOption<string>(["-f", "--file"],
                                description: $"File path for the statement file (up to {Constants.MaxStatementFileSizeString}).",
                                configure: o => o.IsRequired = true);
 
-        this.AddOption(new[] { "--provider", },
+        this.AddOption(["--provider"],
                        description: "Type of statement",
                        defaultValue: "mpesa",
                        configure: o => o.FromAmong("mpesa"));

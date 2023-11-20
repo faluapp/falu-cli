@@ -6,7 +6,7 @@ internal static class CollectionExtensions
 
     public static string MakePaddedString(this IDictionary<string, object> dictionary, out int width, string separator = " : ")
     {
-        if (dictionary is null) throw new ArgumentNullException(nameof(dictionary));
+        ArgumentNullException.ThrowIfNull(dictionary);
 
         if (dictionary.Count == 0)
         {
@@ -25,7 +25,7 @@ internal static class CollectionExtensions
 
     public static string MakeString(this IDictionary<string, object> dictionary, string separator = " : ")
     {
-        if (dictionary is null) throw new ArgumentNullException(nameof(dictionary));
+        ArgumentNullException.ThrowIfNull(dictionary);
 
         if (dictionary.Count == 0)
         {

@@ -5,16 +5,9 @@ using SC = Falu.FaluCliJsonSerializerContext;
 
 namespace Falu.Websockets;
 
-internal class WebsocketHandler : IDisposable
+internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
 {
-    private readonly ILogger logger;
-
     private ClientWebSocket? socket;
-
-    public WebsocketHandler(ILogger<WebsocketHandler> logger)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public async Task StartAsync(RealtimeConnectionNegotiation negotiation,
                                  Func<RealtimeConnectionIncomingMessage, CancellationToken, Task> handler,

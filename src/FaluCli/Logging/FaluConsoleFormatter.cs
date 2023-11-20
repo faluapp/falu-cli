@@ -208,29 +208,17 @@ internal class FaluConsoleFormatter : ConsoleFormatter
         }
     }
 
-    private readonly struct ConsoleColors
+    private readonly struct ConsoleColors(ConsoleColor? foreground, ConsoleColor? background)
     {
-        public ConsoleColors(ConsoleColor? foreground, ConsoleColor? background)
-        {
-            Foreground = foreground;
-            Background = background;
-        }
+        public ConsoleColor? Foreground { get; } = foreground;
 
-        public ConsoleColor? Foreground { get; }
-
-        public ConsoleColor? Background { get; }
+        public ConsoleColor? Background { get; } = background;
     }
 
-    private readonly struct MessagePaddings
+    private readonly struct MessagePaddings(string messagePadding, string newLineWithMessagePadding)
     {
-        public MessagePaddings(string messagePadding, string newLineWithMessagePadding)
-        {
-            MessagePadding = messagePadding;
-            NewLineWithMessagePadding = newLineWithMessagePadding;
-        }
-
-        public string MessagePadding { get; }
-        public string NewLineWithMessagePadding { get; }
+        public string MessagePadding { get; } = messagePadding;
+        public string NewLineWithMessagePadding { get; } = newLineWithMessagePadding;
 
         public static MessagePaddings Create(FaluConsoleFormatterOptions options)
         {

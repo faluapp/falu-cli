@@ -2,7 +2,6 @@
 using Falu.Commands.Login;
 using Falu.Updates;
 using Spectre.Console;
-using System.CommandLine.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;

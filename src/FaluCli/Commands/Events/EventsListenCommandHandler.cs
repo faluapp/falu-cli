@@ -60,7 +60,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         // if there are no types specified and there is a webhook endpoint, we can use it's types
         if ((types is null || types.Length == 0) && webhookEndpoint is not null)
         {
-            types = webhookEndpoint.Events?.ToArray() ?? Array.Empty<string>();
+            types = webhookEndpoint.Events?.ToArray() ?? [];
             logger.LogInformation("Filtering event types using the provided webhook:\r\n- {EventTypes}", string.Join("\r\n- ", types));
         }
 

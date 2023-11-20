@@ -72,8 +72,8 @@ var rootCommand = new RootCommand
 };
 
 rootCommand.Description = "Official CLI tool for Falu.";
-rootCommand.AddGlobalOption(new[] { "-v", "--verbose" }, "Whether to output verbosely.", false);
-rootCommand.AddGlobalOption<bool?>(new[] { "--skip-update-checks", }, Res.OptionDescriptionSkipUpdateCheck); // nullable so as to allow checking if specified
+rootCommand.AddGlobalOption(["-v", "--verbose"], "Whether to output verbosely.", false);
+rootCommand.AddGlobalOption<bool?>(["--skip-update-checks"], Res.OptionDescriptionSkipUpdateCheck); // nullable so as to allow checking if specified
 
 var builder = new CommandLineBuilder(rootCommand)
     .UseHost(_ => Host.CreateDefaultBuilder(args), host =>
@@ -90,7 +90,7 @@ var builder = new CommandLineBuilder(rootCommand)
                 ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Warning",
                 [$"Logging:LogLevel:{typeof(WebsocketHandler).FullName}"] = verbose ? "Trace" : "Information",
 
-                // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#logging
+                // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0#logging
                 ["Logging:LogLevel:System.Net.Http.HttpClient"] = "None", // removes all we do not need
                 ["Logging:LogLevel:System.Net.Http.HttpClient.Oidc.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
                 [$"Logging:LogLevel:System.Net.Http.HttpClient.{nameof(Falu.Client.FaluCliClient)}.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need

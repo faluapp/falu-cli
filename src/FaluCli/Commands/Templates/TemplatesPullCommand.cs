@@ -7,7 +7,7 @@ public class TemplatesPullCommand : Command
         this.AddArgument<string>(name: "output-directory",
                                  description: "The directory into which to put the pulled templates.");
 
-        this.AddOption(new[] { "-o", "--overwrite", },
+        this.AddOption(["-o", "--overwrite"],
                        description: "Overwrite templates if they already exist.",
                        defaultValue: false);
     }

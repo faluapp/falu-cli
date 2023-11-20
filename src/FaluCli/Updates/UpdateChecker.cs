@@ -3,26 +3,13 @@ using System.Net.Http.Json;
 
 namespace Falu.Updates;
 
-internal class UpdateChecker : BackgroundService
+internal class UpdateChecker(IHostEnvironment environment, IConfigValuesProvider configValuesProvider, InvocationContext invocationContext, HttpClient httpClient) : BackgroundService
 {
     private static readonly SemaphoreSlim locker = new(1);
     private static readonly SemanticVersioning.Version? currentVersion = SemanticVersioning.Version.Parse(VersioningHelper.ProductVersion);
     private static SemanticVersioning.Version? latestVersion;
     private static string? latestVersionHtmlUrl;
     private static string? latestVersionBody;
-
-    private readonly IHostEnvironment environment;
-    private readonly IConfigValuesProvider configValuesProvider;
-    private readonly InvocationContext invocationContext;
-    private readonly HttpClient httpClient;
-
-    public UpdateChecker(IHostEnvironment environment, IConfigValuesProvider configValuesProvider, InvocationContext invocationContext, HttpClient httpClient)
-    {
-        this.environment = environment ?? throw new ArgumentNullException(nameof(environment));
-        this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-        this.invocationContext = invocationContext ?? throw new ArgumentNullException(nameof(invocationContext));
-        this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

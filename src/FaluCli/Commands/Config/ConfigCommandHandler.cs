@@ -3,15 +3,8 @@ using Spectre.Console;
 
 namespace Falu.Commands.Config;
 
-internal class ConfigCommandHandler : ICommandHandler
+internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) : ICommandHandler
 {
-    private readonly IConfigValuesProvider configValuesProvider;
-
-    public ConfigCommandHandler(IConfigValuesProvider configValuesProvider)
-    {
-        this.configValuesProvider = configValuesProvider ?? throw new ArgumentNullException(nameof(configValuesProvider));
-    }
-
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
     public async Task<int> InvokeAsync(InvocationContext context)
