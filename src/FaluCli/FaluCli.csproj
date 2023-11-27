@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <Description>Official CLI tool for Falu.</Description>
@@ -47,7 +47,7 @@
     <PackageReference Include="FileSignatures" Version="4.4.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
-    <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
+    <PackageReference Include="Spectre.Console.Json" Version="0.48.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="System.Memory.Data" Version="8.0.0" />
   </ItemGroup>
