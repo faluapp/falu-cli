@@ -68,6 +68,8 @@ internal static class CommandLineBuilderExtensions
                     var errors = string.Join(Environment.NewLine, error.Errors.Select(k => $"{k.Key}: {string.Join("; ", k.Value)}"));
                     sb.AppendLine(SpectreFormatter.ColouredRed(string.Format(Res.ProblemDetailsErrorsFormat, errors)));
                 }
+
+                AnsiConsole.MarkupLine(sb.ToString());
             }
             else if (fe.StatusCode == HttpStatusCode.Unauthorized)
             {
