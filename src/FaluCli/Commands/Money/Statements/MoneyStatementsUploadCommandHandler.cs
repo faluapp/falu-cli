@@ -52,9 +52,14 @@ internal class MoneyStatementsUploadCommandHandler(FaluCliClient client, ILogger
         };
         var formatInspector = new FileSignatures.FileFormatInspector(fileFormats);
         var fileFormat = formatInspector.DetermineFileFormat(fileContent);
-        var fileContentType = fileFormat?.MediaType;
+        if (fileFormat is null)
+        {
+            logger.LogError("Unable to determine file format. Only Excel workbooks are allowed.");
+            return -1;
+        }
 
         var fileName = Path.GetFileName(filePath);
+        var fileContentType = fileFormat.MediaType;
         logger.LogInformation("Uploading {FileName} ({FileSize})", fileName, size.ToBinaryString());
         var response = await client.MoneyStatements.UploadAsync(provider: provider,
                                                                 objectKind: objectKind,
