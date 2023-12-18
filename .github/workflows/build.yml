@@ -119,7 +119,7 @@ jobs:
       working-directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
 
     - name: Publish Artifact (drop)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/drop/**
         name: drop
@@ -184,7 +184,7 @@ jobs:
         fi
 
     - name: Publish Artifact (releases)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/releases/**
         name: releases
@@ -236,7 +236,7 @@ jobs:
         include: checksum.txt
 
     - name: Publish Artifact (releases)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: checksum.txt
         name: releases
@@ -290,7 +290,7 @@ jobs:
         files: '["${{ github.workspace }}/generated/homebrew/falu.rb","${{ github.workspace }}/generated/scoop/falu.json"]'
 
     - name: Publish Artifact (releases)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/generated
         name: releases
