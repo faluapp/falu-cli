@@ -120,7 +120,7 @@ internal class MessagesSendCommandHandler(FaluCliClient client, ILogger<Messages
             rr.EnsureSuccess();
 
             var response = rr.Resource!;
-            logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:r}.", response.Id, response.Schedule?.Time ?? response.Created);
+            logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:f}.", response.Id, (response.Schedule?.Time ?? response.Created).ToLocalTime());
         }
         else
         {
@@ -144,7 +144,7 @@ internal class MessagesSendCommandHandler(FaluCliClient client, ILogger<Messages
 
             var response = rr.Resource!;
             var ids = response.Messages!;
-            logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:r}.", ids.Count, response.Schedule?.Time ?? response.Created);
+            logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:f}.", ids.Count, (response.Schedule?.Time ?? response.Created).ToLocalTime());
             logger.LogDebug("Message Id(s):\r\n- {Ids}", string.Join("\r\n- ", ids));
         }
 
