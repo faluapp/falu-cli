@@ -41,5 +41,5 @@ public class OidcDeviceAuthorizationResponse : OidcResponse
     /// </summary>
     /// <example>5</example>
     [JsonPropertyName("interval")]
-    public int Interval { get; set; } = 5;
+    public int? Interval { get; set; }
 }
