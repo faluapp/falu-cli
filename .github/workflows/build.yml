@@ -131,7 +131,7 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: ${{ matrix.archive-type || 'tar' }}
-        filename: ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-${{ env.DOTNET_RID }}.${{ matrix.archive-type || 'tar.gz' }}
+        filename: ${{ github.workspace }}/releases/falu-$GITVERSION_NUGETVERSIONV2-${{ env.DOTNET_RID }}.${{ matrix.archive-type || 'tar.gz' }}
         directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
 
     - name: Prepare .debpkg and .rpmpkg
@@ -149,7 +149,7 @@ jobs:
       with:
         desc: '${{ env.PKG_DESCRIPTION }}'
         maintainer: ${{ env.PKG_MAINTAINER }}
-        version: ${{ env.GITVERSION_NUGETVERSIONV2 }}
+        version: $GITVERSION_NUGETVERSIONV2
         package: ${{ env.PKG_NAME }}
         package_root: .debpkg
         arch: '${{ matrix.deb-arch}}'
@@ -165,7 +165,7 @@ jobs:
         maintainer: ${{ env.PKG_MAINTAINER }}
         vendor: ${{ env.PKG_VENDOR }}
         license: ${{ env.PKG_LICENSE }}
-        version: ${{ env.GITVERSION_MAJORMINORPATCH }}
+        version: $GITVERSION_MAJORMINORPATCH
         package: ${{ env.PKG_NAME }}
         package_root: .rpmpkg
         arch: '${{ matrix.rpm-arch}}'
@@ -173,12 +173,12 @@ jobs:
     - name: Rename deb and rpm packages
       if: ${{ matrix.deb-arch || matrix.rpm-arch }}
       run: |
-        src=falu_${{ env.GITVERSION_NUGETVERSIONV2 }}_${{ matrix.deb-arch}}.deb
-        dest=${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.deb-arch}}.deb
+        src=falu_$GITVERSION_NUGETVERSIONV2_${{ matrix.deb-arch}}.deb
+        dest=${{ github.workspace }}/releases/falu-$GITVERSION_NUGETVERSIONV2-linux-${{ matrix.deb-arch}}.deb
         mv $src $dest
 
-        src=falu-${{ env.GITVERSION_MAJORMINORPATCH }}-1.el7.${{ matrix.rpm-arch}}.rpm
-        dest=${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.rpm-arch}}.rpm
+        src=falu-$GITVERSION_MAJORMINORPATCH-1.el7.${{ matrix.rpm-arch}}.rpm
+        dest=${{ github.workspace }}/releases/falu-$GITVERSION_NUGETVERSIONV2-linux-${{ matrix.rpm-arch}}.rpm
         if [ -f $src ]; then
           mv $src $dest
         fi
@@ -195,14 +195,14 @@ jobs:
       if: ${{ matrix.deb-arch && matrix.arch == 'x64' }}
       run: |
         sudo apt-get install -y -f \
-        ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.deb-arch}}.deb
+        ${{ github.workspace }}/releases/falu-$GITVERSION_NUGETVERSIONV2-linux-${{ matrix.deb-arch}}.deb
 
     # TODO: investigate why installing .rpm file fails due to requirements
     # - name: Test (RPM)
     #   if: ${{ matrix.config.rpm-arch }}
     #   run: |
     #     sudo rpm --install \
-    #     ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.rpm-arch}}.rpm
+    #     ${{ github.workspace }}/releases/falu-$GITVERSION_NUGETVERSIONV2-linux-${{ matrix.rpm-arch}}.rpm
 
   Checksum:
     runs-on: ubuntu-latest
