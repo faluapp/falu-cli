@@ -30,3 +30,11 @@ updates:
     interval: "weekly"
     time: "02:00"
   open-pull-requests-limit: 10
+  ignore:
+  # updates for recent versions of actions/upload-artifact and actions/download-artifact because we can't merge artifacts from different jobs in a matrix
+  # it is probably better to let these new changes be tested out by other projects first before we update
+  # https://github.com/actions/upload-artifact/issues/472
+  # https://github.com/actions/upload-artifact/issues/472#issuecomment-1861571655
+  # https://github.com/actions/upload-artifact/issues/472#issuecomment-1861820431
+  - dependency-name: "actions/upload-artifact"
+  - dependency-name: "actions/download-artifact"
