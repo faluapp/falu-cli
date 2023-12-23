@@ -18,12 +18,6 @@ updates:
       patterns: ["System.*"]
     xunit:
       patterns: ["Xunit*"]
-  ignore:
-  # Ignore patch updates for some packages
-  - dependency-name: "Microsoft.*"
-    update-types: ["version-update:semver-patch"]
-  - dependency-name: "System.*"
-    update-types: ["version-update:semver-patch"]
 - package-ecosystem: "github-actions" # See documentation for possible values
   directory: "/" # Location of package manifests
   schedule:
