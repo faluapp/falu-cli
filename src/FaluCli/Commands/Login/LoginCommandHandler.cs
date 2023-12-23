@@ -57,8 +57,7 @@ internal class LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvi
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var deviceCode = auth.DeviceCode ?? throw new InvalidOperationException("Device code in the response cannot be null. Contact support!");
-            var response = await oidcProvider.RequestDeviceTokenAsync(deviceCode, cancellationToken);
+            var response = await oidcProvider.RequestDeviceTokenAsync(auth.DeviceCode, cancellationToken);
 
             if (response.IsError)
             {
