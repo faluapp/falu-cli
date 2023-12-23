@@ -53,6 +53,7 @@ internal class LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvi
 
     private async Task<OidcTokenResponse> RequestTokenAsync(OidcDeviceAuthorizationResponse auth, CancellationToken cancellationToken = default)
     {
+        var interval = auth.Interval ?? 5;
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -68,8 +69,11 @@ internal class LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvi
                     _ => throw new LoginException(response),
                 };
 
-                logger.LogInformation("{Message} Delaying for {Duration} seconds", msg, auth.Interval);
-                await Task.Delay(TimeSpan.FromSeconds(auth.Interval), cancellationToken);
+                // when error is "slow_down" the interval MUST be increased by 5 seconds for this and all subsequent requests
+                if (response.Error == "slow_down") interval += 5;
+
+                logger.LogInformation("{Message} Delaying for {Duration} seconds", msg, interval);
+                await Task.Delay(TimeSpan.FromSeconds(interval), cancellationToken);
             }
             else
             {
