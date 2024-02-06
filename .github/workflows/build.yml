@@ -119,10 +119,10 @@ jobs:
       working-directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
 
     - name: Publish Artifact (drop)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/drop/**
-        name: drop
+        name: drop-${{ env.DOTNET_RID }}
 
     - name: Create Archive Folder
       run: mkdir ${{ github.workspace }}/releases
@@ -184,10 +184,10 @@ jobs:
         fi
 
     - name: Publish Artifact (releases)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/releases/**
-        name: releases
+        name: releases-${{ env.DOTNET_RID }}
 
     - name: Test (DEB)
       # TODO: test RPM package once we can build for ARM
@@ -210,10 +210,11 @@ jobs:
 
     steps:
     - name: Download Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: releases
         path: releases
+        pattern: releases-*
+        merge-multiple: true
 
     - name: Generate checksum
       uses: jmgilman/actions-generate-checksum@v1
@@ -236,10 +237,10 @@ jobs:
         include: checksum.txt
 
     - name: Publish Artifact (releases)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: checksum.txt
-        name: releases
+        name: releases-checksum
 
   Packaging:
     runs-on: macos-latest
@@ -252,10 +253,11 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: releases
         path: ${{ github.workspace }}/releases
+        pattern: releases-*
+        merge-multiple: true
 
     - name: Prepare templates
       run: |
@@ -290,10 +292,10 @@ jobs:
         files: '["${{ github.workspace }}/generated/homebrew/falu.rb","${{ github.workspace }}/generated/scoop/falu.json"]'
 
     - name: Publish Artifact (releases)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ github.workspace }}/generated
-        name: releases
+        name: releases-generated
 
   Release:
     runs-on: ubuntu-latest
@@ -302,10 +304,11 @@ jobs:
 
     steps:
     - name: Download Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: releases
         path: ${{ github.workspace }}/releases
+        pattern: releases-*
+        merge-multiple: true
 
     - name: Upload Release
       uses: ncipollo/release-action@v1
