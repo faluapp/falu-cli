@@ -114,7 +114,7 @@ jobs:
         src/FaluCli/FaluCli.csproj
 
     - name: Test (CLI) # ensure the CLI can launch (catches global DI issues)
-      # ARM agents are in preview and we cannot use them, so we skip this test
+      # ARM runners are in preview and we cannot use them, so we skip this test
       # https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/
       # TODO: consider using QEMU emulator for ARM?
       if: ${{ !contains(matrix.arch, 'arm') }}
@@ -193,19 +193,23 @@ jobs:
         name: releases-${{ env.DOTNET_RID }}
 
     - name: Test (DEB)
-      # TODO: test RPM package once we can build for ARM
+      # TODO: test DEB package for ARM once we have ARM runners
+      # https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/
       # if: ${{ matrix.deb-arch }}
       if: ${{ matrix.deb-arch && matrix.arch == 'x64' }}
       run: |
         sudo apt-get install -y -f \
         ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.deb-arch}}.deb
 
-    # TODO: investigate why installing .rpm file fails due to requirements
-    # - name: Test (RPM)
-    #   if: ${{ matrix.config.rpm-arch }}
-    #   run: |
-    #     sudo rpm --install \
-    #     ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.rpm-arch}}.rpm
+    - name: Test (RPM)
+      # TODO: test RPM package for ARM once we have ARM runners
+      # https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/
+      # if: ${{ matrix.rpm-arch }}
+      if: ${{ matrix.rpm-arch && matrix.arch == 'x64' }}
+      run: |
+        sudo apt-get install alien
+        sudo alien -i \
+        ${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.rpm-arch}}.rpm
 
   Checksum:
     runs-on: ubuntu-latest
