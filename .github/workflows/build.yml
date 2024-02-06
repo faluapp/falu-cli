@@ -58,6 +58,8 @@ jobs:
 
     env:
       DOTNET_RID: ${{ format('{0}-{1}', matrix.rid-prefix, matrix.arch) }}
+      GITVERSION_NUGETVERSIONV2: 'overriden by gitversion action'
+      GITVERSION_MAJORMINORPATCH: 'overriden by gitversion action'
 
     outputs:
       BINARIES_VERSION: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
