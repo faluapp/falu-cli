@@ -50,7 +50,7 @@ jobs:
         - { os: ubuntu, rid-prefix: 'linux' }
         - { os: windows, rid-prefix: 'win' }
         - { os: macos, rid-prefix: 'osx' }
-        # macos-latest uses macos-12 which fails to build the app (macos-13 is currently in preview)
+        # macos-latest uses macos-12 which fails to build the app (macos-13 works)
         - { os: macos, runs-on: 'macos-13' } # macos-latest
         - { os: windows, archive-type: 'zip' } # windows creates zip files, others default to 'tar'
 
@@ -113,6 +113,7 @@ jobs:
 
     - name: Test (CLI) # ensure the CLI can launch (catches global DI issues)
       # ARM agents are in preview and we cannot use them, so we skip this test
+      # https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/
       # TODO: consider using QEMU emulator for ARM?
       if: ${{ !contains(matrix.arch, 'arm') }}
       run: ./falu logout
