@@ -159,7 +159,9 @@ jobs:
 
     - name: 'Build RPM package'
       uses: jiro4989/build-rpm-action@v2
-      # TODO: figure out how to generate RPM package for ARM (it fails)
+      # TODO: bulld RPM package for ARM once we have ARM runners
+      # https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/
+      # Not possible on x64 runners: https://github.com/jiro4989/build-rpm-action/issues/6
       # if: ${{ matrix.rpm-arch }}
       if: ${{ matrix.rpm-arch && matrix.arch == 'x64' }}
       with:
