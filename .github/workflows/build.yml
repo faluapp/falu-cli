@@ -159,9 +159,7 @@ jobs:
 
     - name: 'Build RPM package'
       uses: jiro4989/build-rpm-action@v2
-      # TODO: figure out how to generate RPM package for ARM (it fails)
-      # if: ${{ matrix.rpm-arch }}
-      if: ${{ matrix.rpm-arch && matrix.arch == 'x64' }}
+      if: ${{ matrix.rpm-arch }}
       with:
         summary: '${{ env.PKG_DESCRIPTION }}'
         desc: '${{ env.PKG_DESCRIPTION }}'
@@ -182,9 +180,7 @@ jobs:
 
         src=falu-${{ env.GITVERSION_MAJORMINORPATCH }}-1.el7.${{ matrix.rpm-arch}}.rpm
         dest=${{ github.workspace }}/releases/falu-${{ env.GITVERSION_NUGETVERSIONV2 }}-linux-${{ matrix.rpm-arch}}.rpm
-        if [ -f $src ]; then
-          mv $src $dest
-        fi
+        mv $src $dest
 
     - name: Publish Artifact (releases)
       uses: actions/upload-artifact@v4
