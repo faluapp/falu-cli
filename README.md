@@ -3,7 +3,14 @@
 [![Release](https://img.shields.io/github/release/faluapp/falu-cli.svg?style=flat-square)](https://github.com/faluapp/falu-cli/releases/latest)
 [![GitHub Workflow Status](https://github.com/faluapp/falu-cli/actions/workflows/build.yml/badge.svg)](https://github.com/faluapp/falu-cli/actions/workflows/build.yml)
 
-The official CLI tool for [Falu][falu] to help you build, test and managed your Falu integration right from the terminal.
+The official CLI tool for [Falu][falu] to help you build, test, and manage your Falu integration right from the terminal.
+
+Available features:
+
+- Manage your message templates in bulk (or via CI)
+- Tail your API request logs for real-time insights.
+- Resend webhook events effortlessly for simplified testing.
+- Test webhooks securely, eliminating the need for external software.
 
 ## Usage
 
