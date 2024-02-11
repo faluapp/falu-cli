@@ -14,8 +14,18 @@ name: "CodeQL"
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+    - README.md
+    - LICENSE
+    - CHANGELOG.md
+    - docs/**
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+    - README.md
+    - LICENSE
+    - CHANGELOG.md
+    - docs/**
   schedule:
     - cron: '21 0 * * 6'
 
