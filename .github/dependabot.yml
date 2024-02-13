@@ -5,27 +5,32 @@
 
 version: 2
 updates:
-- package-ecosystem: "nuget" # See documentation for possible values
-  directory: "/" # Location of package manifests
-  schedule:
-    interval: "weekly"
-    time: "02:00"
-  open-pull-requests-limit: 10
-  groups:
-    microsoft:
-      patterns: ["Microsoft.*"]
-    system:
-      patterns: ["System.*"]
-    xunit:
-      patterns: ["Xunit*"]
-- package-ecosystem: "github-actions" # See documentation for possible values
-  directory: "/" # Location of package manifests
-  schedule:
-    interval: "weekly"
-    time: "02:00"
-  open-pull-requests-limit: 10
-  groups:
-    github-actions-artifacts:
-      patterns:
-      - "actions/upload-artifact"
-      - "actions/download-artifact"
+  - package-ecosystem: "nuget" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*"]
+      system:
+        patterns: ["System.*"]
+      xunit:
+        patterns: ["Xunit*"]
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+      time: "02:00"
+  - package-ecosystem: "github-actions" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions-artifacts:
+        patterns:
+          - "actions/upload-artifact"
+          - "actions/download-artifact"
