@@ -70,10 +70,6 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <VersionPrefix Condition="'$(GITVERSION_NUGETVERSION)' != ''">$(GITVERSION_NUGETVERSION)</VersionPrefix>
-  </PropertyGroup>
-
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
