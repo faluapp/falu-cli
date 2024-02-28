@@ -29,7 +29,7 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
         var request = new RealtimeConnectionNegotiationRequest { Type = "websocket", Purpose = "logs", };
         var response = await client.Realtime.NegotiateAsync(request, cancellationToken: cancellationToken);
         response.EnsureSuccess();
-        var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiotion cannot be null or empty");
+        var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
         // start the handler
         using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);

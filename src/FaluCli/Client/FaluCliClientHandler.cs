@@ -48,7 +48,7 @@ internal class FaluCliClientHandler(OidcProvider oidcProvider,
                 throw new FaluException(Res.AuthenticationInformationMissing);
             }
 
-            // at this point, we either have a valid access token or an invalid acess token with a valid refresh token
+            // at this point, we either have a valid access token or an invalid access token with a valid refresh token
             // if the access token is invalid, we need to get one via the refresh token
             if (!config.Authentication.HasValidAccessToken() && config.Authentication.HasValidRefreshToken())
             {

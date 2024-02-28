@@ -2,14 +2,14 @@
 
 public class ConfigShowCommand : Command
 {
-    public ConfigShowCommand() : base("show", "Show present cofiguration values.")
+    public ConfigShowCommand() : base("show", "Show present configuration values.")
     {
     }
 }
 
 public class ConfigSetCommand : Command
 {
-    public ConfigSetCommand() : base("set", "Set a cofiguration value.")
+    public ConfigSetCommand() : base("set", "Set a configuration value.")
     {
         this.AddArgument<string>(name: "key",
                                  description: "The configuration key.",
@@ -21,14 +21,14 @@ public class ConfigSetCommand : Command
 
 public class ConfigClearAllCommand : Command
 {
-    public ConfigClearAllCommand() : base("all", "Clear all cofiguration values by deleting the configuration file.")
+    public ConfigClearAllCommand() : base("all", "Clear all configuration values by deleting the configuration file.")
     {
     }
 }
 
 public class ConfigClearAuthCommand : Command
 {
-    public ConfigClearAuthCommand() : base("auth", "Clear cofiguration values related to authentication.")
+    public ConfigClearAuthCommand() : base("auth", "Clear configuration values related to authentication.")
     {
     }
 }
