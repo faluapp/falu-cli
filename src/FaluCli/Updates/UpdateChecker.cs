@@ -17,7 +17,7 @@ internal class UpdateChecker(IHostEnvironment environment, IConfigValuesProvider
         {
             if (environment.IsDevelopment() || latestVersion is not null) return;
 
-            // skip update checks if the configuration values say so or the command has overriden the value.
+            // skip update checks if the configuration values say so or the command has overridden the value.
             var skipUpdateChecks = (await configValuesProvider.GetConfigValuesAsync(stoppingToken)).SkipUpdateChecks;
             var skipUpdateChecksOption = invocationContext.ParseResult.ValueForOption<bool?>("--skip-update-checks");
             if (skipUpdateChecksOption is not null) skipUpdateChecks = skipUpdateChecksOption.Value;

@@ -144,7 +144,7 @@ public static class CommandExtensions
             option.AddValidator(validate);
         }
 
-        // Perfom further configuration
+        // Perform further configuration
         configure?.Invoke(option);
 
         return option;
@@ -228,7 +228,7 @@ public static class CommandExtensions
             argument.AddValidator(validate);
         }
 
-        // Perfom further configuration
+        // Perform further configuration
         configure?.Invoke(argument);
 
         return argument;
