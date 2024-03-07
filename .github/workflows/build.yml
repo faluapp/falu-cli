@@ -20,11 +20,6 @@ on:
     - CHANGELOG.md
     - docs/**
   workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Reason for running the action'
-        required: false
-        default: 'Pre-Release'
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
