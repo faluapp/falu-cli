@@ -130,6 +130,7 @@ jobs:
       with:
         path: ${{ github.workspace }}/drop/**
         name: drop-${{ env.DOTNET_RID }}
+        retention-days: 1
 
     - name: Create Archive Folder
       run: mkdir ${{ github.workspace }}/releases
@@ -197,6 +198,7 @@ jobs:
       with:
         path: ${{ github.workspace }}/releases/**
         name: releases-${{ env.DOTNET_RID }}
+        retention-days: 1
 
     - name: Test (DEB)
       # TODO: test DEB package for ARM once we have ARM runners
@@ -303,6 +305,7 @@ jobs:
       with:
         name: docker-digests-${{ env.DOTNET_RID }}
         path: ${{ github.workspace }}/docker-digests/*
+        retention-days: 1
         if-no-files-found: error
 
   DockerMerge:
@@ -390,6 +393,7 @@ jobs:
       with:
         path: checksum.txt
         name: releases-checksum
+        retention-days: 1
 
   Packaging:
     runs-on: macos-latest
@@ -445,6 +449,7 @@ jobs:
       with:
         path: ${{ github.workspace }}/generated
         name: releases-generated
+        retention-days: 1
 
   Release:
     runs-on: ubuntu-latest
