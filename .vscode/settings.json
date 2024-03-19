@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "devcontainers",
         "falu",
         "faluapp",
-        "idempotency"
+        "idempotency",
+        "Xunit"
     ]
 }
