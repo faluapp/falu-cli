@@ -7,7 +7,7 @@ internal partial class Constants
     public const string RepositoryOwner = "faluapp";
     public const string RepositoryName = "falu-cli";
 
-    public const string Authority = "https://login.falu.io";
+    public const string Authority = "https://sts.falu.io";
     public const string DeviceAuthorizationEndpoint = $"{Authority}/connect/deviceauthorization";
     public const string TokenEndpoint = $"{Authority}/connect/token";
     public const string ClientId = "cli";
