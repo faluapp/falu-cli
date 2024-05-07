@@ -7,7 +7,6 @@ using Falu.Commands.Money.Balances;
 using Falu.Commands.Money.Statements;
 using Falu.Commands.RequestLogs;
 using Falu.Commands.Templates;
-using Falu.Websockets;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using Res = Falu.Properties.Resources;

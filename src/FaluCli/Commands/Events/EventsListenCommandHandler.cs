@@ -2,7 +2,6 @@
 using CloudNative.CloudEvents.Http;
 using Falu.Client;
 using Falu.Client.Realtime;
-using Falu.Websockets;
 using Spectre.Console;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -73,10 +72,18 @@ internal partial class EventsListenCommandHandler : ICommandHandler
                               forwardTo);
         }
 
-        // negotiate a realtime connection
+        // prepare filters
+        var options = new RealtimeNegotiationOptionsEvents
+        {
+            Filters = new RealtimeNegotiationFiltersEvents
+            {
+                Types = types,
+            },
+        };
+
+        // negotiate a connection
         logger.LogInformation("Negotiating connection information ...");
-        var request = new RealtimeConnectionNegotiationRequest { Type = "websocket", Purpose = "events", };
-        var response = await client.Realtime.NegotiateAsync(request, cancellationToken: cancellationToken);
+        var response = await client.Realtime.NegotiateAsync(options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
@@ -85,34 +92,14 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         cancellationToken = cts.Token;
         await websocketHandler.StartAsync(negotiation, (msg, ct) => HandleIncomingMessage(workspaceId, live, forwardTo, secret, msg, ct), cts);
 
-        // prepare filters
-        var filters = new RealtimeConnectionFilters
-        {
-            Events = new RealtimeConnectionFilterEvents
-            {
-                Types = types,
-            }.NullIfEmpty(),
-        }.NullIfEmpty();
-
-        // send message
-        var message = new RealtimeConnectionOutgoingMessage("subscribe_events", filters);
-        await websocketHandler.SendMessageAsync(message, cancellationToken);
-
         // run until cancelled
         await Task.Delay(Timeout.Infinite, cancellationToken);
 
         return 0;
     }
 
-    private Task HandleIncomingMessage(string workspaceId, bool live, Uri? forwardTo, string? secret, RealtimeConnectionIncomingMessage message, CancellationToken cancellationToken)
+    private Task HandleIncomingMessage(string workspaceId, bool live, Uri? forwardTo, string? secret, RealtimeMessage message, CancellationToken cancellationToken)
     {
-        var type = message.Type;
-        if (!string.Equals(type, "event", StringComparison.OrdinalIgnoreCase))
-        {
-            logger.LogWarning("Received unknown message of type {Type}", type);
-            return Task.CompletedTask;
-        }
-
         var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
         var @event = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.WebhookEvent)!;
         var eventId = @event.Id!;

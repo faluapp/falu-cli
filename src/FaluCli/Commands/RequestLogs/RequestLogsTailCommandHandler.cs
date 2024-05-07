@@ -1,6 +1,5 @@
 ﻿using Falu.Client;
 using Falu.Client.Realtime;
-using Falu.Websockets;
 using Spectre.Console;
 using System.Net;
 using System.Text;
@@ -18,16 +17,30 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
 
         var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
         var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
+        var ipNetworks = context.ParseResult.ValueForOption<IPNetwork[]>("--ip-network").NullIfEmpty();
         var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address").NullIfEmpty();
         var methods = context.ParseResult.ValueForOption<string[]>("--http-method").NullIfEmpty();
         var paths = context.ParseResult.ValueForOption<string[]>("--request-path").NullIfEmpty();
         var statusCodes = context.ParseResult.ValueForOption<int[]>("--status-code").NullIfEmpty();
         var sources = context.ParseResult.ValueForOption<string[]>("--source").NullIfEmpty();
 
-        // negotiate a realtime connection
+        // prepare filters
+        var options = new RealtimeNegotiationOptionsRequestLogs
+        {
+            Filters = new RealtimeNegotiationFiltersRequestLogs
+            {
+                IPNetworks =  ipNetworks,
+                IPAddresses = ipAddresses,
+                Methods = methods,
+                Paths = paths,
+                StatusCodes = statusCodes,
+                Sources = sources,
+            },
+        };
+
+        // negotiate a connection
         logger.LogInformation("Negotiating connection information ...");
-        var request = new RealtimeConnectionNegotiationRequest { Type = "websocket", Purpose = "logs", };
-        var response = await client.Realtime.NegotiateAsync(request, cancellationToken: cancellationToken);
+        var response = await client.Realtime.NegotiateAsync(options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
@@ -36,38 +49,14 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
         cancellationToken = cts.Token;
         await websocketHandler.StartAsync(negotiation, (msg, _) => HandleIncomingMessage(workspaceId, live, msg), cts);
 
-        // prepare filters
-        var filters = new RealtimeConnectionFilters
-        {
-            Logs = new RealtimeConnectionFilterLogs
-            {
-                IPAddresses = ipAddresses,
-                Methods = methods,
-                Paths = paths,
-                StatusCodes = statusCodes,
-                Sources = sources,
-            }.NullIfEmpty(),
-        }.NullIfEmpty();
-
-        // send message
-        var message = new RealtimeConnectionOutgoingMessage("subscribe_request_logs", filters);
-        await websocketHandler.SendMessageAsync(message, cancellationToken);
-
         // run until cancelled
         await Task.Delay(Timeout.Infinite, cancellationToken);
 
         return 0;
     }
 
-    private Task HandleIncomingMessage(string workspaceId, bool live, RealtimeConnectionIncomingMessage message)
+    private static Task HandleIncomingMessage(string workspaceId, bool live, RealtimeMessage message)
     {
-        var type = message.Type;
-        if (!string.Equals(type, "request_log", StringComparison.OrdinalIgnoreCase))
-        {
-            logger.LogWarning("Received unknown message of type {Type}", type);
-            return Task.CompletedTask;
-        }
-
         var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
         var log = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.RequestLog)!;
         var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";

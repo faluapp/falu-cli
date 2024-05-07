@@ -7,6 +7,9 @@ internal class RequestLogsTailCommand : Command
 {
     public RequestLogsTailCommand() : base("tail", "Tail request logs")
     {
+        this.AddOption<IPNetwork[]>(["--ip-network", "--network"],
+                                    description: "The IP network to filter for.");
+
         this.AddOption<IPAddress[]>(["--ip-address", "--ip"],
                                     description: "The IP address to filter for.");
 

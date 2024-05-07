@@ -10,8 +10,10 @@ namespace Falu;
 [JsonSerializable(typeof(List<Client.MoneyStatements.MoneyStatement>))]
 [JsonSerializable(typeof(Client.MoneyStatements.MoneyStatementUploadResponse))]
 
-[JsonSerializable(typeof(Client.Realtime.RealtimeConnectionNegotiationRequest))]
-[JsonSerializable(typeof(Client.Realtime.RealtimeConnectionNegotiation))]
+[JsonSerializable(typeof(Client.Realtime.RealtimeMessage))]
+[JsonSerializable(typeof(Client.Realtime.RealtimeNegotiationOptionsEvents))]
+[JsonSerializable(typeof(Client.Realtime.RealtimeNegotiationOptionsRequestLogs))]
+[JsonSerializable(typeof(Client.Realtime.RealtimeNegotiation))]
 
 [JsonSerializable(typeof(Commands.RequestLogs.RequestLog))]
 [JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
@@ -21,8 +23,6 @@ namespace Falu;
 [JsonSerializable(typeof(Oidc.OidcTokenResponse))]
 
 [JsonSerializable(typeof(Updates.GitHubLatestRelease))]
-[JsonSerializable(typeof(Websockets.RealtimeConnectionIncomingMessage))]
-[JsonSerializable(typeof(Websockets.RealtimeConnectionOutgoingMessage))]
 
 [JsonSourceGenerationOptions(
     AllowTrailingCommas = true,
