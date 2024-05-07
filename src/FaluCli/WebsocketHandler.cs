@@ -3,27 +3,30 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using SC = Falu.FaluCliJsonSerializerContext;
 
-namespace Falu.Websockets;
+namespace Falu;
 
 internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
 {
     private ClientWebSocket? socket;
 
-    public async Task StartAsync(RealtimeConnectionNegotiation negotiation,
-                                 Func<RealtimeConnectionIncomingMessage, CancellationToken, Task> handler,
+    public async Task StartAsync(RealtimeNegotiation negotiation,
+                                 Func<RealtimeMessage, CancellationToken, Task> handler,
                                  CancellationTokenSource cancellationTokenSource)
     {
         var cancellationToken = cancellationTokenSource.Token;
         var url = negotiation.Url;
         var token = negotiation.Token;
+        var state = negotiation.State;
         logger.LogInformation("Opening websocket connection to {Url}", url);
         logger.LogInformation("Connection valid for {Minutes} minutes", Convert.ToInt32((negotiation.Expires - DateTimeOffset.UtcNow).TotalMinutes));
         logger.LogDebug("Connection token:\r\n{Token}", token);
+        logger.LogDebug("Connection state:\r\n{State}", state);
 
         // create client socket
         socket = new ClientWebSocket();
         socket.Options.AddSubProtocol("json.devproxy.falu.v1");
         socket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
+        socket.Options.SetRequestHeader("X-Negotiated-State", state);
 
         // connect
         await socket.ConnectAsync(url, cancellationToken);
@@ -33,19 +36,7 @@ internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
         _ = RunAsync(socket, handler, cancellationToken);
     }
 
-    public Task SendMessageAsync(RealtimeConnectionOutgoingMessage message, CancellationToken cancellationToken = default)
-    {
-        var socket = GetSocket();
-        var json = JsonSerializer.SerializeToUtf8Bytes(message, SC.Default.RealtimeConnectionOutgoingMessage);
-        if (logger.IsEnabled(LogLevel.Debug))
-        {
-            logger.LogDebug("Sending message: {Data}", System.Text.Encoding.UTF8.GetString(json));
-        }
-
-        return socket.SendAsync(json, WebSocketMessageType.Binary, endOfMessage: true, cancellationToken);
-    }
-
-    private async Task RunAsync(ClientWebSocket socket, Func<RealtimeConnectionIncomingMessage, CancellationToken, Task> handler, CancellationToken cancellationToken)
+    private async Task RunAsync(ClientWebSocket socket, Func<RealtimeMessage, CancellationToken, Task> handler, CancellationToken cancellationToken)
     {
         // listen to incoming messages
         var buffer = new byte[1024];
@@ -85,15 +76,12 @@ internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
             // Take only the data read and invoke the handler
             var data = BinaryData.FromBytes(buffer[..result.Count]);
             logger.LogDebug("Received message: {Data}", data);
-            var message = JsonSerializer.Deserialize(data, SC.Default.RealtimeConnectionIncomingMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
+            var message = JsonSerializer.Deserialize(data, SC.Default.RealtimeMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
             await handler(message, cancellationToken);
         }
     }
 
-    public void Dispose()
-    {
-        socket?.Dispose();
-    }
+    public void Dispose() => socket?.Dispose();
 
     private ClientWebSocket GetSocket()
     {
