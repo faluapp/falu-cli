@@ -53,7 +53,7 @@ internal class WebsocketHandler(ILogger<WebsocketHandler> logger)
         logger.LogInformation("Connected to websocket server. It may take a few seconds for the data to start flowing.");
 
         // listen to incoming messages
-        var buffer = new byte[1024];
+        var buffer = new byte[10 * 1024];
         while (!cancellationToken.IsCancellationRequested)
         {
             // receive data from the socket
