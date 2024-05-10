@@ -87,19 +87,27 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
-        // start the handler
-        using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
-        cancellationToken = cts.Token;
-        await websocketHandler.StartAsync(negotiation, (msg, ct) => HandleIncomingMessage(workspaceId, live, forwardTo, secret, msg, ct), cts);
-
-        // run until cancelled
-        await Task.Delay(Timeout.Infinite, cancellationToken);
+        // run the websocket handler
+        var arg = new HandlerArg(workspaceId, live, forwardTo, secret);
+        await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, arg, cancellationToken);
 
         return 0;
     }
 
-    private Task HandleIncomingMessage(string workspaceId, bool live, Uri? forwardTo, string? secret, RealtimeMessage message, CancellationToken cancellationToken)
+    private record struct HandlerArg(string WorkspaceId, bool Live, Uri? ForwardTo, string? Secret)
     {
+        public readonly void Deconstruct(out string workspaceId, out bool live, out Uri? forwardTo, out string? secret)
+        {
+            workspaceId = WorkspaceId;
+            live = Live;
+            forwardTo = ForwardTo;
+            secret = Secret;
+        }
+    }
+
+    private ValueTask HandleIncomingMessage(RealtimeMessage message, HandlerArg arg, CancellationToken cancellationToken)
+    {
+        var (workspaceId, live, forwardTo, secret) = arg;
         var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
         var @event = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.WebhookEvent)!;
         var eventId = @event.Id!;
@@ -124,7 +132,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
             _ = ForwardAsync(forwardingClient, workspaceId, live, forwardTo, secret, @event, cancellationToken);
         }
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     internal static async Task ForwardAsync(HttpClient client, string workspaceId, bool live, Uri forwardTo, string? secret, Falu.Events.WebhookEvent @event, CancellationToken cancellationToken)

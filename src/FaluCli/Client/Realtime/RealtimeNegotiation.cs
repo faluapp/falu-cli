@@ -23,15 +23,6 @@ public class RealtimeNegotiation
 
     [JsonPropertyName("live")]
     public bool Live { get; set; }
-
-    public CancellationTokenSource MakeCancellationTokenSource(CancellationToken other)
-    {
-        // create a CancellationToken sourced from the other and cancels when the token expires
-        var lifetime = Expires - DateTimeOffset.UtcNow - TimeSpan.FromSeconds(2);
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(other);
-        cts.CancelAfter(lifetime);
-        return cts;
-    }
 }
 
 public abstract class RealtimeNegotiationOptions<TFilters>

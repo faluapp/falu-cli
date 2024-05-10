@@ -5,15 +5,35 @@ using SC = Falu.FaluCliJsonSerializerContext;
 
 namespace Falu;
 
-internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
+internal class WebsocketHandler(ILogger<WebsocketHandler> logger)
 {
-    private ClientWebSocket? socket;
+    /// <summary>Handler for incoming messages.</summary>
+    /// <param name="message">The message to be handled.</param>
+    /// <param name="cancellationToken">
+    /// A cancellation token used to propagate notification that the operation should be canceled.
+    /// </param>
+    public delegate ValueTask MessageHandler(RealtimeMessage message, CancellationToken cancellationToken);
 
-    public async Task StartAsync(RealtimeNegotiation negotiation,
-                                 Func<RealtimeMessage, CancellationToken, Task> handler,
-                                 CancellationTokenSource cancellationTokenSource)
+    /// <summary>Handler for incoming messages with state.</summary>
+    /// <typeparam name="TArg"></typeparam>
+    /// <param name="message">The message to be handled.</param>
+    /// <param name="arg">The arg to be passed to the handler.</param>
+    /// <param name="cancellationToken">
+    /// A cancellation token used to propagate notification that the operation should be canceled.
+    /// </param>
+    public delegate ValueTask MessageHandler<TArg>(RealtimeMessage message, TArg? arg, CancellationToken cancellationToken);
+
+    public Task RunAsync(RealtimeNegotiation negotiation, MessageHandler handler, CancellationToken cancellationToken = default)
+        => RunAsync<object>(negotiation, (msg, _, ct) => handler(msg, ct), arg: null, cancellationToken);
+
+    public async Task RunAsync<TArg>(RealtimeNegotiation negotiation, MessageHandler<TArg> handler, TArg? arg, CancellationToken cancellationToken = default)
     {
-        var cancellationToken = cancellationTokenSource.Token;
+        // create a CancellationToken sourced from the other and cancels when the token expires
+        var lifetime = negotiation.Expires - DateTimeOffset.UtcNow - TimeSpan.FromSeconds(2);
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(lifetime);
+        cancellationToken = cts.Token;
+
         var url = negotiation.Url;
         var token = negotiation.Token;
         var state = negotiation.State;
@@ -23,21 +43,15 @@ internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
         logger.LogDebug("Connection state:\r\n{State}", state);
 
         // create client socket
-        socket = new ClientWebSocket();
+        var socket = new ClientWebSocket();
         socket.Options.AddSubProtocol("json.devproxy.falu.v1");
         socket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
         socket.Options.SetRequestHeader("X-Negotiated-State", state);
 
         // connect
         await socket.ConnectAsync(url, cancellationToken);
-        logger.LogInformation("Connected to websocket server.");
+        logger.LogInformation("Connected to websocket server. It may take a few seconds for the data to start flowing.");
 
-        // run without blocking the caller
-        _ = RunAsync(socket, handler, cancellationToken);
-    }
-
-    private async Task RunAsync(ClientWebSocket socket, Func<RealtimeMessage, CancellationToken, Task> handler, CancellationToken cancellationToken)
-    {
         // listen to incoming messages
         var buffer = new byte[1024];
         while (!cancellationToken.IsCancellationRequested)
@@ -66,9 +80,9 @@ internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
             // ensure we have full messages
             if (!result.EndOfMessage)
             {
-                logger.LogWarning("WebSocket Connection sent a partial message that we do not support. Closing");
-                await socket.CloseAsync(WebSocketCloseStatus.InvalidPayloadData, "The whole message must be sent once.", cancellationToken);
-                return;
+                logger.LogWarning("WebSocket server received a partial message that we do not support. This should not happen." +
+                                  " Raise an issue On GitHub at https://github.com/faluapp/falu-cli/issues");
+                continue;
             }
 
             // at this point we have a binary message
@@ -77,19 +91,7 @@ internal class WebsocketHandler(ILogger<WebsocketHandler> logger) : IDisposable
             var data = BinaryData.FromBytes(buffer[..result.Count]);
             logger.LogDebug("Received message: {Data}", data);
             var message = JsonSerializer.Deserialize(data, SC.Default.RealtimeMessage) ?? throw new InvalidOperationException("Unable to desrialize incoming message");
-            await handler(message, cancellationToken);
+            await handler(message, arg, cancellationToken);
         }
-    }
-
-    public void Dispose() => socket?.Dispose();
-
-    private ClientWebSocket GetSocket()
-    {
-        if (socket is null)
-        {
-            throw new InvalidOperationException($"The websocket client has not been initialized. '{nameof(StartAsync)}(...)' must be called first.");
-        }
-
-        return socket;
     }
 }

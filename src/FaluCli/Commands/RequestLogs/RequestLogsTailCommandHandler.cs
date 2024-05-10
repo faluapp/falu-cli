@@ -29,7 +29,7 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
         {
             Filters = new RealtimeNegotiationFiltersRequestLogs
             {
-                IPNetworks =  ipNetworks,
+                IPNetworks = ipNetworks,
                 IPAddresses = ipAddresses,
                 Methods = methods,
                 Paths = paths,
@@ -44,19 +44,25 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
-        // start the handler
-        using var cts = negotiation.MakeCancellationTokenSource(cancellationToken);
-        cancellationToken = cts.Token;
-        await websocketHandler.StartAsync(negotiation, (msg, _) => HandleIncomingMessage(workspaceId, live, msg), cts);
-
-        // run until cancelled
-        await Task.Delay(Timeout.Infinite, cancellationToken);
+        // run the websocket handler
+        var arg = new HandlerArg(workspaceId, live);
+        await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, arg, cancellationToken);
 
         return 0;
     }
 
-    private static Task HandleIncomingMessage(string workspaceId, bool live, RealtimeMessage message)
+    private record struct HandlerArg(string WorkspaceId, bool Live)
     {
+        public readonly void Deconstruct(out string workspaceId, out bool live)
+        {
+            workspaceId = WorkspaceId;
+            live = Live;
+        }
+    }
+
+    private static ValueTask HandleIncomingMessage(RealtimeMessage message, HandlerArg arg, CancellationToken cancellationToken = default)
+    {
+        var (workspaceId, live) = arg;
         var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
         var log = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.RequestLog)!;
         var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";
@@ -70,7 +76,7 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
         sb.Append(SpectreFormatter.EscapeSquares(SpectreFormatter.ForLink(text: log.Id, url: url)));
         AnsiConsole.MarkupLine(sb.ToString());
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
 
