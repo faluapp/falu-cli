@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Tingle.Extensions.Primitives;
 using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.RequestLogs;
@@ -56,5 +57,17 @@ internal class RequestLogsTailCommand : Command
                                       }
                                   }
                               });
+
+        this.AddOption(["--ttl"],
+                       description: Res.OptionDescriptionRealtimeConnectionTtl,
+                       defaultValue: "PT60M",
+                       validate: or =>
+                       {
+                           var value = or.GetValueOrDefault<string>();
+                           if (value is not null && !Duration.TryParse(value, out _))
+                           {
+                               or.ErrorMessage = string.Format(Res.InvalidDurationValue, value);
+                           }
+                       });
     }
 }

@@ -5,6 +5,7 @@ using Falu.Client.Realtime;
 using Spectre.Console;
 using System.Text;
 using System.Text.Json.Nodes;
+using Tingle.Extensions.Primitives;
 
 namespace Falu.Commands.Events;
 
@@ -35,6 +36,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
 
         var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
         var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
+        var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
         var types = context.ParseResult.ValueForOption<string[]>("--event-type")?.NullIfEmpty();
         var forwardTo = context.ParseResult.ValueForOption<Uri?>("--forward-to");
@@ -75,6 +77,7 @@ internal partial class EventsListenCommandHandler : ICommandHandler
         // prepare filters
         var options = new RealtimeNegotiationOptionsEvents
         {
+            Ttl = ttl,
             Filters = new RealtimeNegotiationFiltersEvents
             {
                 Types = types,

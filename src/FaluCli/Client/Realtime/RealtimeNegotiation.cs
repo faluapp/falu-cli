@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Tingle.Extensions.Primitives;
 
 namespace Falu.Client.Realtime;
 
@@ -28,7 +29,7 @@ public class RealtimeNegotiation
 public abstract class RealtimeNegotiationOptions<TFilters>
 {
     [JsonPropertyName("ttl")]
-    public string Ttl { get; set; } = "PT1H";
+    public Duration? Ttl { get; set; }
 
     [JsonPropertyName("filters")]
     public TFilters? Filters { get; set; }

@@ -1,4 +1,5 @@
-﻿using Res = Falu.Properties.Resources;
+﻿using Tingle.Extensions.Primitives;
+using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.Events;
 
@@ -37,5 +38,17 @@ internal class EventsListenCommand : Command
 
         this.AddOption<string>(["--webhook-secret", "--secret"],
                                description: Res.OptionDescriptionEventListenWebhookSecret);
+
+        this.AddOption(["--ttl"],
+                       description: Res.OptionDescriptionRealtimeConnectionTtl,
+                       defaultValue: "PT60M",
+                       validate: or =>
+                       {
+                           var value = or.GetValueOrDefault<string>();
+                           if (value is not null && !Duration.TryParse(value, out _))
+                           {
+                               or.ErrorMessage = string.Format(Res.InvalidDurationValue, value);
+                           }
+                       });
     }
 }

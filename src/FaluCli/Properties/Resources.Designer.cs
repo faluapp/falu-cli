@@ -376,5 +376,24 @@ namespace Falu.Properties {
                 return ResourceManager.GetString("UnhandledExceptionFormat", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///  Looks up a localized string similar to The connection time-to-live (TTL) for the realtime connection.
+        ///This is the maximum time the connection can be open before it is forcefully closed.
+        /// </summary>
+        internal static string OptionDescriptionRealtimeConnectionTtl {
+            get {
+                return ResourceManager.GetString("OptionDescriptionRealtimeConnectionTtl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///  Looks up a localized string similar to The provided value: &apos;{0}&apos; must be a valid ISO8601 duration e.g. PT15M for 15 minutes or P1DT2H for 1 day and 2 hours.
+        /// </summary>
+        internal static string InvalidDurationValue {
+            get {
+                return ResourceManager.GetString("InvalidDurationValue", resourceCulture);
+            }
+        }
     }
 }

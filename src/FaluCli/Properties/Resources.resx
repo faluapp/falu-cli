@@ -245,4 +245,11 @@ If you are not using an API key ensure you have logged correctly.</value>
   <data name="UnhandledExceptionFormat" xml:space="preserve">
     <value>Unhandled exception: {0}</value>
   </data>
+  <data name="OptionDescriptionRealtimeConnectionTtl" xml:space="preserve">
+    <value>The connection time-to-live (TTL) for the realtime connection.
+This is the maximum time the connection can be open before it is forcefully closed by the server.</value>
+  </data>
+  <data name="InvalidDurationValue" xml:space="preserve">
+    <value>The provided value: '{0}' must be a valid ISO8601 duration e.g. PT15M for 15 minutes or P1DT2H for 1 day and 2 hours.</value>
+  </data>
 </root>
