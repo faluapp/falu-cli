@@ -2,7 +2,7 @@
 using Falu.Client.MoneyStatements;
 using Spectre.Console;
 
-namespace Falu.Commands.Money.Balances;
+namespace Falu.Commands.Money.Statements;
 
 internal class MoneyStatementsListCommandHandler(FaluCliClient client) : ICommandHandler
 {
