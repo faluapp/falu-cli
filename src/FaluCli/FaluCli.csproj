@@ -45,7 +45,7 @@
     <PackageReference Include="ClosedXML" Version="0.102.2" />
     <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.7.1" />
     <PackageReference Include="Falu" Version="1.13.1" />
-    <PackageReference Include="FileSignatures" Version="4.4.1" />
+    <PackageReference Include="FileSignatures" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.8.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
