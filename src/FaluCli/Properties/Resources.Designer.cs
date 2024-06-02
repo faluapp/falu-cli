@@ -273,6 +273,15 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Whether to skip telemetry. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-telemetry true&apos;.
+        /// </summary>
+        internal static string OptionDescriptionNoTelemetry {
+            get {
+                return ResourceManager.GetString("OptionDescriptionNoTelemetry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The identifier of the workspace being accessed. Use this when you are logged into your account and you want to specify which workspace to target.
         ///Example: wksp_610010be9228355f14ce6e08.
         /// </summary>

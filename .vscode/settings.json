@@ -5,6 +5,7 @@
         "faluapp",
         "idempotency",
         "Mpesa",
+        "opentelemetry",
         "Xunit"
     ]
 }

@@ -74,6 +74,7 @@ var rootCommand = new RootCommand
 rootCommand.Description = "Official CLI tool for Falu.";
 rootCommand.AddGlobalOption(["-v", "--verbose"], "Whether to output verbosely.", false);
 rootCommand.AddGlobalOption<bool?>(["--skip-update-checks"], Res.OptionDescriptionSkipUpdateCheck); // nullable so as to allow checking if not specified
+rootCommand.AddGlobalOption<bool>(["--no-telemetry"], Res.OptionDescriptionNoTelemetry);
 
 var configValuesProvider = new ConfigValuesProvider();
 var configValues = await configValuesProvider.GetConfigValuesAsync();
@@ -123,6 +124,8 @@ var builder = new CommandLineBuilder(rootCommand)
             services.AddOpenIdProvider();
             services.AddTransient<WebsocketHandler>();
         });
+
+        host.AddOpenTelemetry(configValues);
 
         // System.CommandLine library does not create a scope, so we should skip validation of scopes
         host.UseDefaultServiceProvider(o => o.ValidateScopes = false);

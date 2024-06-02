@@ -2,6 +2,7 @@
 using Falu.Commands.Login;
 using Falu.Updates;
 using Spectre.Console;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -14,11 +15,15 @@ namespace System.CommandLine.Builder;
 /// </summary>
 internal static class CommandLineBuilderExtensions
 {
+    private static readonly Reflection.AssemblyName AssemblyName = typeof(CommandLineBuilder).Assembly.GetName();
+    private static readonly ActivitySource ActivitySource = new(AssemblyName.Name!, AssemblyName.Version!.ToString());
+
     public static CommandLineBuilder UseFaluDefaults(this CommandLineBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
-        return builder.UseVersionOption()
+        return builder.AddTracingMiddleware()
+                      .UseVersionOption()
                       .UseHelp()
                       .UseEnvironmentVariableDirective()
                       .UseParseDirective()
@@ -28,6 +33,72 @@ internal static class CommandLineBuilderExtensions
                       .UseParseErrorReporting()
                       .UseExceptionHandler(ExceptionHandler)
                       .CancelOnProcessTermination();
+    }
+
+    private static CommandLineBuilder AddTracingMiddleware(this CommandLineBuilder builder)
+    {
+        // inspired by https://medium.com/@asimmon/instrumenting-system-commandline-based-net-applications-6d910f91b8a8
+
+        static string GetFullCommandName(ParseResult parseResult)
+        {
+            var names = new List<string>();
+            var result = parseResult.CommandResult;
+
+            while (result != null && result != parseResult.RootCommandResult)
+            {
+                names.Add(result.Command.Name);
+                result = result.Parent as CommandResult;
+            }
+
+            names.Reverse();
+
+            return string.Join(' ', names);
+        }
+
+        static string Redact(string value) => Constants.ApiKeyFormat.IsMatch(value) ? "***REDACTED***" : value;
+
+        return builder.AddMiddleware(async (context, next) =>
+        {
+            var activity = ActivitySource.StartActivity("Command", ActivityKind.Consumer);
+            if (activity is null)
+            {
+                await next(context);
+                return;
+            }
+
+            // Track command name, command arguments and username
+            var commandName = GetFullCommandName(context.ParseResult);
+            var commandArgs = string.Join(' ', context.ParseResult.Tokens.Select(t => Redact(t.Value)));
+            activity.DisplayName = commandName;
+            activity.SetTag("command.name", commandName);
+            activity.SetTag("command.args", commandArgs);
+            if (context.TryGetWorkspaceId(out var workspaceId)) activity.SetTag("workspace.id", workspaceId);
+            if (context.TryGetLiveMode(out var live)) activity.SetTag("live_mode", live.ToString());
+
+            try
+            {
+                await next(context);
+
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                activity?.Stop();
+            }
+            catch (Exception ex)
+            {
+                var cancelled = context.GetCancellationToken().IsCancellationRequested;
+
+                if (!cancelled && activity.IsAllDataRequested)
+                {
+                    activity.AddTag("exception.type", ex.GetType().FullName);
+                    activity.AddTag("exception.message", ex.Message);
+                    activity.AddTag("exception.stacktrace", ex.StackTrace);
+                }
+
+                activity.SetStatus(cancelled ? ActivityStatusCode.Ok : ActivityStatusCode.Error);
+                activity.Stop();
+
+                throw;
+            }
+        }, MiddlewareOrder.Default); // default = 0, anything less than that and the activity will be null because the host (which adds open telemetry) is registered at default too
     }
 
     private static void ExceptionHandler(Exception exception, InvocationContext context)
