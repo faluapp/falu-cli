@@ -15,8 +15,8 @@ internal static class IHostBuilderExtensions
 
     public static IHostBuilder AddOpenTelemetry(this IHostBuilder builder, ConfigValues configValues)
     {
-        var invocation = builder.GetInvocationContext();
-        var disabled = invocation.IsNoTelemetry() || configValues.NoTelemetry;
+        var context = builder.GetInvocationContext();
+        var disabled = context.IsNoTelemetry() || configValues.NoTelemetry;
         if (disabled) return builder;
 
         builder.ConfigureServices((context, services) =>

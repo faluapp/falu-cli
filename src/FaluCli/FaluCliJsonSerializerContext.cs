@@ -17,7 +17,6 @@ namespace Falu;
 
 [JsonSerializable(typeof(Commands.RequestLogs.RequestLog))]
 [JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
-[JsonSerializable(typeof(Config.ConfigValues))]
 
 [JsonSerializable(typeof(Oidc.OidcDeviceAuthorizationResponse))]
 [JsonSerializable(typeof(Oidc.OidcTokenResponse))]

@@ -20,17 +20,17 @@ internal static class IServiceCollectionExtensions
         });
 
         builder.AddHttpMessageHandler<FaluCliClientHandler>()
-               .ConfigureHttpClientStandard();
+               .ConfigureHttpClientStandard(configValues);
 
         services.AddTransient<FaluCliClientHandler>();
 
         return services;
     }
 
-    public static IServiceCollection AddOpenIdProvider(this IServiceCollection services)
+    public static IServiceCollection AddOpenIdProvider(this IServiceCollection services, ConfigValues configValues)
     {
         services.AddHttpClient<OidcProvider>(name: "Oidc")
-                .ConfigureHttpClientStandard((_, client) =>
+                .ConfigureHttpClientStandard(configValues, (_, client) =>
                 {
                     // only JSON responses
                     client.DefaultRequestHeaders.Accept.Clear();
@@ -40,15 +40,15 @@ internal static class IServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddUpdates(this IServiceCollection services)
+    public static IServiceCollection AddUpdates(this IServiceCollection services, ConfigValues configValues)
     {
         services.AddHttpClient(name: "Updates")
-                .ConfigureHttpClientStandard();
+                .ConfigureHttpClientStandard(configValues);
 
         return services;
     }
 
-    private static IHttpClientBuilder ConfigureHttpClientStandard(this IHttpClientBuilder builder, Action<IServiceProvider, HttpClient>? configure = null)
+    private static IHttpClientBuilder ConfigureHttpClientStandard(this IHttpClientBuilder builder, ConfigValues configValues, Action<IServiceProvider, HttpClient>? configure = null)
     {
         return builder.ConfigureHttpClient((provider, client) =>
         {
@@ -57,8 +57,6 @@ internal static class IServiceCollectionExtensions
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("falucli", VersioningHelper.ProductVersion));
 
             // set the Timeout from ConfigValues
-            var configValuesProvider = provider.GetRequiredService<IConfigValuesProvider>();
-            var configValues = configValuesProvider.GetConfigValuesAsync().GetAwaiter().GetResult();
             client.Timeout = TimeSpan.FromSeconds(configValues.Timeout);
 
             // continue the configuration

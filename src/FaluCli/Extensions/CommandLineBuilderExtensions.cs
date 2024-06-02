@@ -19,11 +19,12 @@ internal static class CommandLineBuilderExtensions
     private static readonly Reflection.AssemblyName AssemblyName = typeof(CommandLineBuilder).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name!, AssemblyName.Version!.ToString());
 
-    public static CommandLineBuilder UseFaluDefaults(this CommandLineBuilder builder, ConfigValues configValues)
+    public static CommandLineBuilder UseFaluDefaults(this CommandLineBuilder builder, ConfigValuesLoader configValuesLoader)
     {
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
-        return builder.UseActivity()
+        return builder.UseConfigValues(configValuesLoader)
+                      .UseActivity()
                       .UseVersionOption()
                       .UseHelp()
                       .UseEnvironmentVariableDirective()
@@ -34,7 +35,25 @@ internal static class CommandLineBuilderExtensions
                       .UseParseErrorReporting()
                       .UseExceptionHandler(ExceptionHandler)
                       .CancelOnProcessTermination()
-                      .UseUpdateChecker(configValues) /* update checker middleware must be added last because it should only run after what the user requested */;
+                      .UseUpdateChecker() /* update checker middleware must be added last because it should only run after what the user requested */;
+    }
+
+    private static CommandLineBuilder UseConfigValues(this CommandLineBuilder builder, ConfigValuesLoader configValuesLoader)
+    {
+        return builder.AddMiddleware(async (context, next) =>
+        {
+            try
+            {
+                var configValues = configValuesLoader.Values ?? throw new InvalidOperationException("Config values not loaded");
+                context.BindingContext.AddService(_ => configValues);
+                await next(context);
+            }
+            finally
+            {
+                var configValues = context.GetConfigValues();
+                await configValuesLoader.SaveAsync(configValues, context.GetCancellationToken());
+            }
+        });
     }
 
     private static CommandLineBuilder UseActivity(this CommandLineBuilder builder)
@@ -183,13 +202,13 @@ internal static class CommandLineBuilderExtensions
         }
     }
 
-    private static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder, ConfigValues configValues)
+    private static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder)
     {
-        return builder.AddMiddleware(async (invocation, next) =>
+        return builder.AddMiddleware(async (context, next) =>
         {
             try
             {
-                await next(invocation);
+                await next(context);
             }
             finally
             {
@@ -202,12 +221,13 @@ internal static class CommandLineBuilderExtensions
                 // - the command has disabled updates
                 // - the configuration has disabled it
                 // - the last update check was less than 24 hours ago
-                var provider = invocation.BindingContext.GetRequiredService<IHost>().Services;
+                var provider = context.BindingContext.GetRequiredService<IHost>().Services;
                 var logger = provider.GetRequiredService<ILoggerProvider>().CreateLogger("Updates");
                 var environment = provider.GetRequiredService<IHostEnvironment>();
+                var configValues = context.GetConfigValues();
                 var disabled = environment.IsDevelopment()
                                || Debugger.IsAttached
-                               || invocation.IsNoUpdates()
+                               || context.IsNoUpdates()
                                || configValues.NoUpdates
                                || configValues.LastUpdateCheck > DateTimeOffset.UtcNow.AddHours(-24);
 
@@ -217,7 +237,7 @@ internal static class CommandLineBuilderExtensions
                 }
                 else
                 {
-                    var cancellationToken = invocation.GetCancellationToken();
+                    var cancellationToken = context.GetCancellationToken();
                     var client = provider.GetRequiredService<IHttpClientFactory>().CreateClient("Updates");
                     GitHubLatestRelease? release = null;
                     try
@@ -254,8 +274,6 @@ internal static class CommandLineBuilderExtensions
 
                         // update the last check time
                         configValues.LastUpdateCheck = DateTimeOffset.UtcNow;
-                        var configValuesProvider = provider.GetRequiredService<IConfigValuesProvider>();
-                        await configValuesProvider.SaveConfigValuesAsync(cancellationToken);
                     }
                 }
             }

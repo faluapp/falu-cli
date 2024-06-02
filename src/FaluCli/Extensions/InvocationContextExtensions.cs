@@ -1,15 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Falu.Config;
 
 namespace System.CommandLine;
 
-/// <summary>
-/// Extensions for <see cref="InvocationContext"/>
-/// </summary>
+/// <summary>Extensions for <see cref="InvocationContext"/>.</summary>
 internal static class InvocationContextExtensions
 {
     public static bool IsVerboseEnabled(this InvocationContext context) => context.ParseResult.ValueForOption<bool>("--verbose");
     public static bool IsNoTelemetry(this InvocationContext context) => context.ParseResult.ValueForOption<bool>("--no-telemetry");
     public static bool IsNoUpdates(this InvocationContext context) => context.ParseResult.ValueForOption<bool>("--no-updates");
+
     public static string? GetWorkspaceId(this InvocationContext context) => context.ParseResult.ValueForOption<string>("--workspace");
     public static bool? GetLiveMode(this InvocationContext context) => context.ParseResult.ValueForOption<bool?>("--live");
 
@@ -24,4 +24,6 @@ internal static class InvocationContextExtensions
         liveMode = context.GetLiveMode();
         return liveMode is not null;
     }
+
+    public static ConfigValues GetConfigValues(this InvocationContext context) => context.BindingContext.GetRequiredService<ConfigValues>();
 }

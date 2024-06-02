@@ -1,13 +1,12 @@
-﻿using Falu.Config;
-using Spectre.Console;
+﻿using Spectre.Console;
 
 namespace Falu.Commands.Config;
 
-internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) : ICommandHandler
+internal class ConfigCommandHandler : ICommandHandler
 {
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
-    public async Task<int> InvokeAsync(InvocationContext context)
+    public Task<int> InvokeAsync(InvocationContext context)
     {
         var cancellationToken = context.GetCancellationToken();
 
@@ -15,8 +14,7 @@ internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) 
         {
             case ConfigShowCommand:
                 {
-                    var values = await configValuesProvider.GetConfigValuesAsync(cancellationToken);
-
+                    var values = context.GetConfigValues();
                     var data = new Dictionary<string, object?>
                     {
                         ["no-telemetry"] = values.NoTelemetry,
@@ -45,8 +43,7 @@ internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) 
                 }
             case ConfigSetCommand:
                 {
-                    var values = await configValuesProvider.GetConfigValuesAsync(cancellationToken);
-
+                    var values = context.GetConfigValues();
                     var key = context.ParseResult.ValueForArgument<string>("key")!.ToLower();
                     var value = context.ParseResult.ValueForArgument<string>("value")!;
                     switch (key)
@@ -72,24 +69,18 @@ internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) 
                         default:
                             throw new NotSupportedException($"The key '{key}' is no supported yet.");
                     }
-                    await configValuesProvider.SaveConfigValuesAsync(cancellationToken);
                     AnsiConsole.Write("Successfully set configuration '{0}={1}'.", key, value);
                     break;
                 }
             case ConfigClearAuthCommand:
                 {
-                    await configValuesProvider.ClearAuthenticationAsync(cancellationToken);
+                    var values = context.GetConfigValues();
+                    values.Authentication = null;
                     AnsiConsole.Write("Successfully removed all authentication configuration values.");
-                    break;
-                }
-            case ConfigClearAllCommand:
-                {
-                    configValuesProvider.ClearAll();
-                    AnsiConsole.Write("Successfully removed all configuration values and the configuration file.");
                     break;
                 }
         }
 
-        return 0;
+        return Task.FromResult(0);
     }
 }
