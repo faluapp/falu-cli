@@ -10,7 +10,7 @@ internal record ConfigValues
 
     [JsonPropertyName("no_updates")]
     public bool NoUpdates { get; set; }
-    
+
     [JsonPropertyName("last_update_check")]
     public DateTimeOffset? LastUpdateCheck { get; set; }
 

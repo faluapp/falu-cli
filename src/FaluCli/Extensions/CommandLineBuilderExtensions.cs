@@ -251,7 +251,7 @@ internal static class CommandLineBuilderExtensions
                             AnsiConsole.MarkupLine(sb.ToString());
                             AnsiConsole.WriteLine(); // empty line
                         }
-                        
+
                         // update the last check time
                         configValues.LastUpdateCheck = DateTimeOffset.UtcNow;
                         var configValuesProvider = provider.GetRequiredService<IConfigValuesProvider>();
