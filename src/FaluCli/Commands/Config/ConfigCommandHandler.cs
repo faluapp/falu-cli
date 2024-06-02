@@ -19,7 +19,8 @@ internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) 
 
                     var data = new Dictionary<string, object?>
                     {
-                        ["skip-update-check"] = values.SkipUpdateChecks,
+                        ["no-telemetry"] = values.NoTelemetry,
+                        ["no-updates"] = values.NoUpdates,
                         ["retries"] = values.Retries,
                         ["timeout"] = $"{values.Timeout} seconds",
                         ["workspace"] = values.DefaultWorkspaceId,
@@ -50,11 +51,11 @@ internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) 
                     var value = context.ParseResult.ValueForArgument<string>("value")!;
                     switch (key)
                     {
-                        case "skip-update-check":
-                            values.SkipUpdateChecks = bool.Parse(value);
-                            break;
                         case "no-telemetry":
                             values.NoTelemetry = bool.Parse(value);
+                            break;
+                        case "no-updates":
+                            values.NoUpdates = bool.Parse(value);
                             break;
                         case "retries":
                             values.Retries = int.Parse(value);

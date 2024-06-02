@@ -264,16 +264,16 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to skip update checks. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set skip-update-check true&apos;.
+        ///   Looks up a localized string similar to Whether to disable update checks. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-updates true&apos;.
         /// </summary>
-        internal static string OptionDescriptionSkipUpdateCheck {
+        internal static string OptionDescriptionNoUpdates {
             get {
-                return ResourceManager.GetString("OptionDescriptionSkipUpdateCheck", resourceCulture);
+                return ResourceManager.GetString("OptionDescriptionNoUpdates", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to skip telemetry. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-telemetry true&apos;.
+        ///   Looks up a localized string similar to Whether to disable telemetry collection. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-telemetry true&apos;.
         /// </summary>
         internal static string OptionDescriptionNoTelemetry {
             get {

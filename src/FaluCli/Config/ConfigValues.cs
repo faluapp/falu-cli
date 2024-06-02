@@ -5,11 +5,14 @@ namespace Falu.Config;
 
 internal record ConfigValues
 {
-    [JsonPropertyName("skip_update_checks")]
-    public bool SkipUpdateChecks { get; set; }
-
     [JsonPropertyName("no_telemetry")]
     public bool NoTelemetry { get; set; }
+
+    [JsonPropertyName("no_updates")]
+    public bool NoUpdates { get; set; }
+    
+    [JsonPropertyName("last_update_check")]
+    public DateTimeOffset? LastUpdateCheck { get; set; }
 
     [JsonPropertyName("retries")]
     public int Retries { get; set; } = 0;
