@@ -16,8 +16,8 @@ internal class RequestLogsTailCommandHandler(FaluCliClient client, WebsocketHand
     {
         var cancellationToken = context.GetCancellationToken();
 
-        var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
-        var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
+        var workspaceId = context.GetWorkspaceId()!;
+        var live = context.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var ipNetworks = context.ParseResult.ValueForOption<IPNetwork[]>("--ip-network").NullIfEmpty();
         var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address").NullIfEmpty();
