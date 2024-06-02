@@ -11,15 +11,19 @@ internal static class IServiceCollectionExtensions
 {
     // services are registered as transit to allow for easier debugging because no scope is created by the parser
 
-    public static IServiceCollection AddFaluClientForCli(this IServiceCollection services)
+    public static IServiceCollection AddFaluClientForCli(this IServiceCollection services, ConfigValues configValues)
     {
-        // A dummy ApiKey is used so that the options validator can pass
-        services.AddFalu<FaluCliClient, FaluClientOptions>(o => o.ApiKey = "dummy")
-                .AddHttpMessageHandler<FaluCliClientHandler>()
-                .ConfigureHttpClientStandard();
+        var builder = services.AddFalu<FaluCliClient, FaluClientOptions>(options =>
+        {
+            // A dummy ApiKey is used so that the options validator can pass
+            options.ApiKey = "dummy";
+            options.Retries = configValues.Retries;
+        });
+
+        builder.AddHttpMessageHandler<FaluCliClientHandler>()
+               .ConfigureHttpClientStandard();
 
         services.AddTransient<FaluCliClientHandler>();
-        services.ConfigureOptions<FaluClientConfigureOptions>();
 
         return services;
     }
@@ -30,11 +34,6 @@ internal static class IServiceCollectionExtensions
                 .ConfigureHttpClientStandard();
 
         return services.AddSingleton<IHostedService>(p => p.GetRequiredService<UpdateChecker>());
-    }
-
-    public static IServiceCollection AddConfigValuesProvider(this IServiceCollection services)
-    {
-        return services.AddTransient<IConfigValuesProvider, ConfigValuesProvider>();
     }
 
     public static IServiceCollection AddOpenIdProvider(this IServiceCollection services)
