@@ -24,15 +24,15 @@ internal class FaluCliClientHandler(OidcProvider oidcProvider,
         var key = context.ParseResult.ValueForOption<string>("--apikey");
         if (string.IsNullOrWhiteSpace(key))
         {
-            // (1) Override the X-Workspace-Id header if CLI contains the --workspace option
-            var workspaceId = context.ParseResult.ValueForOption<string>("--workspace");
+            // (1) Override the X-Workspace-Id header if CLI contains the option
+            var workspaceId = context.GetWorkspaceId();
             if (!string.IsNullOrWhiteSpace(workspaceId))
             {
                 request.Headers.Replace("X-Workspace-Id", workspaceId);
             }
 
-            // (2) Override the X-Live-Mode header if CLI contains the --live option
-            var live = context.ParseResult.ValueForOption<bool?>("--live");
+            // (2) Override the X-Live-Mode header if CLI contains the option
+            var live = context.GetLiveMode();
             if (live is not null)
             {
                 request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant());

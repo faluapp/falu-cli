@@ -9,4 +9,14 @@ internal static class InvocationContextExtensions
     {
         return context.ParseResult.ValueForOption<bool>("--verbose");
     }
+
+    public static string? GetWorkspaceId(this InvocationContext context)
+    {
+        return context.ParseResult.ValueForOption<string>("--workspace");
+    }
+
+    public static bool? GetLiveMode(this InvocationContext context)
+    {
+        return context.ParseResult.ValueForOption<bool?>("--live");
+    }
 }

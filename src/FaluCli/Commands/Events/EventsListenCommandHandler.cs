@@ -34,8 +34,8 @@ internal partial class EventsListenCommandHandler : ICommandHandler
     {
         var cancellationToken = context.GetCancellationToken();
 
-        var workspaceId = context.ParseResult.ValueForOption<string>("--workspace")!;
-        var live = context.ParseResult.ValueForOption<bool?>("--live") ?? false;
+        var workspaceId = context.GetWorkspaceId()!;
+        var live = context.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
         var types = context.ParseResult.ValueForOption<string[]>("--event-type")?.NullIfEmpty();
