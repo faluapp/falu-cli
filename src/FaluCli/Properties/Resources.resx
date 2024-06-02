@@ -205,6 +205,9 @@ Example: my-awesome-op</value>
   <data name="OptionDescriptionSkipUpdateCheck" xml:space="preserve">
     <value>Whether to skip update checks. Using this option overrides any value set in the configuration. This value can also be set globally using 'falu config set skip-update-check true'</value>
   </data>
+  <data name="OptionDescriptionNoTelemetry" xml:space="preserve">
+    <value>Whether to disable telemetry collection. Using this option overrides any value set in the configuration. This value can also be set globally using 'falu config set no-telemetry true'</value>
+  </data>
   <data name="OptionDescriptionWorkspace" xml:space="preserve">
     <value>The identifier of the workspace being accessed. Use this when you are logged into your account and you want to specify which workspace to target.
 Example: wksp_610010be9228355f14ce6e08</value>

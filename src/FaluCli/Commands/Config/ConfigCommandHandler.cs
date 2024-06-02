@@ -53,6 +53,9 @@ internal class ConfigCommandHandler(IConfigValuesProvider configValuesProvider) 
                         case "skip-update-check":
                             values.SkipUpdateChecks = bool.Parse(value);
                             break;
+                        case "no-telemetry":
+                            values.NoTelemetry = bool.Parse(value);
+                            break;
                         case "retries":
                             values.Retries = int.Parse(value);
                             break;

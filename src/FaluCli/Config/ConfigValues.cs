@@ -8,6 +8,9 @@ internal record ConfigValues
     [JsonPropertyName("skip_update_checks")]
     public bool SkipUpdateChecks { get; set; }
 
+    [JsonPropertyName("no_telemetry")]
+    public bool NoTelemetry { get; set; }
+
     [JsonPropertyName("retries")]
     public int Retries { get; set; } = 0;
 

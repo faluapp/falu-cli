@@ -116,7 +116,7 @@ jobs:
       # https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/
       # TODO: consider using QEMU emulator for ARM?
       if: ${{ !contains(matrix.arch, 'arm') }}
-      run: ./falu logout
+      run: ./falu logout --no-telemetry
       working-directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
 
     - name: Upload Artifact (drop)
