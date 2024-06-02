@@ -22,7 +22,7 @@ namespace Falu;
 [JsonSerializable(typeof(Oidc.OidcDeviceAuthorizationResponse))]
 [JsonSerializable(typeof(Oidc.OidcTokenResponse))]
 
-[JsonSerializable(typeof(Updates.GitHubLatestRelease))]
+[JsonSerializable(typeof(GitHubLatestRelease))]
 
 [JsonSourceGenerationOptions(
     AllowTrailingCommas = true,

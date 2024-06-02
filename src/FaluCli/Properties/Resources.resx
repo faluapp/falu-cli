@@ -202,8 +202,8 @@ Example: my-awesome-op</value>
   <data name="OptionDescriptionLive" xml:space="preserve">
     <value>Whether the entity resides or the operation should happen in live mode or not. Using this when you are logged into you account. It has no effect when using an API key.</value>
   </data>
-  <data name="OptionDescriptionSkipUpdateCheck" xml:space="preserve">
-    <value>Whether to skip update checks. Using this option overrides any value set in the configuration. This value can also be set globally using 'falu config set skip-update-check true'</value>
+  <data name="OptionDescriptionNoUpdates" xml:space="preserve">
+    <value>Whether to disable update checks. Using this option overrides any value set in the configuration. This value can also be set globally using 'falu config set no-updates true'</value>
   </data>
   <data name="OptionDescriptionNoTelemetry" xml:space="preserve">
     <value>Whether to disable telemetry collection. Using this option overrides any value set in the configuration. This value can also be set globally using 'falu config set no-telemetry true'</value>

@@ -2,7 +2,6 @@
 using Falu.Client;
 using Falu.Config;
 using Falu.Oidc;
-using Falu.Updates;
 using System.Net.Http.Headers;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -28,14 +27,6 @@ internal static class IServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddUpdateChecker(this IServiceCollection services)
-    {
-        services.AddHttpClient<UpdateChecker>()
-                .ConfigureHttpClientStandard();
-
-        return services.AddSingleton<IHostedService>(p => p.GetRequiredService<UpdateChecker>());
-    }
-
     public static IServiceCollection AddOpenIdProvider(this IServiceCollection services)
     {
         services.AddHttpClient<OidcProvider>(name: "Oidc")
@@ -45,6 +36,14 @@ internal static class IServiceCollectionExtensions
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 });
+
+        return services;
+    }
+
+    public static IServiceCollection AddUpdates(this IServiceCollection services)
+    {
+        services.AddHttpClient(name: "Updates")
+                .ConfigureHttpClientStandard();
 
         return services;
     }

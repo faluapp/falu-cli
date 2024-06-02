@@ -73,8 +73,8 @@ var rootCommand = new RootCommand
 
 rootCommand.Description = "Official CLI tool for Falu.";
 rootCommand.AddGlobalOption(["-v", "--verbose"], "Whether to output verbosely.", false);
-rootCommand.AddGlobalOption<bool?>(["--skip-update-checks"], Res.OptionDescriptionSkipUpdateCheck); // nullable so as to allow checking if not specified
-rootCommand.AddGlobalOption<bool>(["--no-telemetry"], Res.OptionDescriptionNoTelemetry);
+rootCommand.AddGlobalOption(["--no-telemetry"], Res.OptionDescriptionNoTelemetry, false);
+rootCommand.AddGlobalOption(["--no-updates"], Res.OptionDescriptionNoUpdates, false);
 
 var configValuesProvider = new ConfigValuesProvider();
 var configValues = await configValuesProvider.GetConfigValuesAsync();
@@ -98,7 +98,7 @@ var builder = new CommandLineBuilder(rootCommand)
                 ["Logging:LogLevel:System.Net.Http.HttpClient"] = "None", // removes all we do not need
                 ["Logging:LogLevel:System.Net.Http.HttpClient.Oidc.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
                 [$"Logging:LogLevel:System.Net.Http.HttpClient.{nameof(Falu.Client.FaluCliClient)}.ClientHandler"] = verbose ? "Trace" : "Warning", // add what we need
-                [$"Logging:LogLevel:System.Net.Http.HttpClient.{nameof(Falu.Updates.UpdateChecker)}.ClientHandler"] = context.HostingEnvironment.IsDevelopment() && verbose ? "Trace" : "Warning", // add what we need
+                [$"Logging:LogLevel:System.Net.Http.HttpClient.Updates.ClientHandler"] = context.HostingEnvironment.IsDevelopment() && verbose ? "Trace" : "Warning", // add what we need
 
                 ["Logging:Console:FormatterName"] = "Falu",
                 ["Logging:Console:FormatterOptions:SingleLine"] = verbose ? "False" : "True",
@@ -120,8 +120,8 @@ var builder = new CommandLineBuilder(rootCommand)
             var configuration = context.Configuration;
             services.AddSingleton<IConfigValuesProvider>(configValuesProvider);
             services.AddFaluClientForCli(configValues);
-            services.AddUpdateChecker();
             services.AddOpenIdProvider();
+            services.AddUpdates();
             services.AddTransient<WebsocketHandler>();
         });
 
@@ -148,8 +148,7 @@ var builder = new CommandLineBuilder(rootCommand)
         host.UseCommandHandlerTrimmable<ConfigClearAuthCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<RequestLogsTailCommand, RequestLogsTailCommandHandler>();
     })
-    .UseFaluDefaults()
-    .UseUpdateChecker() /* update checker middleware must be added last because it only prints what the checker has */;
+    .UseFaluDefaults(configValues);
 
 // Parse the incoming args and invoke the handler
 var parser = builder.Build();

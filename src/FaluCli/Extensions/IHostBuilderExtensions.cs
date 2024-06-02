@@ -1,6 +1,6 @@
 ﻿using Azure.Monitor.OpenTelemetry.Exporter;
+using Falu;
 using Falu.Config;
-using Falu.Updates;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.CommandLine.Hosting;

@@ -1,9 +1,10 @@
 ﻿using Falu;
 using Falu.Commands.Login;
-using Falu.Updates;
+using Falu.Config;
 using Spectre.Console;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
 using Res = Falu.Properties.Resources;
@@ -18,11 +19,11 @@ internal static class CommandLineBuilderExtensions
     private static readonly Reflection.AssemblyName AssemblyName = typeof(CommandLineBuilder).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name!, AssemblyName.Version!.ToString());
 
-    public static CommandLineBuilder UseFaluDefaults(this CommandLineBuilder builder)
+    public static CommandLineBuilder UseFaluDefaults(this CommandLineBuilder builder, ConfigValues configValues)
     {
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
-        return builder.AddTracingMiddleware()
+        return builder.UseActivity()
                       .UseVersionOption()
                       .UseHelp()
                       .UseEnvironmentVariableDirective()
@@ -32,10 +33,11 @@ internal static class CommandLineBuilderExtensions
                       .UseTypoCorrections()
                       .UseParseErrorReporting()
                       .UseExceptionHandler(ExceptionHandler)
-                      .CancelOnProcessTermination();
+                      .CancelOnProcessTermination()
+                      .UseUpdateChecker(configValues) /* update checker middleware must be added last because it should only run after what the user requested */;
     }
 
-    private static CommandLineBuilder AddTracingMiddleware(this CommandLineBuilder builder)
+    private static CommandLineBuilder UseActivity(this CommandLineBuilder builder)
     {
         // inspired by https://medium.com/@asimmon/instrumenting-system-commandline-based-net-applications-6d910f91b8a8
 
@@ -79,8 +81,8 @@ internal static class CommandLineBuilderExtensions
             {
                 await next(context);
 
-                activity?.SetStatus(ActivityStatusCode.Ok);
-                activity?.Stop();
+                activity.SetStatus(ActivityStatusCode.Ok);
+                activity.Stop();
             }
             catch (Exception ex)
             {
@@ -181,10 +183,8 @@ internal static class CommandLineBuilderExtensions
         }
     }
 
-    public static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder)
+    private static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder, ConfigValues configValues)
     {
-        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
-
         return builder.AddMiddleware(async (invocation, next) =>
         {
             try
@@ -196,27 +196,67 @@ internal static class CommandLineBuilderExtensions
                 // At this point, we can check if a newer version was found.
                 // This code will not be reached if there's an exception but validation errors do get here.
 
-                var current = UpdateChecker.CurrentVersion;
-                var latest = UpdateChecker.LatestVersion;
-                if (latest is not null && latest > current)
+                // disable update checks if
+                // - in development
+                // - debugging
+                // - the command has disabled updates
+                // - the configuration has disabled it
+                // - the last update check was less than 24 hours ago
+                var provider = invocation.BindingContext.GetRequiredService<IHost>().Services;
+                var logger = provider.GetRequiredService<ILoggerProvider>().CreateLogger("Updates");
+                var environment = provider.GetRequiredService<IHostEnvironment>();
+                var disabled = environment.IsDevelopment()
+                               || Debugger.IsAttached
+                               || invocation.IsNoUpdates()
+                               || configValues.NoUpdates
+                               || configValues.LastUpdateCheck > DateTimeOffset.UtcNow.AddHours(-24);
+
+                if (disabled)
                 {
-                    var sb = new StringBuilder();
+                    logger.LogTrace("Update checks are disabled");
+                }
+                else
+                {
+                    var cancellationToken = invocation.GetCancellationToken();
+                    var client = provider.GetRequiredService<IHttpClientFactory>().CreateClient("Updates");
+                    GitHubLatestRelease? release = null;
+                    try
+                    {
+                        const string url = $"https://api.github.com/repos/{Constants.RepositoryOwner}/{Constants.RepositoryName}/releases/latest";
+                        logger.LogTrace("Fetching latest version from {Url}", url);
+                        release = await client.GetFromJsonAsync(url, FaluCliJsonSerializerContext.Default.GitHubLatestRelease, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogTrace(ex, "Failed to fetch latest version");
+                        // nothing more to do here, updates are not crucial
+                    }
 
-                    sb.AppendLine(); // empty line
+                    if (release is not null)
+                    {
+                        var current = VersioningHelper.CurrentVersion;
+                        if (SemanticVersioning.Version.TryParse(release.TagName, out var latest) && latest > current)
+                        {
+                            var sb = new StringBuilder();
 
-                    sb.Append("New version (");
-                    sb.Append(SpectreFormatter.ColouredLightGreen($"{latest}"));
-                    sb.AppendLine($") is available. You have version {current.BaseVersion()}");
+                            sb.AppendLine(); // empty line
 
-                    sb.Append("Download at: ");
-                    sb.AppendLine(SpectreFormatter.ColouredLightGreen(UpdateChecker.LatestVersionHtmlUrl!));
+                            sb.Append("New version (");
+                            sb.Append(SpectreFormatter.ColouredLightGreen($"{latest}"));
+                            sb.AppendLine($") is available. You have version {current.BaseVersion()}");
 
-                    sb.AppendLine(); // empty line
-                    sb.Append("Release notes: ");
-                    AnsiConsole.MarkupLine(sb.ToString());
+                            sb.Append("Download at: ");
+                            sb.AppendLine(SpectreFormatter.ColouredLightGreen(release.HtmlUrl!));
 
-                    AnsiConsole.WriteLine(UpdateChecker.LatestVersionBody!);
-                    AnsiConsole.WriteLine(); // empty line
+                            AnsiConsole.MarkupLine(sb.ToString());
+                            AnsiConsole.WriteLine(); // empty line
+                        }
+                        
+                        // update the last check time
+                        configValues.LastUpdateCheck = DateTimeOffset.UtcNow;
+                        var configValuesProvider = provider.GetRequiredService<IConfigValuesProvider>();
+                        await configValuesProvider.SaveConfigValuesAsync(cancellationToken);
+                    }
                 }
             }
         });
