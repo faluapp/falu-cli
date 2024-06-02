@@ -25,15 +25,13 @@ internal class FaluCliClientHandler(OidcProvider oidcProvider,
         if (string.IsNullOrWhiteSpace(key))
         {
             // (1) Override the X-Workspace-Id header if CLI contains the option
-            var workspaceId = context.GetWorkspaceId();
-            if (!string.IsNullOrWhiteSpace(workspaceId))
+            if (context.TryGetWorkspaceId(out var workspaceId))
             {
                 request.Headers.Replace("X-Workspace-Id", workspaceId);
             }
 
             // (2) Override the X-Live-Mode header if CLI contains the option
-            var live = context.GetLiveMode();
-            if (live is not null)
+            if (context.TryGetLiveMode(out var live))
             {
                 request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant());
             }
