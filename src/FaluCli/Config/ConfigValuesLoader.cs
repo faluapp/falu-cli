@@ -6,7 +6,7 @@ namespace Falu.Config;
 
 internal class ConfigValuesLoader
 {
-    // Path example C:\Users\USERNAME\.config\falu\config.toml
+    // Path example C:\Users\USERNAME\.config\falu\config.json
     private static readonly string UserProfileFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     private static readonly string FilePath = Path.Combine(UserProfileFolder, ".config", "falu", "config.json");
     private static readonly JsonSerializerOptions serializerOptions = new(JsonSerializerDefaults.Web)
@@ -23,16 +23,15 @@ internal class ConfigValuesLoader
     {
         if (values is not null) return values;
 
+        var inner = new JsonObject();
         if (File.Exists(FilePath))
         {
-            var json = await File.ReadAllTextAsync(FilePath, cancellationToken);
-            values = new ConfigValues(JsonNode.Parse(json)!.AsObject());
-            hash = values.Hash();
+            await using var stream = File.OpenRead(FilePath);
+            inner = (await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken))!.AsObject();
         }
-        else
-        {
-            values = new ConfigValues([]);
-        }
+
+        values = new ConfigValues(inner);
+        hash = values.Hash();
 
         return values;
     }
