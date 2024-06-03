@@ -38,7 +38,7 @@ internal class MoneyStatementsListCommand : WorkspacedCommand
             Sorting = "desc",
             Count = count,
         };
-        var response = await context.Client.MoneyStatements.ListAsync(options);
+        var response = await context.Client.MoneyStatements.ListAsync(options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         var statements = response.Resource!;
