@@ -4,6 +4,9 @@ namespace Falu;
 
 internal partial class Constants
 {
+    // this value is hardcoded because Microsoft does not consider the instrumentation key sensitive
+    public const string AppInsightsConnectionString = "InstrumentationKey=05728099-c2aa-411d-8f1c-e3aa9689daae;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/;ApplicationId=bb8bb015-675d-4658-a286-5d2108ca437a";
+
     public const string RepositoryOwner = "faluapp";
     public const string RepositoryName = "falu-cli";
 

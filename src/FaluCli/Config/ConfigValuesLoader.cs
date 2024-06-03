@@ -18,8 +18,6 @@ internal class ConfigValuesLoader
     private ConfigValues? values;
     private string? hash;
 
-    public ConfigValues? Values => values;
-
     public virtual async Task<ConfigValues> LoadAsync(CancellationToken cancellationToken = default)
     {
         if (values is not null) return values;
