@@ -2,24 +2,22 @@ using Spectre.Console;
 
 namespace Falu.Commands.Config;
 
-// internal class ConfigClearAllCommand : Command
+// internal class ConfigClearAllCommand : FaluCliCommand
 // {
 //     public ConfigClearAllCommand() : base("all", "Clear all configuration values by deleting the configuration file.")
 //     {
 //     }
 // }
 
-internal class ConfigClearAuthCommand : Command
+internal class ConfigClearAuthCommand : FaluCliCommand // TODO: remove this because clear logout does the same
 {
-    public ConfigClearAuthCommand() : base("auth", "Clear configuration values related to authentication.")
-    {
-        this.SetHandler(Handle);
-    }
+    public ConfigClearAuthCommand() : base("auth", "Clear configuration values related to authentication.") { }
 
-    private static void Handle(InvocationContext context)
+    public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var values = context.GetConfigValues();
-        values.Authentication = null;
+        context.ConfigValues.Authentication = null;
         AnsiConsole.Write("Successfully removed all authentication configuration values.");
+
+        return Task.FromResult(0);
     }
 }

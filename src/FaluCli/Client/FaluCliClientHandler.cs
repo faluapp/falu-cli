@@ -5,32 +5,30 @@ using Res = Falu.Properties.Resources;
 
 namespace Falu.Client;
 
-internal class FaluCliClientHandler(OidcProvider oidcProvider,
-                                    InvocationContext context,
-                                    ILogger<FaluCliClientHandler> logger) : DelegatingHandler
+internal class FaluCliClientHandler(ConfigValues config, ParseResult parseResult, OidcProvider oidcProvider, ILogger<FaluCliClientHandler> logger) : DelegatingHandler
 {
     /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         // Override the X-Idempotency-Key header if CLI contains the --idempotency-key option
-        var idempotencyKey = context.ParseResult.ValueForOption<string>("--idempotency-key");
+        var idempotencyKey = parseResult.ValueForOption<string>("--idempotency-key");
         if (!string.IsNullOrWhiteSpace(idempotencyKey))
         {
             request.Headers.Replace("X-Idempotency-Key", idempotencyKey);
         }
 
         // if we do not have a key, we use the user credentials in the configuration
-        var key = context.ParseResult.ValueForOption<string>("--apikey");
+        var key = parseResult.ValueForOption<string>("--apikey");
         if (string.IsNullOrWhiteSpace(key))
         {
             // (1) Override the X-Workspace-Id header if CLI contains the option
-            if (context.TryGetWorkspaceId(out var workspaceId))
+            if (parseResult.TryGetWorkspaceId(out var workspaceId))
             {
                 request.Headers.Replace("X-Workspace-Id", workspaceId);
             }
 
             // (2) Override the X-Live-Mode header if CLI contains the option
-            if (context.TryGetLiveMode(out var live))
+            if (parseResult.TryGetLiveMode(out var live))
             {
                 request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant());
             }
@@ -38,7 +36,6 @@ internal class FaluCliClientHandler(OidcProvider oidcProvider,
             // (3) Handle appropriate authentication
 
             // ensure we have login information and that it contains a valid access token or refresh token
-            var config = context.GetConfigValues();
             if (config.Authentication is null || (!config.Authentication.HasValidAccessToken() && !config.Authentication.HasValidRefreshToken()))
             {
                 throw new FaluException(Res.AuthenticationInformationMissing);

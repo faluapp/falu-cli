@@ -1,6 +1,6 @@
 namespace Falu.Commands.Templates;
 
-internal class TemplatesCommand : WorkspacedCommand
+internal class TemplatesCommand : CliCommand
 {
     public TemplatesCommand() : base("templates", "Manage message templates.")
     {

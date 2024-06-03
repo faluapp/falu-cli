@@ -1,20 +1,19 @@
-﻿using Falu.Client;
-using Falu.Client.MoneyStatements;
+﻿using Falu.Client.MoneyStatements;
 using Spectre.Console;
 
 namespace Falu.Commands.Money.Statements;
 
-internal class MoneyStatementsListCommand : Command
+internal class MoneyStatementsListCommand : WorkspacedCommand
 {
     public MoneyStatementsListCommand() : base("list", "List recent money statements")
     {
         this.AddOption<string[]>(["--object-kind"],
                                  description: "The object type to filter statements for.",
-                                 configure: o => o.FromAmong("payments", "payment_refunds", "transfers", "transfer_reversals"));
+                                 configure: o => o.AcceptOnlyFromAmong("payments", "payment_refunds", "transfers", "transfer_reversals"));
 
         this.AddOption<string[]>(["--provider"],
                                  description: "Type of provider to filter statements for.",
-                                 configure: o => o.FromAmong("mpesa"));
+                                 configure: o => o.AcceptOnlyFromAmong("mpesa"));
 
         this.AddOption<bool?>(["--uploaded"],
                               description: "Whether to only list uploaded statements");
@@ -22,15 +21,10 @@ internal class MoneyStatementsListCommand : Command
         this.AddOption(["--count"],
                        description: "Number of records to retrieve",
                        defaultValue: 10);
-
-        this.SetHandler(HandleAsync);
     }
 
-    private async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
-
         var objectKinds = context.ParseResult.ValueForOption<string[]?>("--object-kind")!;
         var providers = context.ParseResult.ValueForOption<string[]?>("--provider")!;
         var uploaded = context.ParseResult.ValueForOption<bool?>("--uploaded")!;
@@ -44,7 +38,7 @@ internal class MoneyStatementsListCommand : Command
             Sorting = "desc",
             Count = count,
         };
-        var response = await client.MoneyStatements.ListAsync(options);
+        var response = await context.Client.MoneyStatements.ListAsync(options);
         response.EnsureSuccess();
 
         var statements = response.Resource!;
@@ -71,5 +65,7 @@ internal class MoneyStatementsListCommand : Command
         }
 
         AnsiConsole.Write(table);
+
+        return 0;
     }
 }

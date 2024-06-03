@@ -1,5 +1,4 @@
-﻿using Falu.Client;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Falu.Commands.Templates;
 
@@ -13,22 +12,16 @@ internal class TemplatesPullCommand : AbstractTemplatesCommand
         this.AddOption(["-o", "--overwrite"],
                        description: "Overwrite templates if they already exist.",
                        defaultValue: false);
-
-        this.SetHandler(HandleAsync);
     }
 
-    private static async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
-        var logger = context.GetRequiredService<ILogger<TemplatesPullCommand>>();
-
         async Task WriteToFileAsync(string path, bool overwrite, BinaryData data)
         {
             var exists = File.Exists(path);
             if (exists && !overwrite)
             {
-                logger.LogWarning("Skipping overwrite for {Path}", path);
+                context.Logger.LogWarning("Skipping overwrite for {Path}", path);
                 return;
             }
 
@@ -36,7 +29,7 @@ internal class TemplatesPullCommand : AbstractTemplatesCommand
             if (exists) File.Delete(path);
 
             // write to file
-            logger.LogDebug("Writing to file at {Path}", path);
+            context.Logger.LogDebug("Writing to file at {Path}", path);
             await using var stream = data.ToStream();
             await using var fs = File.OpenWrite(path);
             await stream.CopyToAsync(fs, cancellationToken);
@@ -46,7 +39,7 @@ internal class TemplatesPullCommand : AbstractTemplatesCommand
         var overwrite = context.ParseResult.ValueForOption<bool>("--overwrite");
 
         // download the templates
-        var templates = await DownloadTemplatesAsync(client, logger, cancellationToken);
+        var templates = await DownloadTemplatesAsync(context, cancellationToken);
 
         // work on each template
         var saved = 0;
@@ -54,7 +47,7 @@ internal class TemplatesPullCommand : AbstractTemplatesCommand
         {
             if (string.IsNullOrWhiteSpace(template.Alias))
             {
-                logger.LogWarning("Template '{TemplateId}' without an alias shall be skipped.", template.Id);
+                context.Logger.LogWarning("Template '{TemplateId}' without an alias shall be skipped.", template.Id);
                 continue;
             }
 
@@ -83,6 +76,8 @@ internal class TemplatesPullCommand : AbstractTemplatesCommand
             saved++;
         }
 
-        logger.LogInformation("Finished saving {Save} of {Total} templates to {OutputDirectory}", saved, templates.Count, outputPath);
+        context.Logger.LogInformation("Finished saving {Save} of {Total} templates to {OutputDirectory}", saved, templates.Count, outputPath);
+
+        return 0;
     }
 }

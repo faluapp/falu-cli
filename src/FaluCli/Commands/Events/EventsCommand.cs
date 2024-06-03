@@ -1,6 +1,6 @@
 namespace Falu.Commands.Events;
 
-internal class EventsCommand : WorkspacedCommand
+internal class EventsCommand : CliCommand
 {
     public EventsCommand() : base("events", "Work with events on Falu.")
     {

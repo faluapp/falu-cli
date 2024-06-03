@@ -1,6 +1,6 @@
 namespace Falu.Commands.Messages;
 
-internal class MessagesCommand : WorkspacedCommand
+internal class MessagesCommand : CliCommand
 {
     public MessagesCommand() : base("messages", "Work with messages.")
     {

@@ -2,22 +2,20 @@ using Spectre.Console;
 
 namespace Falu.Commands.Config;
 
-internal class ConfigSetCommand : Command
+internal class ConfigSetCommand : FaluCliCommand
 {
     public ConfigSetCommand() : base("set", "Set a configuration value.")
     {
         this.AddArgument<string>(name: "key",
                                  description: "The configuration key.",
-                                 configure: a => a.FromAmong("retries", "timeout", "workspace", "livemode"));
+                                 configure: a => a.AcceptOnlyFromAmong("retries", "timeout", "workspace", "livemode"));
 
         this.AddArgument<string>(name: "value", description: "The configuration value.");
-
-        this.SetHandler(Handle);
     }
 
-    private static void Handle(InvocationContext context)
+    public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var values = context.GetConfigValues();
+        var values = context.ConfigValues;
         var key = context.ParseResult.ValueForArgument<string>("key")!.ToLower();
         var value = context.ParseResult.ValueForArgument<string>("value")!;
         switch (key)
@@ -45,5 +43,7 @@ internal class ConfigSetCommand : Command
         }
 
         AnsiConsole.Write("Successfully set configuration '{0}={1}'.", key, value);
+
+        return Task.FromResult(0);
     }
 }

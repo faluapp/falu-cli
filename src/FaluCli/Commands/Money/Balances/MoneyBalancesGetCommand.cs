@@ -1,21 +1,14 @@
-﻿using Falu.Client;
-using Spectre.Console;
+﻿using Spectre.Console;
 
 namespace Falu.Commands.Money.Balances;
 
-internal class MoneyBalancesGetCommand : Command
+internal class MoneyBalancesGetCommand : WorkspacedCommand
 {
-    public MoneyBalancesGetCommand() : base("get", "Get money balances")
-    {
-        this.SetHandler(HandleAsync);
-    }
+    public MoneyBalancesGetCommand() : base("get", "Get money balances") { }
 
-    private static async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
-
-        var response = await client.MoneyBalances.GetAsync(cancellationToken: cancellationToken);
+        var response = await context.Client.MoneyBalances.GetAsync(cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         var balances = response.Resource!;
@@ -34,5 +27,7 @@ internal class MoneyBalancesGetCommand : Command
         }
 
         AnsiConsole.Write(table);
+
+        return 0;
     }
 }

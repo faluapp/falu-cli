@@ -1,5 +1,4 @@
-﻿using Falu.Client;
-using Falu.Client.Events;
+﻿using Falu.Client.Events;
 using Spectre.Console;
 using Spectre.Console.Json;
 using Spectre.Console.Rendering;
@@ -9,7 +8,7 @@ using System.Text.Json.Nodes;
 
 namespace Falu.Commands.Events;
 
-internal class EventRetryCommand : Command
+internal class EventRetryCommand : WorkspacedCommand
 {
     public EventRetryCommand() : base("retry", "Retry delivery of an event to a webhook endpoint.")
     {
@@ -20,21 +19,16 @@ internal class EventRetryCommand : Command
         this.AddOption(aliases: ["--webhook-endpoint"],
                        description: "Unique identifier of the webhook endpoint. Example: we_610010be9228355f14ce6e08",
                        format: Constants.WebhookEndpointIdFormat,
-                       configure: o => o.IsRequired = true);
-
-        this.SetHandler(HandleAsync);
+                       configure: o => o.Required = true);
     }
 
-    private static async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
-
         var eventId = context.ParseResult.ValueForArgument<string>("event");
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
 
         var model = new EventDeliveryRetry { WebhookEndpoint = webhookEndpointId, };
-        var response = await client.Events.RetryAsync(eventId!, model, cancellationToken: cancellationToken);
+        var response = await context.Client.Events.RetryAsync(eventId!, model, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         var attempt = response.Resource!;
@@ -42,7 +36,7 @@ internal class EventRetryCommand : Command
         var time = TimeSpan.FromMilliseconds(attempt.ResponseTime);
         var data = new Dictionary<string, object> { ["Attempted"] = $"{attempt.Attempted:F}", ["Url"] = attempt.Url!, ["Response Time"] = $"{time.TotalSeconds:n3} seconds", };
 
-        if (!attempt.Successful && context.IsVerboseEnabled())
+        if (!attempt.Successful && context.ParseResult.IsVerboseEnabled())
         {
             var statusCode = Enum.Parse<HttpStatusCode>(attempt.HttpStatus.ToString());
             data["Http Status"] = $"{statusCode} ({attempt.HttpStatus})";
@@ -53,7 +47,7 @@ internal class EventRetryCommand : Command
         sb.AppendLine(data.MakePaddedString());
         AnsiConsole.MarkupLine(sb.ToString());
 
-        if (context.IsVerboseEnabled())
+        if (context.ParseResult.IsVerboseEnabled())
         {
             var requestPanel = CreatePanel(new JsonText(attempt.RequestBody!), "Request Body");
             var responseBody = attempt.ResponseBody!;
@@ -62,6 +56,8 @@ internal class EventRetryCommand : Command
             var layout = new Layout().SplitColumns(new Layout(requestPanel), new Layout(responsePanel));
             AnsiConsole.Write(layout);
         }
+
+        return 0;
     }
 
     private static Panel CreatePanel(IRenderable content, string header)
