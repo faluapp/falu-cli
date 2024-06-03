@@ -15,7 +15,7 @@ namespace Falu;
 [JsonSerializable(typeof(Client.Realtime.RealtimeNegotiationOptionsRequestLogs))]
 [JsonSerializable(typeof(Client.Realtime.RealtimeNegotiation))]
 
-[JsonSerializable(typeof(Commands.RequestLogs.RequestLog))]
+[JsonSerializable(typeof(Commands.RequestLogs.RequestLogsTailCommand.RequestLog))]
 [JsonSerializable(typeof(Commands.Templates.TemplateInfo))]
 
 [JsonSerializable(typeof(Oidc.OidcDeviceAuthorizationResponse))]

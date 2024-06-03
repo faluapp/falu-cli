@@ -5,7 +5,9 @@
         "faluapp",
         "idempotency",
         "Mpesa",
+        "Oidc",
         "opentelemetry",
+        "Workspaced",
         "Xunit"
     ]
 }

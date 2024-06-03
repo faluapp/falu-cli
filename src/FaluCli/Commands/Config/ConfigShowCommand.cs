@@ -1,34 +1,39 @@
-﻿namespace Falu.Commands.Config;
+﻿using Spectre.Console;
+
+namespace Falu.Commands.Config;
 
 public class ConfigShowCommand : Command
 {
     public ConfigShowCommand() : base("show", "Show present configuration values.")
     {
+        this.SetHandler(Handle);
     }
-}
 
-public class ConfigSetCommand : Command
-{
-    public ConfigSetCommand() : base("set", "Set a configuration value.")
+    private static void Handle(InvocationContext context)
     {
-        this.AddArgument<string>(name: "key",
-                                 description: "The configuration key.",
-                                 configure: a => a.FromAmong("retries", "timeout", "workspace", "livemode"));
+        var values = context.GetConfigValues();
+        var data = new Dictionary<string, object?>
+        {
+            ["no-telemetry"] = values.NoTelemetry,
+            ["no-updates"] = values.NoUpdates,
+            ["retries"] = values.Retries,
+            ["timeout"] = $"{values.Timeout} seconds",
+            ["workspace"] = values.DefaultWorkspaceId,
+            ["livemode"] = values.DefaultLiveMode,
+        }.RemoveDefaultAndEmpty();
 
-        this.AddArgument<string>(name: "value", description: "The configuration value.");
-    }
-}
+        if (data.Count == 0)
+        {
+            AnsiConsole.Write("Configuration values are empty or only contain sensitive information.");
+        }
+        else
+        {
+            var table = new Table().AddColumn("Key")
+                                   .AddColumn(new TableColumn("Value").Centered());
 
-public class ConfigClearAllCommand : Command
-{
-    public ConfigClearAllCommand() : base("all", "Clear all configuration values by deleting the configuration file.")
-    {
-    }
-}
+            foreach (var (key, value) in data) table.AddRow(new Markup(key), new Markup($"{value}"));
 
-public class ConfigClearAuthCommand : Command
-{
-    public ConfigClearAuthCommand() : base("auth", "Clear configuration values related to authentication.")
-    {
+            AnsiConsole.Write(table);
+        }
     }
 }

@@ -1,5 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Falu.Config;
+﻿using Falu.Config;
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.CommandLine;
 
@@ -26,4 +26,9 @@ internal static class InvocationContextExtensions
     }
 
     public static ConfigValues GetConfigValues(this InvocationContext context) => context.BindingContext.GetRequiredService<ConfigValues>();
+
+    public static T? GetService<T>(this InvocationContext context)
+        => context.BindingContext.GetService<T>() ?? context.BindingContext.GetRequiredService<IHost>().Services.GetService<T>();
+    public static T GetRequiredService<T>(this InvocationContext context) where T : notnull
+        => context.BindingContext.GetService<T>() ?? context.BindingContext.GetRequiredService<IHost>().Services.GetRequiredService<T>();
 }
