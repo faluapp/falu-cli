@@ -1,6 +1,6 @@
 namespace Falu.Commands.RequestLogs;
 
-internal class RequestLogsCommand : WorkspacedCommand
+internal class RequestLogsCommand : CliCommand
 {
     public RequestLogsCommand() : base("logs", "Work with request logs.")
     {

@@ -6,7 +6,7 @@ namespace Falu;
 internal static class VersioningHelper
 {
     // get the version from the assembly
-    private static readonly Lazy<string> _productVersion = new(delegate
+    private static readonly Lazy<string> _productVersion = new(() =>
     {
         /*
          * Use the informational version if available because it has the git commit SHA.
@@ -26,8 +26,6 @@ internal static class VersioningHelper
     });
 
     public static string ProductVersion => _productVersion.Value;
-
-    public static SemanticVersioning.Version? CurrentVersion => SemanticVersioning.Version.Parse(ProductVersion);
 }
 
 

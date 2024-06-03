@@ -1,6 +1,5 @@
 ﻿using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.Http;
-using Falu.Client;
 using Falu.Client.Realtime;
 using Spectre.Console;
 using System.Text;
@@ -10,7 +9,7 @@ using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.Events;
 
-internal class EventsListenCommand : Command
+internal class EventsListenCommand : WorkspacedCommand
 {
     private readonly HttpClientHandler forwardingClientHandler;
     private readonly HttpClient forwardingClient;
@@ -35,7 +34,7 @@ internal class EventsListenCommand : Command
                                          {
                                              if (!Constants.EventTypeWildcardFormat.IsMatch(v))
                                              {
-                                                 or.ErrorMessage = string.Format(Res.InvalidEventTypeWildcard, v);
+                                                 or.AddError(string.Format(Res.InvalidEventTypeWildcard, v));
                                                  break;
                                              }
                                          }
@@ -60,22 +59,17 @@ internal class EventsListenCommand : Command
                            var value = or.GetValueOrDefault<string>();
                            if (value is not null && !Duration.TryParse(value, out _))
                            {
-                               or.ErrorMessage = string.Format(Res.InvalidDurationValue, value);
+                               or.AddError(string.Format(Res.InvalidDurationValue, value));
                            }
                        });
-
-        this.SetHandler(HandleAsync);
     }
 
-    private async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
-        var logger = context.GetRequiredService<ILogger<EventsListenCommand>>();
 
-        var workspaceId = context.GetWorkspaceId()!;
-        var live = context.GetLiveMode() ?? false;
+        var workspaceId = context.ParseResult.GetWorkspaceId()!;
+        var live = context.ParseResult.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
         var types = context.ParseResult.ValueForOption<string[]>("--event-type")?.NullIfEmpty();
@@ -87,15 +81,14 @@ internal class EventsListenCommand : Command
         Webhooks.WebhookEndpoint? webhookEndpoint = null;
         if (webhookEndpointId is not null)
         {
-            logger.LogInformation("Fetching webhook endpoint {WebhookEndpoint} ...", webhookEndpointId);
-            var rr = await client.Webhooks.GetAsync(webhookEndpointId, cancellationToken: cancellationToken);
+            context.Logger.LogInformation("Fetching webhook endpoint {WebhookEndpoint} ...", webhookEndpointId);
+            var rr = await context.Client.Webhooks.GetAsync(webhookEndpointId, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
             webhookEndpoint = rr.Resource;
             if (webhookEndpoint is null)
             {
-                logger.LogWarning("Webhook endpoint '{WebhookEndpointId}' could not be found, or exists in a different live mode or workspace", webhookEndpointId);
-                context.ExitCode = -1;
-                return;
+                context.Logger.LogWarning("Webhook endpoint '{WebhookEndpointId}' could not be found, or exists in a different live mode or workspace", webhookEndpointId);
+                return -1;
             }
         }
 
@@ -103,28 +96,29 @@ internal class EventsListenCommand : Command
         if ((types is null || types.Length == 0) && webhookEndpoint is not null)
         {
             types = webhookEndpoint.Events?.ToArray() ?? [];
-            logger.LogInformation("Filtering event types using the provided webhook:\r\n- {EventTypes}", string.Join("\r\n- ", types));
+            context.Logger.LogInformation("Filtering event types using the provided webhook:\r\n- {EventTypes}", string.Join("\r\n- ", types));
         }
 
         // prepare the client to use for forwarding
         if (skipValidation) forwardingClientHandler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
         if (forwardTo is not null && secret is null)
         {
-            logger.LogWarning("Forwarding without a secret does not test for security concerns." + "\r\nRequests to {ForwardTo} may fail because the 'X-Falu-Signature' header will not be included.", forwardTo);
+            context.Logger.LogWarning("Forwarding without a secret does not test for security concerns." + "\r\nRequests to {ForwardTo} may fail because the 'X-Falu-Signature' header will not be included.", forwardTo);
         }
 
         // prepare filters
         var options = new RealtimeNegotiationOptionsEvents { Ttl = ttl, Filters = new RealtimeNegotiationFiltersEvents { Types = types, }, };
 
         // negotiate a connection
-        logger.LogInformation("Negotiating connection information ...");
-        var response = await client.Realtime.NegotiateAsync(options, cancellationToken: cancellationToken);
+        context.Logger.LogInformation("Negotiating connection information ...");
+        var response = await context.Client.Realtime.NegotiateAsync(options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
         // run the websocket handler
         var arg = new HandlerArg(workspaceId, live, forwardTo, secret);
         await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, arg, cancellationToken);
+        return 0;
     }
 
     private readonly record struct HandlerArg(string WorkspaceId, bool Live, Uri? ForwardTo, string? Secret)

@@ -1,19 +1,14 @@
 ﻿namespace Falu.Commands.Login;
 
-internal class LogoutCommand : Command
+internal class LogoutCommand : FaluCliCommand
 {
-    public LogoutCommand() : base("logout", "Logout of your Falu account from the CLI")
-    {
-        this.SetHandler(Handle);
-    }
+    public LogoutCommand() : base("logout", "Logout of your Falu account from the CLI") { }
 
-    private static void Handle(InvocationContext context)
+    public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var logger = context.GetRequiredService<ILogger<LogoutCommand>>();
+        context.ConfigValues.Authentication = null;
+        context.Logger.LogInformation("Authentication information cleared.");
 
-        // clear the authentication information and save
-        var values = context.GetConfigValues();
-        values.Authentication = null;
-        logger.LogInformation("Authentication information cleared.");
+        return Task.FromResult(0);
     }
 }

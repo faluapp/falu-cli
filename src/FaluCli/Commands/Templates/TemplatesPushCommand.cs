@@ -1,5 +1,4 @@
-﻿using Falu.Client;
-using Falu.MessageTemplates;
+﻿using Falu.MessageTemplates;
 using Spectre.Console;
 using System.Text.Json;
 using Tingle.Extensions.JsonPatch;
@@ -16,50 +15,43 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
         this.AddOption(["-a", "--all"],
                        description: "Push all local templates up to Falu regardless of whether they changed.",
                        defaultValue: false);
-
-        this.SetHandler(HandleAsync);
     }
 
-    private static async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
-        var logger = context.GetRequiredService<ILogger<TemplatesPushCommand>>();
-
         var templatesDirectory = context.ParseResult.ValueForArgument<string>("templates-directory")!;
         var all = context.ParseResult.ValueForOption<bool>("--all");
 
         // ensure the directory exists
         if (!Directory.Exists(templatesDirectory))
         {
-            logger.LogError("The directory {TemplatesDirectory} does not exist.", templatesDirectory);
-            context.ExitCode = -1;
-            return;
+            context.Logger.LogError("The directory {TemplatesDirectory} does not exist.", templatesDirectory);
+            return -1;
         }
 
         // download the templates
-        var templates = await DownloadTemplatesAsync(client, logger, cancellationToken);
+        var templates = await DownloadTemplatesAsync(context, cancellationToken);
 
         // read manifests
-        var manifests = await ReadManifestsAsync(logger, templatesDirectory, cancellationToken);
+        var manifests = await ReadManifestsAsync(context, templatesDirectory, cancellationToken);
         if (all)
         {
             // TODO: seek prompt to push the changes (with an option override: -y/--yes)
 
-            logger.LogInformation("Pushing {Count} templates to Falu servers.", manifests.Count);
-            await PushTemplatesAsync(manifests, client, logger, cancellationToken);
+            context.Logger.LogInformation("Pushing {Count} templates to Falu servers.", manifests.Count);
+            await PushTemplatesAsync(manifests, context, cancellationToken);
         }
         else
         {
-            GenerateChanges(logger, templates, manifests);
+            GenerateChanges(context, templates, manifests);
             var modified = manifests.Where(m => m.ChangeType != TemplateChangeType.Unmodified).ToList();
             if (modified.Count == 0)
             {
-                logger.LogInformation("There are no changes to the templates.");
-                return;
+                context.Logger.LogInformation("There are no changes to the templates.");
+                return 0;
             }
 
-            logger.LogInformation("Pushing {Count} templates to Falu servers.", modified.Count);
+            context.Logger.LogInformation("Pushing {Count} templates to Falu servers.", modified.Count);
 
             var table = new Table().AddColumn("Change")
                                    .AddColumn("Alias")
@@ -70,8 +62,10 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
 
             // TODO: seek prompt to push the changes (with an option override: -y/--yes)
 
-            await PushTemplatesAsync(modified, client, logger, cancellationToken);
+            await PushTemplatesAsync(modified, context, cancellationToken);
         }
+
+        return 0;
     }
 
     private static string ColorizeChangeType(TemplateChangeType changeType)
@@ -84,7 +78,7 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
         };
     }
 
-    private static async Task PushTemplatesAsync(IReadOnlyList<TemplateManifest> manifests, FaluCliClient client, ILogger logger, CancellationToken cancellationToken)
+    private static async Task PushTemplatesAsync(IReadOnlyList<TemplateManifest> manifests, CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         foreach (var mani in manifests)
         {
@@ -92,7 +86,7 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
             var alias = mani.Alias;
             if (changeType is TemplateChangeType.Unmodified)
             {
-                logger.LogDebug("Template with alias {Alias} has not changes. Skipping it ...", alias);
+                context.Logger.LogDebug("Template with alias {Alias} has not changes. Skipping it ...", alias);
                 continue;
             }
 
@@ -111,10 +105,10 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
                     Description = description,
                     Metadata = metadata,
                 };
-                logger.LogDebug("Creating template with alias {Alias} ...", alias);
-                var response = await client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
+                context.Logger.LogDebug("Creating template with alias {Alias} ...", alias);
+                var response = await context.Client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
-                logger.LogDebug("Template with alias {Alias} created with Id: '{Id}'", alias, response.Resource!.Id);
+                context.Logger.LogDebug("Template with alias {Alias} created with Id: '{Id}'", alias, response.Resource!.Id);
             }
             else if (changeType is TemplateChangeType.Modified)
             {
@@ -125,14 +119,14 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
                     .Replace(mt => mt.Translations, translations)
                     .Replace(mt => mt.Description, description)
                     .Replace(mt => mt.Metadata, metadata);
-                logger.LogDebug("Updating template with alias {Alias} ...", alias);
-                var response = await client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
+                context.Logger.LogDebug("Updating template with alias {Alias} ...", alias);
+                var response = await context.Client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
             }
         }
     }
 
-    private static void GenerateChanges(ILogger logger, in IReadOnlyList<MessageTemplate> templates, in IReadOnlyList<TemplateManifest> manifests)
+    private static void GenerateChanges(CliCommandExecutionContext context, in IReadOnlyList<MessageTemplate> templates, in IReadOnlyList<TemplateManifest> manifests)
     {
         ArgumentNullException.ThrowIfNull(templates);
         ArgumentNullException.ThrowIfNull(manifests);
@@ -143,18 +137,18 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
             var remote = templates.SingleOrDefault(t => string.Equals(t.Alias, local.Alias, StringComparison.OrdinalIgnoreCase));
             if (remote is null)
             {
-                logger.LogDebug("Template with alias {Alias} does not exist on the server. It will be created.", local.Alias);
+                context.Logger.LogDebug("Template with alias {Alias} does not exist on the server. It will be created.", local.Alias);
                 local.ChangeType = TemplateChangeType.Added;
                 continue;
             }
 
             local.Id = remote.Id;
-            local.ChangeType = HasChanged(logger, remote, local) ? TemplateChangeType.Modified : TemplateChangeType.Unmodified;
-            logger.LogDebug("Template with alias {Alias} has {Suffix}.", local.Alias, local.ChangeType is TemplateChangeType.Modified ? "changed" : "not changed");
+            local.ChangeType = HasChanged(context, remote, local) ? TemplateChangeType.Modified : TemplateChangeType.Unmodified;
+            context.Logger.LogDebug("Template with alias {Alias} has {Suffix}.", local.Alias, local.ChangeType is TemplateChangeType.Modified ? "changed" : "not changed");
         }
     }
 
-    private static bool HasChanged(ILogger logger, MessageTemplate remote, TemplateManifest local)
+    private static bool HasChanged(CliCommandExecutionContext context, MessageTemplate remote, TemplateManifest local)
     {
         // check if the default body changed
         var bodyChanged = !string.Equals(remote.Body, local.Body, StringComparison.InvariantCulture);
@@ -198,17 +192,17 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
             }
         }
 
-        logger.LogDebug("Checked for changes on template alias '{Alias}'."
-                      + "\r\nBody:{bodyChanged}, Translations:{translationsChanged}, Description:{descriptionChanged}, Metadata:{metadataChanged}",
-                        remote.Alias,
-                        bodyChanged,
-                        translationsChanged,
-                        descriptionChanged,
-                        metadataChanged);
+        context.Logger.LogDebug("Checked for changes on template alias '{Alias}'."
+                              + "\r\nBody:{bodyChanged}, Translations:{translationsChanged}, Description:{descriptionChanged}, Metadata:{metadataChanged}",
+                              remote.Alias,
+                              bodyChanged,
+                              translationsChanged,
+                              descriptionChanged,
+                              metadataChanged);
         return bodyChanged || translationsChanged || descriptionChanged || metadataChanged;
     }
 
-    private static async Task<IReadOnlyList<TemplateManifest>> ReadManifestsAsync(ILogger logger, string templatesDirectory, CancellationToken cancellationToken)
+    private static async Task<IReadOnlyList<TemplateManifest>> ReadManifestsAsync(CliCommandExecutionContext context, string templatesDirectory, CancellationToken cancellationToken)
     {
         var results = new List<TemplateManifest>();
         var directories = Directory.EnumerateDirectories(templatesDirectory);
@@ -218,11 +212,11 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
             var infoPath = Path.Combine(dirPath, TemplateConstants.InfoFileName);
             if (!File.Exists(infoPath))
             {
-                logger.LogDebug("Skipping directory at {Directory} because it does not have an info file", dirPath);
+                context.Logger.LogDebug("Skipping directory at {Directory} because it does not have an info file", dirPath);
                 continue;
             }
 
-            logger.LogDebug("Reading manifest from {Directory}", dirPath);
+            context.Logger.LogDebug("Reading manifest from {Directory}", dirPath);
 
             // read the info
             using var stream = File.OpenRead(infoPath);
@@ -231,7 +225,7 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
 
             // read default content
             var contentPath = Path.Combine(dirPath, TemplateConstants.DefaultBodyFileName);
-            var body = await ReadFromFileAsync(logger, contentPath, cancellationToken);
+            var body = await ReadFromFileAsync(context, contentPath, cancellationToken);
 
             // read translations
             var translations = new Dictionary<string, string>();
@@ -242,7 +236,7 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
                 if (!match.Success) continue;
 
                 contentPath = file;
-                var translated = await ReadFromFileAsync(logger, contentPath, cancellationToken);
+                var translated = await ReadFromFileAsync(context, contentPath, cancellationToken);
                 var language = match.Groups[1].Value;
                 translations[language] = translated;
             }
@@ -253,9 +247,9 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
         return results;
     }
 
-    private static async Task<string> ReadFromFileAsync(ILogger logger, string path, CancellationToken cancellationToken)
+    private static async Task<string> ReadFromFileAsync(CliCommandExecutionContext context, string path, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Reading file at {Path}", path);
+        context.Logger.LogDebug("Reading file at {Path}", path);
         using var stream = File.OpenRead(path);
         using var reader = new StreamReader(stream);
         return await reader.ReadToEndAsync(cancellationToken);

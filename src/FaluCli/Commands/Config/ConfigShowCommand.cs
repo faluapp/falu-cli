@@ -2,16 +2,13 @@
 
 namespace Falu.Commands.Config;
 
-internal class ConfigShowCommand : Command
+internal class ConfigShowCommand : FaluCliCommand
 {
-    public ConfigShowCommand() : base("show", "Show present configuration values.")
-    {
-        this.SetHandler(Handle);
-    }
+    public ConfigShowCommand() : base("show", "Show present configuration values.") { }
 
-    private static void Handle(InvocationContext context)
+    public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var values = context.GetConfigValues();
+        var values = context.ConfigValues;
         var data = new Dictionary<string, object?>
         {
             ["no-telemetry"] = values.NoTelemetry,
@@ -35,5 +32,7 @@ internal class ConfigShowCommand : Command
 
             AnsiConsole.Write(table);
         }
+
+        return Task.FromResult(0);
     }
 }

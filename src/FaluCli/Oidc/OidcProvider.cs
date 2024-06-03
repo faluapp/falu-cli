@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
 
 namespace Falu.Oidc;
@@ -47,6 +48,7 @@ internal class OidcProvider(HttpClient httpClient)
     {
         var content = new FormUrlEncodedContent(parameters);
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content, };
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")); // only JSON responses
         var response = await httpClient.SendAsync(request, cancellationToken);
         return (await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken))!;
     }

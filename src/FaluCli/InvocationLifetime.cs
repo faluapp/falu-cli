@@ -8,16 +8,16 @@ internal class InvocationLifetime(IOptions<ConsoleLifetimeOptions> options,
                                   IHostApplicationLifetime applicationLifetime,
                                   IOptions<HostOptions> hostOptions,
                                   ILoggerFactory loggerFactory)
-    : ConsoleLifetime(options, environment, applicationLifetime, hostOptions, loggerFactory), IDisposable
+    : ConsoleLifetime(options, environment, applicationLifetime, hostOptions, loggerFactory), IHostLifetime, IDisposable
 {
     private readonly IHostApplicationLifetime applicationLifetime = applicationLifetime;
     private CancellationTokenRegistration reg;
 
-    public new async Task WaitForStartAsync(CancellationToken cancellationToken)
+    async Task IHostLifetime.WaitForStartAsync(CancellationToken cancellationToken)
     {
-        await base.WaitForStartAsync(cancellationToken);
+        await ((ConsoleLifetime)(object)this).WaitForStartAsync(cancellationToken);
 
-        // The token comes from HostingAction.InvokeAsync
+        // The token comes from FaluRootCliAction.InvokeAsync
         // and it's the invocation cancellation token.
         reg = cancellationToken.Register(state =>
         {
@@ -25,9 +25,14 @@ internal class InvocationLifetime(IOptions<ConsoleLifetimeOptions> options,
         }, this);
     }
 
-    public new void Dispose()
+    async Task IHostLifetime.StopAsync(CancellationToken cancellationToken)
+    {
+        await ((ConsoleLifetime)(object)this).StopAsync(cancellationToken);
+    }
+
+    void IDisposable.Dispose()
     {
         reg.Dispose();
-        base.Dispose();
+        ((ConsoleLifetime)(object)this).Dispose();
     }
 }

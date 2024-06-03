@@ -3,7 +3,7 @@ using Falu.Commands.Money.Statements;
 
 namespace Falu.Commands.Money;
 
-internal class MoneyCommand : WorkspacedCommand
+internal class MoneyCommand : CliCommand
 {
     public MoneyCommand() : base("money", "Work with money.")
     {

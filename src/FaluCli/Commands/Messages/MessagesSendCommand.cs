@@ -1,18 +1,21 @@
-﻿using Falu.Client;
-using Falu.MessageBatches;
+﻿using Falu.MessageBatches;
 using Falu.Messages;
 using Falu.MessageTemplates;
 using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.Messages;
 
-internal abstract class AbstractMessagesSendCommand : Command
+internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
 {
     protected AbstractMessagesSendCommand(string name, string? description = null) : base(name, description)
     {
         this.AddOption<string[]>(["--to", "-t"],
                                  description: "Phone number(s) you are sending to, in E.164 format.",
-                                 validate: (or) => or.ErrorMessage = ValidateNumbers(or.Option.Name, or.GetValueOrDefault<string[]>()!));
+                                 validate: (or) =>
+                                 {
+                                     var em = ValidateNumbers(or.Option.Name, or.GetValueOrDefault<string[]>()!);
+                                     if (em is not null) or.AddError(em);
+                                 });
 
         this.AddOption<string>(["-f", "--file"],
                                description: "File path for the path containing the phone numbers you are sending to, in E.164 format."
@@ -24,7 +27,7 @@ internal abstract class AbstractMessagesSendCommand : Command
                                    var info = new FileInfo(value);
                                    if (!info.Exists)
                                    {
-                                       or.ErrorMessage = $"The file {value} does not exist.";
+                                       or.AddError($"The file {value} does not exist.");
                                        return;
                                    }
 
@@ -33,13 +36,14 @@ internal abstract class AbstractMessagesSendCommand : Command
                                                      .Replace("\r", ",")
                                                      .Replace("\n", ",")
                                                      .Split(',', StringSplitOptions.RemoveEmptyEntries);
-                                   or.ErrorMessage = ValidateNumbers(or.Option.Name, numbers);
+                                   var em = ValidateNumbers(or.Option.Name, numbers);
+                                   if (em is not null) or.AddError(em);
                                });
 
         this.AddOption(["--stream", "-s"],
                        description: "The stream to use, either the name or unique identifier.\r\nExample: mstr_610010be9228355f14ce6e08 or transactional",
                        defaultValue: "transactional",
-                       configure: o => o.IsRequired = true);
+                       configure: o => o.Required = true);
 
         this.AddOption<Uri?>(["--media-url"],
                              description: "Publicly accessible URL of the media to include in the message(s).\r\nExample: https://c1.staticflickr.com/3/2899/14341091933_1e92e62d12_b.jpg");
@@ -54,8 +58,6 @@ internal abstract class AbstractMessagesSendCommand : Command
         this.AddOption(["--schedule-delay", "--delay"],
                        description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s).\r\nExample: PT10M for 10 minutes",
                        format: Constants.Iso8061DurationFormat);
-
-        this.SetHandler(HandleAsync);
     }
 
     private static string? ValidateNumbers(string optionName, string[] numbers)
@@ -79,29 +81,24 @@ internal abstract class AbstractMessagesSendCommand : Command
         return null;
     }
 
-    private static async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
         var command = context.ParseResult.CommandResult.Command;
-        var client = context.GetRequiredService<FaluCliClient>();
-        var logger = context.GetRequiredService<ILoggerFactory>().CreateLogger(command.GetType());
 
         // ensure both to and file are not null or empty
         var tos = context.ParseResult.ValueForOption<string[]>("--to");
         var filePath = context.ParseResult.ValueForOption<string>("--file");
         if ((tos is null || tos.Length == 0) && string.IsNullOrWhiteSpace(filePath))
         {
-            logger.LogError("A CSV file path must be specified or the destinations using the --to option.");
-            context.ExitCode = -1;
-            return;
+            context.Logger.LogError("A CSV file path must be specified or the destinations using the --to option.");
+            return -1;
         }
 
         // ensure both to and file are not specified
         if (tos is not null && tos.Length > 0 && !string.IsNullOrWhiteSpace(filePath))
         {
-            logger.LogError("Either specify the CSV file path or destinations not both.");
-            context.ExitCode = -1;
-            return;
+            context.Logger.LogError("Either specify the CSV file path or destinations not both.");
+            return -1;
         }
 
         // read the numbers from the CSV file
@@ -121,9 +118,8 @@ internal abstract class AbstractMessagesSendCommand : Command
         var mediaFileId = context.ParseResult.ValueForOption<string?>("--media-file-id");
         if (mediaUrl is not null && mediaFileId is not null)
         {
-            logger.LogError("Media URL and File ID cannot be specified together.");
-            context.ExitCode = -1;
-            return;
+            context.Logger.LogError("Media URL and File ID cannot be specified together.");
+            return -1;
         }
 
         var media = mediaUrl is not null || mediaFileId is not null
@@ -135,9 +131,8 @@ internal abstract class AbstractMessagesSendCommand : Command
         var delay = context.ParseResult.ValueForOption<string?>("--schedule-delay");
         if (time is not null && delay is not null)
         {
-            logger.LogError("Schedule time and delay cannot be specified together.");
-            context.ExitCode = -1;
-            return;
+            context.Logger.LogError("Schedule time and delay cannot be specified together.");
+            return -1;
         }
 
         // make the schedule
@@ -164,17 +159,15 @@ internal abstract class AbstractMessagesSendCommand : Command
             // ensure both id and alias are not null
             if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
             {
-                logger.LogError("A template identifier or template alias must be provided when sending a templated message.");
-                context.ExitCode = -1;
-                return;
+                context.Logger.LogError("A template identifier or template alias must be provided when sending a templated message.");
+                return -1;
             }
 
             // ensure both id and alias are not specified
             if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(alias))
             {
-                logger.LogError("Either specify the template identifier or template alias not both.");
-                context.ExitCode = -1;
-                return;
+                context.Logger.LogError("Either specify the template identifier or template alias not both.");
+                return -1;
             }
 
             template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Language = language, Model = model, };
@@ -194,11 +187,11 @@ internal abstract class AbstractMessagesSendCommand : Command
                 Media = media,
                 Schedule = schedule,
             };
-            var rr = await client.Messages.CreateAsync(request, cancellationToken: cancellationToken);
+            var rr = await context.Client.Messages.CreateAsync(request, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
 
             var response = rr.Resource!;
-            logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:f}.", response.Id, (response.Schedule?.Time ?? response.Created).ToLocalTime());
+            context.Logger.LogInformation("Scheduled {MessageId} for sending at {Scheduled:f}.", response.Id, (response.Schedule?.Time ?? response.Created).ToLocalTime());
         }
         else
         {
@@ -217,14 +210,16 @@ internal abstract class AbstractMessagesSendCommand : Command
                 Stream = stream,
                 Schedule = schedule,
             };
-            var rr = await client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
+            var rr = await context.Client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
 
             var response = rr.Resource!;
             var ids = response.Messages!;
-            logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:f}.", ids.Count, (response.Schedule?.Time ?? response.Created).ToLocalTime());
-            logger.LogDebug("Message Id(s):\r\n- {Ids}", string.Join("\r\n- ", ids));
+            context.Logger.LogInformation("Scheduled {Count} messages for sending at {Scheduled:f}.", ids.Count, (response.Schedule?.Time ?? response.Created).ToLocalTime());
+            context.Logger.LogDebug("Message Id(s):\r\n- {Ids}", string.Join("\r\n- ", ids));
         }
+
+        return 0;
     }
 }
 
@@ -234,7 +229,7 @@ internal class MessagesSendRawCommand : AbstractMessagesSendCommand
     {
         this.AddOption<string>(["--body"],
                                description: "The actual message content to be sent.",
-                               configure: o => o.IsRequired = true);
+                               configure: o => o.Required = true);
     }
 }
 
@@ -265,9 +260,9 @@ internal class MessagesSendTemplatedCommand : AbstractMessagesSendCommand
                            }
                            catch (System.Text.Json.JsonException)
                            {
-                               or.ErrorMessage = string.Format(Res.InvalidJsonInputValue, or.Option.Name);
+                               or.AddError(string.Format(Res.InvalidJsonInputValue, or.Option.Name));
                            }
                        },
-                       configure: o => o.IsRequired = true);
+                       configure: o => o.Required = true);
     }
 }

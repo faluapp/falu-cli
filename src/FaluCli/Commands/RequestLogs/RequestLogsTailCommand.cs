@@ -1,5 +1,4 @@
-﻿using Falu.Client;
-using Falu.Client.Realtime;
+﻿using Falu.Client.Realtime;
 using Spectre.Console;
 using System.Net;
 using System.Text;
@@ -9,7 +8,7 @@ using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.RequestLogs;
 
-internal class RequestLogsTailCommand : Command
+internal class RequestLogsTailCommand : WorkspacedCommand
 {
     public RequestLogsTailCommand() : base("tail", "Tail request logs")
     {
@@ -21,7 +20,7 @@ internal class RequestLogsTailCommand : Command
 
         this.AddOption<string[]>(["--http-method", "--method"],
                                  description: "The HTTP method to filter for.",
-                                 configure: o => o.FromAmong("get", "patch", "post", "put", "delete"));
+                                 configure: o => o.AcceptOnlyFromAmong("get", "patch", "post", "put", "delete"));
 
         this.AddOption<string[]>(["--request-path", "--path"],
                                  description: "The request path to filter for. For example: \"/v1/messages\"",
@@ -34,7 +33,7 @@ internal class RequestLogsTailCommand : Command
                                          {
                                              if (Constants.RequestPathWildcardFormat.IsMatch(v))
                                              {
-                                                 or.ErrorMessage = string.Format(Res.InvalidHttpRequestPath, v);
+                                                 or.AddError(string.Format(Res.InvalidHttpRequestPath, v));
                                                  break;
                                              }
                                          }
@@ -43,7 +42,7 @@ internal class RequestLogsTailCommand : Command
 
         this.AddOption<string[]>(["--source"],
                                  description: "The request source to filter for.",
-                                 configure: o => o.FromAmong("dashboard", "api"));
+                                 configure: o => o.AcceptOnlyFromAmong("dashboard", "api"));
 
         this.AddOption<int[]>(["--status-code"],
                               description: "The HTTP status code to filter for.",
@@ -56,7 +55,7 @@ internal class RequestLogsTailCommand : Command
                                       {
                                           if (v < 200 || v > 599)
                                           {
-                                              or.ErrorMessage = string.Format(Res.InvalidHttpStatusCode, v);
+                                              or.AddError(string.Format(Res.InvalidHttpStatusCode, v));
                                               break;
                                           }
                                       }
@@ -71,22 +70,17 @@ internal class RequestLogsTailCommand : Command
                            var value = or.GetValueOrDefault<string>();
                            if (value is not null && !Duration.TryParse(value, out _))
                            {
-                               or.ErrorMessage = string.Format(Res.InvalidDurationValue, value);
+                               or.AddError(string.Format(Res.InvalidDurationValue, value));
                            }
                        });
-
-        this.SetHandler(HandleAsync);
     }
 
-    private static async Task HandleAsync(InvocationContext context)
+    public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var cancellationToken = context.GetCancellationToken();
-        var client = context.GetRequiredService<FaluCliClient>();
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
-        var logger = context.GetRequiredService<ILogger<RequestLogsTailCommand>>();
 
-        var workspaceId = context.GetWorkspaceId()!;
-        var live = context.GetLiveMode() ?? false;
+        var workspaceId = context.ParseResult.GetWorkspaceId()!;
+        var live = context.ParseResult.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var ipNetworks = context.ParseResult.ValueForOption<IPNetwork[]>("--ip-network").NullIfEmpty();
         var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address").NullIfEmpty();
@@ -111,14 +105,16 @@ internal class RequestLogsTailCommand : Command
         };
 
         // negotiate a connection
-        logger.LogInformation("Negotiating connection information ...");
-        var response = await client.Realtime.NegotiateAsync(options, cancellationToken: cancellationToken);
+        context.Logger.LogInformation("Negotiating connection information ...");
+        var response = await context.Client.Realtime.NegotiateAsync(options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
         // run the websocket handler
         var arg = new HandlerArg(workspaceId, live);
         await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, arg, cancellationToken);
+
+        return 0;
     }
 
     private readonly record struct HandlerArg(string WorkspaceId, bool Live)
