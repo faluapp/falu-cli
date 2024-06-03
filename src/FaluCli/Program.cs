@@ -129,23 +129,6 @@ var builder = new CommandLineBuilder(rootCommand)
 
         // System.CommandLine library does not create a scope, so we should skip validation of scopes
         host.UseDefaultServiceProvider(o => o.ValidateScopes = false);
-
-        host.UseCommandHandlerTrimmable<LoginCommand, LoginCommandHandler>();
-        host.UseCommandHandlerTrimmable<LogoutCommand, LogoutCommandHandler>();
-        host.UseCommandHandlerTrimmable<EventsListenCommand, EventsListenCommandHandler>();
-        host.UseCommandHandlerTrimmable<EventRetryCommand, EventRetryCommandHandler>();
-        host.UseCommandHandlerTrimmable<MessagesSendRawCommand, MessagesSendCommandHandler>();
-        host.UseCommandHandlerTrimmable<MessagesSendTemplatedCommand, MessagesSendCommandHandler>();
-        host.UseCommandHandlerTrimmable<TemplatesPullCommand, TemplatesCommandHandler>();
-        host.UseCommandHandlerTrimmable<TemplatesPushCommand, TemplatesCommandHandler>();
-        host.UseCommandHandlerTrimmable<MoneyBalancesGetCommand, MoneyBalancesGetCommandHandler>();
-        host.UseCommandHandlerTrimmable<MoneyBalancesRefreshCommand, MoneyBalancesRefreshCommandHandler>();
-        host.UseCommandHandlerTrimmable<MoneyStatementsListCommand, MoneyStatementsListCommandHandler>();
-        host.UseCommandHandlerTrimmable<MoneyStatementsUploadCommand, MoneyStatementsUploadCommandHandler>();
-        host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
-        host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
-        host.UseCommandHandlerTrimmable<ConfigClearAuthCommand, ConfigCommandHandler>();
-        host.UseCommandHandlerTrimmable<RequestLogsTailCommand, RequestLogsTailCommandHandler>();
     })
     .UseFaluDefaults(configValuesLoader);
 

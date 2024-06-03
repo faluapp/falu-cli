@@ -10,12 +10,12 @@ internal class TemplateManifest(TemplateInfo info, string body, Dictionary<strin
 
     public Dictionary<string, string> Translations { get; set; } = translations;
 
-    public ChangeType ChangeType { get; set; } = ChangeType.Unmodified;
+    public TemplateChangeType ChangeType { get; set; } = TemplateChangeType.Unmodified;
 
     public string? Id { get; set; }
 }
 
-enum ChangeType
+internal enum TemplateChangeType
 {
     Unmodified,
     Added,
