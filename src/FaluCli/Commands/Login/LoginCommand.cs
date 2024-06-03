@@ -77,6 +77,29 @@ internal class LoginCommand : FaluCliCommand
         // set the authentication information
         context.ConfigValues.Authentication = new ConfigValuesAuthenticationTokens(tokenResp);
 
+        // sync workspaces
+        context.Logger.LogInformation("Syncing workspaces ...");
+        var workspacesResp = await context.Client.Workspaces.ListAsync(cancellationToken: cancellationToken);
+        workspacesResp.EnsureSuccess();
+        var workspaces = workspacesResp.Resource!.Select(w => new ConfigValuesWorkspace(w)).ToList();
+        context.ConfigValues.Workspaces = workspaces;
+        context.Logger.LogInformation("Workspaces synced successfully.");
+
+        // update default workspace
+        if (workspaces.Count > 0)
+        {
+            var defaultWorkspaceId = context.ConfigValues.DefaultWorkspaceId;
+            if (defaultWorkspaceId is not null)
+            {
+                var workspace = context.ConfigValues.GetWorkspace(defaultWorkspaceId);
+                if (workspace is null)
+                {
+                    context.Logger.LogInformation("Default workspace '{DefaultWorkspaceId}' not found. Resetting to null.", defaultWorkspaceId);
+                    context.ConfigValues.DefaultWorkspaceId = null;
+                }
+            }
+        }
+
         return 0;
     }
 }

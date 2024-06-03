@@ -18,6 +18,7 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
     private const string KeyDefaultWorkspaceId = "default_workspace_id";
     private const string KeyDefaultLiveMode = "default_live_mode";
     private const string KeyAuthentication = "authentication";
+    private const string KeyWorkspaces = "workspaces";
 
     public bool NoTelemetry { get => GetPrimitiveValue(KeyNoTelemetry, false); set => SetValue(KeyNoTelemetry, value); }
     public bool NoUpdates { get => GetPrimitiveValue(KeyNoUpdates, false); set => SetValue(KeyNoUpdates, value); }
@@ -33,6 +34,20 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
         set => SetValue(KeyAuthentication, value);
     }
 
+    public List<ConfigValuesWorkspace> Workspaces
+    {
+        get => (GetArray(KeyWorkspaces) ?? []).Select(n => (ConfigValuesWorkspace)n!.AsObject()).ToList();
+        set => SetValue(KeyWorkspaces, value is not null ? new JsonArray(value.Select(w => (JsonObject)w).ToArray()) : default);
+    }
+
+    public ConfigValuesWorkspace? GetWorkspace(string idOrName)
+    {
+        var workspaces = Workspaces.ToArray();
+        return workspaces.FirstOrDefault(w => string.Equals(w.Id, idOrName, StringComparison.OrdinalIgnoreCase) || string.Equals(w.Name, idOrName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public ConfigValuesWorkspace GetRequiredWorkspace(string idOrName) => GetWorkspace(idOrName) ?? throw new FaluException($"Workspace '{idOrName}' not found. Check the spelling and casing and try again.");
+
     public void RemoveUnknownKeys()
     {
         var keys = Inner.Select(n => n.Key).Except([
@@ -44,6 +59,7 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
             KeyDefaultWorkspaceId,
             KeyDefaultLiveMode,
             KeyAuthentication,
+            KeyWorkspaces,
         ]).ToArray();
 
         foreach (var key in keys) Inner.Remove(key);
@@ -85,6 +101,32 @@ internal sealed class ConfigValuesAuthenticationTokens : AbstractConfigValues
     public static implicit operator ConfigValuesAuthenticationTokens?(JsonObject? inner) => inner is null ? null : new(inner);
 }
 
+internal sealed class ConfigValuesWorkspace : AbstractConfigValues
+{
+    private const string KeyId = "id";
+    private const string KeyName = "name";
+    private const string KeyStatus = "status";
+
+    public ConfigValuesWorkspace(JsonObject inner) : base(inner) { }
+
+    public ConfigValuesWorkspace(Client.Workspaces.Workspace workspace) : base([])
+    {
+        Id = workspace.Id!;
+        Name = workspace.Name!;
+        Status = workspace.Status!;
+    }
+
+    public string Id { get => GetRequiredValue<string>(KeyId); set => SetValue(KeyId, value); }
+    public string Name { get => GetRequiredValue<string>(KeyName); set => SetValue(KeyName, value); }
+    public string Status { get => GetRequiredValue<string>(KeyStatus); set => SetValue(KeyStatus, value); }
+
+    [return: NotNullIfNotNull(nameof(workspace))]
+    public static implicit operator JsonObject?(ConfigValuesWorkspace? workspace) => workspace?.Inner;
+
+    [return: NotNullIfNotNull(nameof(inner))]
+    public static implicit operator ConfigValuesWorkspace?(JsonObject? inner) => inner is null ? null : new(inner);
+}
+
 internal abstract class AbstractConfigValues(JsonObject inner)
 {
     protected JsonObject Inner { get; } = inner;
@@ -95,7 +137,11 @@ internal abstract class AbstractConfigValues(JsonObject inner)
     protected T GetPrimitiveValue<T>(string key, T defaultValue) where T : struct => GetPrimitiveValue<T>(key) ?? defaultValue;
     protected T GetValue<T>(string key, T defaultValue) => GetValue<T>(key) ?? defaultValue;
 
+    protected T GetRequiredPrimitiveValue<T>(string key) where T : struct => GetPrimitiveValue<T>(key) ?? throw new InvalidOperationException($"The required value '{key}' is missing.");
+    protected T GetRequiredValue<T>(string key) => GetValue<T>(key) ?? throw new InvalidOperationException($"The required value '{key}' is missing.");
+
     protected JsonObject? GetObject(string key) => Inner.TryGetPropertyValue(key, out var node) && node is JsonObject jo ? jo : null;
+    protected JsonArray? GetArray(string key) => Inner.TryGetPropertyValue(key, out var node) && node is JsonArray ja ? ja : null;
 
     protected void SetValue(string key, JsonNode? node)
     {

@@ -21,20 +21,25 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
         var key = parseResult.ValueForOption<string>("--apikey");
         if (string.IsNullOrWhiteSpace(key))
         {
-            // (1) Set the X-Workspace-Id header using the CLI option to override the default
-            if (!parseResult.TryGetWorkspaceId(out var workspaceId) && (workspaceId = configValues.DefaultWorkspaceId) == null)
+            // (1) Set the X-Workspace-Id and X-Live-Mode headers but skip for /workspaces
+            if (!request.RequestUri!.ToString().Contains("/workspaces"))
             {
-                throw new FaluException(Res.MissingWorkspaceId);
-            }
-            request.Headers.Replace("X-Workspace-Id", workspaceId);
+                // (1a) Set the X-Workspace-Id header using the CLI option to override the default
+                if (parseResult.TryGetWorkspaceId(out var workspaceId))
+                {
+                    // TODO: check if the workspace exists in the configuration
+                }
+                workspaceId ??= (workspaceId ?? configValues.DefaultWorkspaceId) ?? throw new FaluException(Res.MissingWorkspaceId);
+                request.Headers.Replace("X-Workspace-Id", workspaceId);
 
-            // (2) Set the X-Live-Mode header using CLI option to override the default
-            if (parseResult.TryGetLiveMode(out var live) || (live = configValues.DefaultLiveMode) != null)
-            {
-                request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant()); // when absent, the server assumes false
+                // (1b) Set the X-Live-Mode header using CLI option to override the default
+                if (parseResult.TryGetLiveMode(out var live) || (live = configValues.DefaultLiveMode) != null)
+                {
+                    request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant()); // when absent, the server assumes false
+                }
             }
 
-            // (3) Handle appropriate authentication
+            // (2) Handle appropriate authentication
 
             // ensure we have login information and that it contains a valid access token or refresh token
             if (configValues.Authentication is null || (!configValues.Authentication.HasValidAccessToken() && !configValues.Authentication.HasRefreshToken()))
@@ -65,7 +70,7 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
         // at this point we have a key and we can proceed to set the authentication header
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
 
-        // (5) Execute the modified request
+        // (3) Execute the modified request
         return await base.SendAsync(request, cancellationToken);
     }
 }
