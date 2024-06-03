@@ -19,6 +19,7 @@ updates:
         patterns: ['OpenTelemetry*']
       system:
         patterns: ['System.*']
+        exclude-patterns: ["System.CommandLine*"] # different team and cycle
       xunit:
         patterns: ['Xunit*']
   - package-ecosystem: 'docker'
