@@ -60,7 +60,10 @@ internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
     [MemberNotNullWhen(true, nameof(RefreshToken))]
     public bool HasValidRefreshToken() => !string.IsNullOrWhiteSpace(RefreshToken);
 
-    public static implicit operator JsonObject?(AuthenticationTokenConfigData? data) => data is null ? null : data.Inner;
+    [return: NotNullIfNotNull(nameof(data))]
+    public static implicit operator JsonObject?(AuthenticationTokenConfigData? data) => data?.Inner;
+
+    [return: NotNullIfNotNull(nameof(inner))]
     public static implicit operator AuthenticationTokenConfigData?(JsonObject? inner) => inner is null ? null : new(inner);
 }
 
