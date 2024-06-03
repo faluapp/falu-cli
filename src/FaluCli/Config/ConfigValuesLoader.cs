@@ -23,6 +23,7 @@ internal class ConfigValuesLoader
     {
         if (values is not null) return values;
 
+        // load the file and parse it
         var inner = new JsonObject();
         if (File.Exists(FilePath))
         {
@@ -30,8 +31,12 @@ internal class ConfigValuesLoader
             inner = (await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken))!.AsObject();
         }
 
+        // compute the hash and create the values
         hash = Hash(inner);
         values = new ConfigValues(inner);
+
+        // remove unknown keys
+        values.RemoveUnknownKeys();
 
         return values;
     }

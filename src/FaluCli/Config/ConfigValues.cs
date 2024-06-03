@@ -33,6 +33,22 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
         set => SetValue(KeyAuthentication, value);
     }
 
+    public void RemoveUnknownKeys()
+    {
+        var keys = Inner.Select(n => n.Key).Except([
+            KeyNoTelemetry,
+            KeyNoUpdates,
+            KeyLastUpdateCheck,
+            KeyRetries,
+            KeyTimeout,
+            KeyDefaultWorkspaceId,
+            KeyDefaultLiveMode,
+            KeyAuthentication,
+        ]).ToArray();
+
+        foreach (var key in keys) Inner.Remove(key);
+    }
+
     public string Json(JsonSerializerOptions serializerOptions) => Inner.ToJsonString(serializerOptions);
 }
 
