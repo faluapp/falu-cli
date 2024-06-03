@@ -7,6 +7,9 @@ namespace Falu.Config;
 
 internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inner)
 {
+    public const int DefaultRetries = 0;
+    public const int DefaultTimeout = 120;
+
     private const string KeyNoTelemetry = "no_telemetry";
     private const string KeyNoUpdates = "no_updates";
     private const string KeyLastUpdateCheck = "last_update_check";
@@ -16,33 +19,32 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
     private const string KeyDefaultLiveMode = "default_live_mode";
     private const string KeyAuthentication = "authentication";
 
-    public bool NoTelemetry { get => GetValue(KeyNoTelemetry, false); set => SetValue(KeyNoTelemetry, value); }
-    public bool NoUpdates { get => GetValue(KeyNoUpdates, false); set => SetValue(KeyNoUpdates, value); }
-    public DateTimeOffset? LastUpdateCheck { get => GetValue(KeyLastUpdateCheck, (DateTimeOffset?)null); set => SetValue(KeyLastUpdateCheck, value); }
-    public int Retries { get => GetValue(KeyRetries, 0); set => SetValue(KeyRetries, value); }
-    public int Timeout { get => GetValue(KeyTimeout, 120); set => SetValue(KeyTimeout, value); }
+    public bool NoTelemetry { get => GetPrimitiveValue(KeyNoTelemetry, false); set => SetValue(KeyNoTelemetry, value); }
+    public bool NoUpdates { get => GetPrimitiveValue(KeyNoUpdates, false); set => SetValue(KeyNoUpdates, value); }
+    public DateTimeOffset? LastUpdateCheck { get => GetPrimitiveValue<DateTimeOffset>(KeyLastUpdateCheck); set => SetValue(KeyLastUpdateCheck, value); }
+    public int Retries { get => GetPrimitiveValue(KeyRetries, DefaultRetries); set => SetValue(KeyRetries, value); }
+    public int Timeout { get => GetPrimitiveValue(KeyTimeout, DefaultTimeout); set => SetValue(KeyTimeout, value); }
     public string? DefaultWorkspaceId { get => GetValue(KeyDefaultWorkspaceId, (string?)null); set => SetValue(KeyDefaultWorkspaceId, value); }
-    public bool DefaultLiveMode { get => GetValue(KeyDefaultLiveMode, false); set => SetValue(KeyDefaultLiveMode, value); }
+    public bool? DefaultLiveMode { get => GetPrimitiveValue<bool>(KeyDefaultLiveMode); set => SetValue(KeyDefaultLiveMode, value); }
 
-    public AuthenticationTokenConfigData? Authentication
+    public ConfigValuesAuthenticationTokens? Authentication
     {
         get => GetObject(KeyAuthentication);
         set => SetValue(KeyAuthentication, value);
     }
 
-    public string Hash() => Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(Inner.ToJsonString())));
     public string Json(JsonSerializerOptions serializerOptions) => Inner.ToJsonString(serializerOptions);
 }
 
-internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
+internal sealed class ConfigValuesAuthenticationTokens : AbstractConfigValues
 {
     private const string KeyAccessToken = "access_token";
     private const string KeyAccessTokenExpiry = "access_token_expiry";
     private const string KeyRefreshToken = "refresh_token";
 
-    public AuthenticationTokenConfigData(JsonObject inner) : base(inner) { }
+    public ConfigValuesAuthenticationTokens(JsonObject inner) : base(inner) { }
 
-    public AuthenticationTokenConfigData(OidcTokenResponse response) : base([])
+    public ConfigValuesAuthenticationTokens(OidcTokenResponse response) : base([])
     {
         AccessToken = response.AccessToken;
         RefreshToken = response.RefreshToken;
@@ -50,7 +52,7 @@ internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
     }
 
     public string? AccessToken { get => GetValue(KeyAccessToken, (string?)null); set => SetValue(KeyAccessToken, value); }
-    public DateTimeOffset? AccessTokenExpiry { get => GetValue(KeyAccessTokenExpiry, (DateTimeOffset?)null); set => SetValue(KeyAccessTokenExpiry, value); }
+    public DateTimeOffset? AccessTokenExpiry { get => GetPrimitiveValue<DateTimeOffset>(KeyAccessTokenExpiry); set => SetValue(KeyAccessTokenExpiry, value); }
     public string? RefreshToken { get => GetValue(KeyRefreshToken, (string?)null); set => SetValue(KeyRefreshToken, value); }
 
     [MemberNotNullWhen(true, nameof(AccessToken))]
@@ -61,29 +63,23 @@ internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
     public bool HasRefreshToken() => !string.IsNullOrWhiteSpace(RefreshToken);
 
     [return: NotNullIfNotNull(nameof(data))]
-    public static implicit operator JsonObject?(AuthenticationTokenConfigData? data) => data?.Inner;
+    public static implicit operator JsonObject?(ConfigValuesAuthenticationTokens? data) => data?.Inner;
 
     [return: NotNullIfNotNull(nameof(inner))]
-    public static implicit operator AuthenticationTokenConfigData?(JsonObject? inner) => inner is null ? null : new(inner);
+    public static implicit operator ConfigValuesAuthenticationTokens?(JsonObject? inner) => inner is null ? null : new(inner);
 }
 
 internal abstract class AbstractConfigValues(JsonObject inner)
 {
     protected JsonObject Inner { get; } = inner;
 
-    protected T GetValue<T>(string key, T defaultValue)
-    {
-        return Inner.TryGetPropertyValue(key, out var node) && node is JsonValue value && value.TryGetValue<T>(out var result)
-            ? result
-            : defaultValue;
-    }
+    protected T? GetPrimitiveValue<T>(string key) where T : struct => Inner.TryGetPropertyValue(key, out var node) && node is JsonValue jv && jv.TryGetValue<T>(out var v) ? v : null;
+    protected T? GetValue<T>(string key) => Inner.TryGetPropertyValue(key, out var node) && node is JsonValue jv && jv.TryGetValue<T>(out var v) ? v : default;
 
-    protected JsonObject? GetObject(string key)
-    {
-        return Inner.TryGetPropertyValue(key, out var node) && node is JsonObject result
-            ? result
-            : default;
-    }
+    protected T GetPrimitiveValue<T>(string key, T defaultValue) where T : struct => GetPrimitiveValue<T>(key) ?? defaultValue;
+    protected T GetValue<T>(string key, T defaultValue) => GetValue<T>(key) ?? defaultValue;
+
+    protected JsonObject? GetObject(string key) => Inner.TryGetPropertyValue(key, out var node) && node is JsonObject jo ? jo : null;
 
     protected void SetValue(string key, JsonNode? node)
     {

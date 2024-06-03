@@ -75,7 +75,7 @@ internal class LoginCommand : FaluCliCommand
         context.Logger.LogInformation("Authentication tokens issued successfully.");
 
         // set the authentication information
-        context.ConfigValues.Authentication = new AuthenticationTokenConfigData(tokenResp);
+        context.ConfigValues.Authentication = new ConfigValuesAuthenticationTokens(tokenResp);
 
         return 0;
     }

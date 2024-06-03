@@ -55,7 +55,7 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
                     throw new FaluException(Res.RefreshingAccessTokenFailed);
                 }
 
-                configValues.Authentication = new(token_resp);
+                configValues.Authentication = new ConfigValuesAuthenticationTokens(token_resp);
                 logger.LogInformation("Access token refreshed.");
             }
 

@@ -13,11 +13,11 @@ internal class ConfigValuesLoader
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault | JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // ensure we do not escape things like '+' when writing
     };
 
-    private ConfigValues? values;
     private string? hash;
+    private ConfigValues? values;
 
     public virtual async Task<ConfigValues> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -30,18 +30,22 @@ internal class ConfigValuesLoader
             inner = (await JsonNode.ParseAsync(stream, cancellationToken: cancellationToken))!.AsObject();
         }
 
+        hash = Hash(inner);
         values = new ConfigValues(inner);
-        hash = values.Hash();
 
         return values;
     }
 
     public virtual async Task SaveAsync(ConfigValues values, CancellationToken cancellationToken = default)
     {
-        if (string.Equals(hash, values.Hash(), StringComparison.Ordinal)) return;
+        var json = values.Json(serializerOptions);
+        if (string.Equals(hash, Hash(json), StringComparison.Ordinal)) return;
 
         // the contents have changed, save them
         Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!); // ensure the directory exists
-        await File.WriteAllTextAsync(FilePath, values.Json(serializerOptions), cancellationToken);
+        await File.WriteAllTextAsync(FilePath, json, cancellationToken);
     }
+
+    private static string Hash(string json) => Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(json)));
+    private static string Hash(JsonNode node) => Hash(node.ToJsonString());
 }
