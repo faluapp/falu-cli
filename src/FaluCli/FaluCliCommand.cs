@@ -126,14 +126,19 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
             return await command.ExecuteAsync(context, cancellationToken);
         }
 
-        // Track command name, command arguments and username
+        // track command name, command arguments and username
         var commandName = GetFullCommandName(context.ParseResult);
         var commandArgs = string.Join(' ', context.ParseResult.Tokens.Select(t => Redact(t.Value)));
         activity.DisplayName = commandName;
         activity.SetTag("command.name", commandName);
         activity.SetTag("command.args", commandArgs);
-        if (context.ParseResult.TryGetWorkspaceId(out var workspaceId)) activity.SetTag("workspace.id", workspaceId);
-        if (context.ParseResult.TryGetLiveMode(out var live)) activity.SetTag("live_mode", live.ToString());
+
+        // track the workspace ID and live mode
+        var configValues = context.ConfigValues;
+        if (context.ParseResult.TryGetWorkspaceId(out var workspaceId) || (workspaceId = configValues.DefaultWorkspaceId) is not null)
+            activity.SetTag("workspace.id", workspaceId);
+        if (context.ParseResult.TryGetLiveMode(out var live) || (live = configValues.DefaultLiveMode) is not null)
+            activity.SetTag("live_mode", live.ToString());
 
         try
         {

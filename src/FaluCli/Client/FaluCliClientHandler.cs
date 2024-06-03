@@ -5,7 +5,7 @@ using Res = Falu.Properties.Resources;
 
 namespace Falu.Client;
 
-internal class FaluCliClientHandler(ConfigValues config, ParseResult parseResult, OidcProvider oidcProvider, ILogger<FaluCliClientHandler> logger) : DelegatingHandler
+internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parseResult, OidcProvider oidcProvider, ILogger<FaluCliClientHandler> logger) : DelegatingHandler
 {
     /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -21,43 +21,45 @@ internal class FaluCliClientHandler(ConfigValues config, ParseResult parseResult
         var key = parseResult.ValueForOption<string>("--apikey");
         if (string.IsNullOrWhiteSpace(key))
         {
-            // (1) Override the X-Workspace-Id header if CLI contains the option
-            if (parseResult.TryGetWorkspaceId(out var workspaceId))
+            // (1) Set the X-Workspace-Id header using the CLI option to override the default
+            if (!parseResult.TryGetWorkspaceId(out var workspaceId) && (workspaceId = configValues.DefaultWorkspaceId) == null)
             {
-                request.Headers.Replace("X-Workspace-Id", workspaceId);
+                throw new FaluException(Res.MissingWorkspaceId);
             }
+            request.Headers.Replace("X-Workspace-Id", workspaceId);
 
-            // (2) Override the X-Live-Mode header if CLI contains the option
-            if (parseResult.TryGetLiveMode(out var live))
+            // (2) Set the X-Live-Mode header using CLI option to override the default
+            if (parseResult.TryGetLiveMode(out var live) || (live = configValues.DefaultLiveMode) != null)
             {
-                request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant());
+                request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant()); // when absent, the server assumes false
             }
 
             // (3) Handle appropriate authentication
 
             // ensure we have login information and that it contains a valid access token or refresh token
-            if (config.Authentication is null || (!config.Authentication.HasValidAccessToken() && !config.Authentication.HasValidRefreshToken()))
+            if (configValues.Authentication is null || (!configValues.Authentication.HasValidAccessToken() && !configValues.Authentication.HasRefreshToken()))
             {
                 throw new FaluException(Res.AuthenticationInformationMissing);
             }
 
             // at this point, we either have a valid access token or an invalid access token with a valid refresh token
             // if the access token is invalid, we need to get one via the refresh token
-            if (!config.Authentication.HasValidAccessToken() && config.Authentication.HasValidRefreshToken())
+            if (!configValues.Authentication.HasValidAccessToken() && configValues.Authentication.HasRefreshToken())
             {
                 logger.LogInformation("Requesting for a new access token using the saved refresh token");
 
                 // request for a new token using the refresh token
-                var token_resp = await oidcProvider.RequestRefreshTokenAsync(config.Authentication.RefreshToken, cancellationToken);
+                var token_resp = await oidcProvider.RequestRefreshTokenAsync(configValues.Authentication.RefreshToken, cancellationToken);
                 if (token_resp.IsError)
                 {
                     throw new FaluException(Res.RefreshingAccessTokenFailed);
                 }
 
+                configValues.Authentication = new(token_resp);
                 logger.LogInformation("Access token refreshed.");
             }
 
-            key = config.Authentication.AccessToken;
+            key = configValues.Authentication.AccessToken;
         }
 
         // at this point we have a key and we can proceed to set the authentication header
