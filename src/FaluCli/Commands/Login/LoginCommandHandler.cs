@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Falu.Commands.Login;
 
-internal class LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvider configValuesProvider, ILogger<LoginCommandHandler> logger) : ICommandHandler
+internal class LoginCommandHandler(OidcProvider oidcProvider, ILogger<LoginCommandHandler> logger) : ICommandHandler
 {
     int ICommandHandler.Invoke(InvocationContext context) => throw new NotImplementedException();
 
@@ -21,7 +21,8 @@ internal class LoginCommandHandler(OidcProvider oidcProvider, IConfigValuesProvi
         logger.LogInformation("Authentication tokens issued successfully.");
 
         // save the authentication information
-        await configValuesProvider.SaveConfigValuesAsync(token_resp, cancellationToken);
+        var configValues = context.GetConfigValues();
+        configValues.Authentication = new AuthenticationTokenConfigData(token_resp);
 
         return 0;
     }

@@ -7,7 +7,6 @@ namespace Falu.Client;
 
 internal class FaluCliClientHandler(OidcProvider oidcProvider,
                                     InvocationContext context,
-                                    IConfigValuesProvider configValuesProvider,
                                     ILogger<FaluCliClientHandler> logger) : DelegatingHandler
 {
     /// <inheritdoc/>
@@ -38,9 +37,8 @@ internal class FaluCliClientHandler(OidcProvider oidcProvider,
 
             // (3) Handle appropriate authentication
 
-            var config = await configValuesProvider.GetConfigValuesAsync(cancellationToken);
-
             // ensure we have login information and that it contains a valid access token or refresh token
+            var config = context.GetConfigValues();
             if (config.Authentication is null || (!config.Authentication.HasValidAccessToken() && !config.Authentication.HasValidRefreshToken()))
             {
                 throw new FaluException(Res.AuthenticationInformationMissing);
@@ -60,7 +58,6 @@ internal class FaluCliClientHandler(OidcProvider oidcProvider,
                 }
 
                 logger.LogInformation("Access token refreshed.");
-                await configValuesProvider.SaveConfigValuesAsync(token_resp, cancellationToken);
             }
 
             key = config.Authentication.AccessToken;

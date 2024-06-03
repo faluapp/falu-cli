@@ -66,7 +66,6 @@ var rootCommand = new RootCommand
         new Command("clear", "Clear configuration for the CLI.")
         {
             new ConfigClearAuthCommand(),
-            new ConfigClearAllCommand(),
         },
     },
 };
@@ -76,8 +75,8 @@ rootCommand.AddGlobalOption(["-v", "--verbose"], "Whether to output verbosely.",
 rootCommand.AddGlobalOption(["--no-telemetry"], Res.OptionDescriptionNoTelemetry, false);
 rootCommand.AddGlobalOption(["--no-updates"], Res.OptionDescriptionNoUpdates, false);
 
-var configValuesProvider = new ConfigValuesProvider();
-var configValues = await configValuesProvider.GetConfigValuesAsync();
+var configValuesLoader = new ConfigValuesLoader();
+var configValues = await configValuesLoader.LoadAsync();
 
 var builder = new CommandLineBuilder(rootCommand)
     .UseHost(_ => Host.CreateDefaultBuilder(args), host =>
@@ -118,10 +117,11 @@ var builder = new CommandLineBuilder(rootCommand)
         host.ConfigureServices((context, services) =>
         {
             var configuration = context.Configuration;
-            services.AddSingleton<IConfigValuesProvider>(configValuesProvider);
+            services.AddSingleton(configValuesLoader);
             services.AddFaluClientForCli(configValues);
-            services.AddOpenIdProvider();
-            services.AddUpdates();
+            services.AddSingleton(configValues);
+            services.AddOpenIdProvider(configValues);
+            services.AddUpdates(configValues);
             services.AddTransient<WebsocketHandler>();
         });
 
@@ -144,11 +144,10 @@ var builder = new CommandLineBuilder(rootCommand)
         host.UseCommandHandlerTrimmable<MoneyStatementsUploadCommand, MoneyStatementsUploadCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigShowCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigSetCommand, ConfigCommandHandler>();
-        host.UseCommandHandlerTrimmable<ConfigClearAllCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<ConfigClearAuthCommand, ConfigCommandHandler>();
         host.UseCommandHandlerTrimmable<RequestLogsTailCommand, RequestLogsTailCommandHandler>();
     })
-    .UseFaluDefaults(configValues);
+    .UseFaluDefaults(configValuesLoader);
 
 // Parse the incoming args and invoke the handler
 var parser = builder.Build();

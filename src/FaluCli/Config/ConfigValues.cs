@@ -1,45 +1,57 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
+﻿using Falu.Oidc;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Falu.Config;
 
-internal record ConfigValues
+internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inner)
 {
-    [JsonPropertyName("no_telemetry")]
-    public bool NoTelemetry { get; set; }
+    private const string KeyNoTelemetry = "no_telemetry";
+    private const string KeyNoUpdates = "no_updates";
+    private const string KeyLastUpdateCheck = "last_update_check";
+    private const string KeyRetries = "retries";
+    private const string KeyTimeout = "timeout";
+    private const string KeyDefaultWorkspaceId = "default_workspace_id";
+    private const string KeyDefaultLiveMode = "default_live_mode";
+    private const string KeyAuthentication = "authentication";
 
-    [JsonPropertyName("no_updates")]
-    public bool NoUpdates { get; set; }
+    public bool NoTelemetry { get => GetValue(KeyNoTelemetry, false); set => SetValue(KeyNoTelemetry, value); }
+    public bool NoUpdates { get => GetValue(KeyNoUpdates, false); set => SetValue(KeyNoUpdates, value); }
+    public DateTimeOffset? LastUpdateCheck { get => GetValue(KeyLastUpdateCheck, (DateTimeOffset?)null); set => SetValue(KeyLastUpdateCheck, value); }
+    public int Retries { get => GetValue(KeyRetries, 0); set => SetValue(KeyRetries, value); }
+    public int Timeout { get => GetValue(KeyTimeout, 120); set => SetValue(KeyTimeout, value); }
+    public string? DefaultWorkspaceId { get => GetValue(KeyDefaultWorkspaceId, (string?)null); set => SetValue(KeyDefaultWorkspaceId, value); }
+    public bool DefaultLiveMode { get => GetValue(KeyDefaultLiveMode, false); set => SetValue(KeyDefaultLiveMode, value); }
 
-    [JsonPropertyName("last_update_check")]
-    public DateTimeOffset? LastUpdateCheck { get; set; }
+    public AuthenticationTokenConfigData? Authentication
+    {
+        get => GetObject(KeyAuthentication);
+        set => SetValue(KeyAuthentication, value);
+    }
 
-    [JsonPropertyName("retries")]
-    public int Retries { get; set; } = 0;
-
-    [JsonPropertyName("timeout")]
-    public int Timeout { get; set; } = 120;
-
-    [JsonPropertyName("default_workspace_id")]
-    public string? DefaultWorkspaceId { get; set; }
-
-    [JsonPropertyName("default_live_mode")]
-    public bool DefaultLiveMode { get; set; }
-
-    [JsonPropertyName("authentication")]
-    public AuthenticationTokenConfigData? Authentication { get; set; }
+    public string Hash() => Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(Inner.ToJsonString())));
+    public string Json(JsonSerializerOptions serializerOptions) => Inner.ToJsonString(serializerOptions);
 }
 
-internal record AuthenticationTokenConfigData
+internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
 {
-    [JsonPropertyName("access_token")]
-    public string? AccessToken { get; set; }
+    private const string KeyAccessToken = "access_token";
+    private const string KeyAccessTokenExpiry = "access_token_expiry";
+    private const string KeyRefreshToken = "refresh_token";
 
-    [JsonPropertyName("access_token_expiry")]
-    public DateTimeOffset? AccessTokenExpiry { get; set; }
+    public AuthenticationTokenConfigData(JsonObject inner) : base(inner) { }
 
-    [JsonPropertyName("refresh_token")]
-    public string? RefreshToken { get; set; }
+    public AuthenticationTokenConfigData(OidcTokenResponse response) : base([])
+    {
+        AccessToken = response.AccessToken;
+        RefreshToken = response.RefreshToken;
+        AccessTokenExpiry = DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn).AddSeconds(-5);
+    }
+
+    public string? AccessToken { get => GetValue(KeyAccessToken, (string?)null); set => SetValue(KeyAccessToken, value); }
+    public DateTimeOffset? AccessTokenExpiry { get => GetValue(KeyAccessTokenExpiry, (DateTimeOffset?)null); set => SetValue(KeyAccessTokenExpiry, value); }
+    public string? RefreshToken { get => GetValue(KeyRefreshToken, (string?)null); set => SetValue(KeyRefreshToken, value); }
 
     [MemberNotNullWhen(true, nameof(AccessToken))]
     [MemberNotNullWhen(true, nameof(AccessTokenExpiry))]
@@ -47,4 +59,32 @@ internal record AuthenticationTokenConfigData
 
     [MemberNotNullWhen(true, nameof(RefreshToken))]
     public bool HasValidRefreshToken() => !string.IsNullOrWhiteSpace(RefreshToken);
+
+    public static implicit operator JsonObject?(AuthenticationTokenConfigData? data) => data is null ? null : data.Inner;
+    public static implicit operator AuthenticationTokenConfigData?(JsonObject? inner) => inner is null ? null : new(inner);
+}
+
+internal abstract class AbstractConfigValues(JsonObject inner)
+{
+    public JsonObject Inner { get; } = inner;
+
+    protected T GetValue<T>(string key, T defaultValue)
+    {
+        return Inner.TryGetPropertyValue(key, out var node) && node is JsonValue value && value.TryGetValue<T>(out var result)
+            ? result
+            : defaultValue;
+    }
+
+    protected JsonObject? GetObject(string key)
+    {
+        return Inner.TryGetPropertyValue(key, out var node) && node is JsonObject result
+            ? result
+            : default;
+    }
+
+    protected void SetValue(string key, JsonNode? node)
+    {
+        if (node is not null) Inner[key] = node;
+        else if (Inner.ContainsKey(key)) Inner.Remove(key);
+    }
 }
