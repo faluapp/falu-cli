@@ -69,7 +69,7 @@ internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
 
 internal abstract class AbstractConfigValues(JsonObject inner)
 {
-    public JsonObject Inner { get; } = inner;
+    protected JsonObject Inner { get; } = inner;
 
     protected T GetValue<T>(string key, T defaultValue)
     {
