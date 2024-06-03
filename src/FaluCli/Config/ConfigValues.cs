@@ -58,7 +58,7 @@ internal sealed class AuthenticationTokenConfigData : AbstractConfigValues
     public bool HasValidAccessToken() => !string.IsNullOrWhiteSpace(AccessToken) && AccessTokenExpiry > DateTimeOffset.UtcNow;
 
     [MemberNotNullWhen(true, nameof(RefreshToken))]
-    public bool HasValidRefreshToken() => !string.IsNullOrWhiteSpace(RefreshToken);
+    public bool HasRefreshToken() => !string.IsNullOrWhiteSpace(RefreshToken);
 
     [return: NotNullIfNotNull(nameof(data))]
     public static implicit operator JsonObject?(AuthenticationTokenConfigData? data) => data?.Inner;

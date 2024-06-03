@@ -168,6 +168,9 @@ Valid examples:
   <data name="LoginFailedWithCodeFormat" xml:space="preserve">
     <value>Login request failed with code: {0}</value>
   </data>
+  <data name="MissingWorkspaceId" xml:space="preserve">
+    <value>When not using an API key for authentication, you must provide a workspace using the --workspace option or by setting the default workspace via 'falu config set workspace &lt;workspace-id&gt;'</value>
+  </data>
   <data name="OptionDescriptionApiKey" xml:space="preserve">
     <value>The API key to use for the command. Use this for non-interractive setups such as process automation or when you cannot login using your account.
 Looks like: fskt_LdVyn0upN...</value>

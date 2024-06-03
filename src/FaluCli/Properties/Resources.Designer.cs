@@ -102,6 +102,15 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The provided value: &apos;{0}&apos; must be a valid ISO8601 duration e.g. PT15M for 15 minutes or P1DT2H for 1 day and 2 hours..
+        /// </summary>
+        internal static string InvalidDurationValue {
+            get {
+                return ResourceManager.GetString("InvalidDurationValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value for &apos;{0}&apos; is not a valid E.164 phone number: &apos;{1}&apos;.
         /// </summary>
         internal static string InvalidE164PhoneNumber {
@@ -178,6 +187,15 @@ namespace Falu.Properties {
         internal static string LoginFailedWithCodeFormat {
             get {
                 return ResourceManager.GetString("LoginFailedWithCodeFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When not using an API key for authentication, you must provide a workspace using the --workspace option or by setting the default workspace via &apos;falu config set workspace &lt;workspace-id&gt;&apos;.
+        /// </summary>
+        internal static string MissingWorkspaceId {
+            get {
+                return ResourceManager.GetString("MissingWorkspaceId", resourceCulture);
             }
         }
         
@@ -264,6 +282,15 @@ namespace Falu.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Whether to disable telemetry collection. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-telemetry true&apos;.
+        /// </summary>
+        internal static string OptionDescriptionNoTelemetry {
+            get {
+                return ResourceManager.GetString("OptionDescriptionNoTelemetry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Whether to disable update checks. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-updates true&apos;.
         /// </summary>
         internal static string OptionDescriptionNoUpdates {
@@ -273,11 +300,12 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to disable telemetry collection. Using this option overrides any value set in the configuration. This value can also be set globally using &apos;falu config set no-telemetry true&apos;.
+        ///   Looks up a localized string similar to The connection time-to-live (TTL) for the realtime connection.
+        ///This is the maximum time the connection can be open before it is forcefully closed by the server..
         /// </summary>
-        internal static string OptionDescriptionNoTelemetry {
+        internal static string OptionDescriptionRealtimeConnectionTtl {
             get {
-                return ResourceManager.GetString("OptionDescriptionNoTelemetry", resourceCulture);
+                return ResourceManager.GetString("OptionDescriptionRealtimeConnectionTtl", resourceCulture);
             }
         }
         
@@ -383,25 +411,6 @@ namespace Falu.Properties {
         internal static string UnhandledExceptionFormat {
             get {
                 return ResourceManager.GetString("UnhandledExceptionFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///  Looks up a localized string similar to The connection time-to-live (TTL) for the realtime connection.
-        ///This is the maximum time the connection can be open before it is forcefully closed.
-        /// </summary>
-        internal static string OptionDescriptionRealtimeConnectionTtl {
-            get {
-                return ResourceManager.GetString("OptionDescriptionRealtimeConnectionTtl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///  Looks up a localized string similar to The provided value: &apos;{0}&apos; must be a valid ISO8601 duration e.g. PT15M for 15 minutes or P1DT2H for 1 day and 2 hours.
-        /// </summary>
-        internal static string InvalidDurationValue {
-            get {
-                return ResourceManager.GetString("InvalidDurationValue", resourceCulture);
             }
         }
     }
