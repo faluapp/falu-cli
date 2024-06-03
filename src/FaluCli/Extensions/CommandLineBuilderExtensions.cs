@@ -19,44 +19,24 @@ internal static class CommandLineBuilderExtensions
     private static readonly Reflection.AssemblyName AssemblyName = typeof(CommandLineBuilder).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name!, AssemblyName.Version!.ToString());
 
-    public static CommandLineBuilder UseFaluDefaults(this CommandLineBuilder builder, ConfigValuesLoader configValuesLoader)
-    {
-        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
-
-        return builder.UseConfigValues(configValuesLoader)
-                      .UseActivity()
-                      .UseVersionOption()
-                      .UseHelp()
-                      .UseEnvironmentVariableDirective()
-                      .UseParseDirective()
-                      .UseSuggestDirective()
-                      .RegisterWithDotnetSuggest()
-                      .UseTypoCorrections()
-                      .UseParseErrorReporting()
-                      .UseExceptionHandler(ExceptionHandler)
-                      .CancelOnProcessTermination()
-                      .UseUpdateChecker() /* update checker middleware must be added last because it should only run after what the user requested */;
-    }
-
-    private static CommandLineBuilder UseConfigValues(this CommandLineBuilder builder, ConfigValuesLoader configValuesLoader)
+    public static CommandLineBuilder UseSaveConfigValues(this CommandLineBuilder builder)
     {
         return builder.AddMiddleware(async (context, next) =>
         {
             try
             {
-                var configValues = configValuesLoader.Values ?? throw new InvalidOperationException("Config values not loaded");
-                context.BindingContext.AddService(_ => configValues);
                 await next(context);
             }
             finally
             {
+                var configValuesLoader = context.GetConfigValuesLoader();
                 var configValues = context.GetConfigValues();
                 await configValuesLoader.SaveAsync(configValues, context.GetCancellationToken());
             }
         });
     }
 
-    private static CommandLineBuilder UseActivity(this CommandLineBuilder builder)
+    public static CommandLineBuilder UseActivity(this CommandLineBuilder builder)
     {
         // inspired by https://medium.com/@asimmon/instrumenting-system-commandline-based-net-applications-6d910f91b8a8
 
@@ -121,6 +101,8 @@ internal static class CommandLineBuilderExtensions
             }
         }, MiddlewareOrder.Default); // default = 0, anything less than that and the activity will be null because the host (which adds open telemetry) is registered at default too
     }
+
+    public static CommandLineBuilder UseFaluExceptionHandler(this CommandLineBuilder builder) => builder.UseExceptionHandler(ExceptionHandler);
 
     private static void ExceptionHandler(Exception exception, InvocationContext context)
     {
@@ -202,7 +184,7 @@ internal static class CommandLineBuilderExtensions
         }
     }
 
-    private static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder)
+    public static CommandLineBuilder UseUpdateChecker(this CommandLineBuilder builder)
     {
         return builder.AddMiddleware(async (context, next) =>
         {

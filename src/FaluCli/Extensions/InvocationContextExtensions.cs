@@ -25,6 +25,7 @@ internal static class InvocationContextExtensions
         return liveMode is not null;
     }
 
+    public static ConfigValuesLoader GetConfigValuesLoader(this InvocationContext context) => context.BindingContext.GetRequiredService<ConfigValuesLoader>();
     public static ConfigValues GetConfigValues(this InvocationContext context) => context.BindingContext.GetRequiredService<ConfigValues>();
 
     public static T? GetService<T>(this InvocationContext context)
