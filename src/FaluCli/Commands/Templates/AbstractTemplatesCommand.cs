@@ -3,7 +3,7 @@ using Falu.MessageTemplates;
 
 namespace Falu.Commands.Templates;
 
-public class AbstractTemplatesCommand(string name, string? description = null) : Command(name, description)
+internal class AbstractTemplatesCommand(string name, string? description = null) : Command(name, description)
 {
     internal static async Task<IReadOnlyList<MessageTemplate>> DownloadTemplatesAsync(FaluCliClient client, ILogger logger, CancellationToken cancellationToken)
     {

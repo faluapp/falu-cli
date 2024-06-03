@@ -3,8 +3,7 @@ using Falu.Commands.Config;
 using Falu.Commands.Events;
 using Falu.Commands.Login;
 using Falu.Commands.Messages;
-using Falu.Commands.Money.Balances;
-using Falu.Commands.Money.Statements;
+using Falu.Commands.Money;
 using Falu.Commands.RequestLogs;
 using Falu.Commands.Templates;
 using Falu.Config;
@@ -18,56 +17,16 @@ var rootCommand = new RootCommand
     new LoginCommand(),
     new LogoutCommand(),
 
-    new WorkspacedCommand("events", "Work with events on Falu.")
-    {
-        new EventsListenCommand(),
-        new EventRetryCommand(),
-    },
+    new EventsCommand(),
 
-    new WorkspacedCommand("messages", "Work with messages.")
-    {
-        new Command("send", "Send messages.")
-        {
-            new MessagesSendRawCommand(),
-            new MessagesSendTemplatedCommand(),
-        }
-    },
+    new MessagesCommand(),
+    new TemplatesCommand(),
 
-    new WorkspacedCommand("templates", "Manage message templates.")
-    {
-        new TemplatesPullCommand(),
-        new TemplatesPushCommand(),
-    },
+    new MoneyCommand(),
 
-    new WorkspacedCommand("money", "Work with money.")
-    {
-        new Command("balances", "Work with money balances.")
-        {
-            new MoneyBalancesGetCommand(),
-            new MoneyBalancesRefreshCommand(),
-        },
-        new Command("statements", "Work with money statements.")
-        {
-            new MoneyStatementsListCommand(),
-            //new MoneyStatementsGetCommand(),
-            new MoneyStatementsUploadCommand(),
-        },
-    },
+    new RequestLogsCommand(),
 
-    new WorkspacedCommand("logs", "Work with request logs.")
-    {
-        new RequestLogsTailCommand(),
-    },
-
-    new Command("config", "Manage configuration for the CLI.")
-    {
-        new ConfigShowCommand(),
-        new ConfigSetCommand(),
-        new Command("clear", "Clear configuration for the CLI.")
-        {
-            new ConfigClearAuthCommand(),
-        },
-    },
+    new ConfigCommand(),
 };
 
 rootCommand.Description = "Official CLI tool for Falu.";
@@ -77,6 +36,8 @@ rootCommand.AddGlobalOption(["--no-updates"], Res.OptionDescriptionNoUpdates, fa
 
 var configValuesLoader = new ConfigValuesLoader();
 var configValues = await configValuesLoader.LoadAsync();
+
+var builder1 = Host.CreateApplicationBuilder();
 
 var builder = new CommandLineBuilder(rootCommand)
     .UseHost(_ => Host.CreateDefaultBuilder(args), host =>

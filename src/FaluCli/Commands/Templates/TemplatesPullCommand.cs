@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Falu.Commands.Templates;
 
-public class TemplatesPullCommand : AbstractTemplatesCommand
+internal class TemplatesPullCommand : AbstractTemplatesCommand
 {
     public TemplatesPullCommand() : base("pull", "Download templates from Falu servers to your local file system.")
     {

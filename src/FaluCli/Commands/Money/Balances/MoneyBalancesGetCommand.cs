@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace Falu.Commands.Money.Balances;
 
-public class MoneyBalancesGetCommand : Command
+internal class MoneyBalancesGetCommand : Command
 {
     public MoneyBalancesGetCommand() : base("get", "Get money balances")
     {

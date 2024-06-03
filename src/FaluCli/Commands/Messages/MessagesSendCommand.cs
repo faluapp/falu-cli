@@ -6,7 +6,7 @@ using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.Messages;
 
-public abstract class AbstractMessagesSendCommand : Command
+internal abstract class AbstractMessagesSendCommand : Command
 {
     protected AbstractMessagesSendCommand(string name, string? description = null) : base(name, description)
     {
@@ -228,7 +228,7 @@ public abstract class AbstractMessagesSendCommand : Command
     }
 }
 
-public class MessagesSendRawCommand : AbstractMessagesSendCommand
+internal class MessagesSendRawCommand : AbstractMessagesSendCommand
 {
     public MessagesSendRawCommand() : base("raw", "Send a message with the body defined.")
     {
@@ -238,7 +238,7 @@ public class MessagesSendRawCommand : AbstractMessagesSendCommand
     }
 }
 
-public class MessagesSendTemplatedCommand : AbstractMessagesSendCommand
+internal class MessagesSendTemplatedCommand : AbstractMessagesSendCommand
 {
     public MessagesSendTemplatedCommand() : base("templated", "Send a templated message.")
     {

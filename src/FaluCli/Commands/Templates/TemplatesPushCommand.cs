@@ -6,7 +6,7 @@ using Tingle.Extensions.JsonPatch;
 
 namespace Falu.Commands.Templates;
 
-public class TemplatesPushCommand : AbstractTemplatesCommand
+internal class TemplatesPushCommand : AbstractTemplatesCommand
 {
     public TemplatesPushCommand() : base("push", "Pushes changed templates from the local file system to Falu servers.")
     {

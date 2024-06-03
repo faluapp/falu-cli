@@ -2,7 +2,7 @@
 
 namespace Falu.Commands.Config;
 
-public class ConfigShowCommand : Command
+internal class ConfigShowCommand : Command
 {
     public ConfigShowCommand() : base("show", "Show present configuration values.")
     {

@@ -4,7 +4,7 @@ using Spectre.Console;
 
 namespace Falu.Commands.Money.Statements;
 
-public class MoneyStatementsListCommand : Command
+internal class MoneyStatementsListCommand : Command
 {
     public MoneyStatementsListCommand() : base("list", "List recent money statements")
     {

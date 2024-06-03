@@ -3,7 +3,7 @@ using Falu.Client;
 
 namespace Falu.Commands.Money.Statements;
 
-public class MoneyStatementsUploadCommand : Command
+internal class MoneyStatementsUploadCommand : Command
 {
     public MoneyStatementsUploadCommand() : base("upload", "Upload a statement to Falu to resolve pending payments, transfers, refunds, or reversals for bring-your-own providers.")
     {
