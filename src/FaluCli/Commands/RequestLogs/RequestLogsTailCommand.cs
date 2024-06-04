@@ -79,11 +79,6 @@ internal class RequestLogsTailCommand : WorkspacedCommand
     {
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
 
-        if (context.ParseResult.TryGetWorkspace(out var workspaceId))
-        {
-            workspaceId = context.ConfigValues.GetRequiredWorkspace(workspaceId).Id;
-        }
-
         var live = context.ParseResult.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var ipNetworks = context.ParseResult.ValueForOption<IPNetwork[]>("--ip-network").NullIfEmpty();
@@ -115,26 +110,16 @@ internal class RequestLogsTailCommand : WorkspacedCommand
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
         // run the websocket handler
-        var arg = new HandlerArg(workspaceId, live);
-        await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, arg, cancellationToken);
+        await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, live, cancellationToken);
 
         return 0;
     }
 
-    private readonly record struct HandlerArg(string WorkspaceId, bool Live)
+    private static ValueTask HandleIncomingMessage(RealtimeMessage message, bool live, CancellationToken cancellationToken = default)
     {
-        public readonly void Deconstruct(out string workspaceId, out bool live)
-        {
-            workspaceId = WorkspaceId;
-            live = Live;
-        }
-    }
-
-    private static ValueTask HandleIncomingMessage(RealtimeMessage message, HandlerArg arg, CancellationToken cancellationToken = default)
-    {
-        var (workspaceId, live) = arg;
         var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
         var log = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.RequestLog)!;
+        var workspaceId = log.Workspace;
         var url = $"https://dashboard.falu.io/{workspaceId}/developer/logs/{log.Id}?live={live.ToString().ToLowerInvariant()}";
 
         // write to the console
@@ -162,6 +147,9 @@ internal class RequestLogsTailCommand : WorkspacedCommand
 
         [JsonPropertyName("response")]
         public RequestLogItemResponse Response { get; set; } = default!;
+
+        [JsonPropertyName("workspace")]
+        public string Workspace { get; set; } = default!;
     }
 
     internal class RequestLogItemRequest

@@ -68,11 +68,6 @@ internal class EventsListenCommand : WorkspacedCommand
     {
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
 
-        if (context.ParseResult.TryGetWorkspace(out var workspaceId))
-        {
-            workspaceId = context.ConfigValues.GetRequiredWorkspace(workspaceId).Id;
-        }
-
         var live = context.ParseResult.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
@@ -120,16 +115,15 @@ internal class EventsListenCommand : WorkspacedCommand
         var negotiation = response.Resource ?? throw new InvalidOperationException("Response from negotiation cannot be null or empty");
 
         // run the websocket handler
-        var arg = new HandlerArg(workspaceId, live, forwardTo, secret);
+        var arg = new HandlerArg(live, forwardTo, secret);
         await websocketHandler.RunAsync(negotiation, HandleIncomingMessage, arg, cancellationToken);
         return 0;
     }
 
-    private readonly record struct HandlerArg(string WorkspaceId, bool Live, Uri? ForwardTo, string? Secret)
+    private readonly record struct HandlerArg(bool Live, Uri? ForwardTo, string? Secret)
     {
-        public readonly void Deconstruct(out string workspaceId, out bool live, out Uri? forwardTo, out string? secret)
+        public readonly void Deconstruct(out bool live, out Uri? forwardTo, out string? secret)
         {
-            workspaceId = WorkspaceId;
             live = Live;
             forwardTo = ForwardTo;
             secret = Secret;
@@ -138,11 +132,12 @@ internal class EventsListenCommand : WorkspacedCommand
 
     private ValueTask HandleIncomingMessage(RealtimeMessage message, HandlerArg arg, CancellationToken cancellationToken)
     {
-        var (workspaceId, live, forwardTo, secret) = arg;
+        var (live, forwardTo, secret) = arg;
         var @object = message.Object ?? throw new InvalidOperationException("The message should have an object at this point");
         var @event = System.Text.Json.JsonSerializer.Deserialize(@object, FaluCliJsonSerializerContext.Default.WebhookEvent)!;
         var eventId = @event.Id!;
         var eventType = @event.Type!;
+        var workspaceId = @event.Workspace!;
         var eventTypeUrl = DashboardUrlForEventType(workspaceId, live, eventType);
         var eventUrl = DashboardUrlForEvent(workspaceId, live, eventId);
 
