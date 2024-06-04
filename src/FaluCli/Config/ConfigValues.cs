@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 namespace Falu.Config;
 
-internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inner)
+internal sealed class ConfigValues : AbstractConfigValues
 {
     public const int DefaultRetries = 0;
     public const int DefaultTimeout = 120;
@@ -19,6 +19,23 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
     private const string KeyDefaultLiveMode = "default_live_mode";
     private const string KeyAuthentication = "authentication";
     private const string KeyWorkspaces = "workspaces";
+
+    public ConfigValues(JsonObject inner) : base(inner)
+    {
+        // remove unknown keys
+        var unknownKeys = Inner.Select(n => n.Key).Except([
+            KeyNoTelemetry,
+            KeyNoUpdates,
+            KeyLastUpdateCheck,
+            KeyRetries,
+            KeyTimeout,
+            KeyDefaultWorkspaceId,
+            KeyDefaultLiveMode,
+            KeyAuthentication,
+            KeyWorkspaces,
+        ]).ToArray();
+        foreach (var key in unknownKeys) Inner.Remove(key);
+    }
 
     public bool NoTelemetry { get => GetPrimitiveValue(KeyNoTelemetry, false); set => SetValue(KeyNoTelemetry, value); }
     public bool NoUpdates { get => GetPrimitiveValue(KeyNoUpdates, false); set => SetValue(KeyNoUpdates, value); }
@@ -47,23 +64,6 @@ internal sealed class ConfigValues(JsonObject inner) : AbstractConfigValues(inne
     }
 
     public ConfigValuesWorkspace GetRequiredWorkspace(string idOrName) => GetWorkspace(idOrName) ?? throw new FaluException($"Workspace '{idOrName}' not found. Check the spelling and casing and try again.");
-
-    public void RemoveUnknownKeys()
-    {
-        var keys = Inner.Select(n => n.Key).Except([
-            KeyNoTelemetry,
-            KeyNoUpdates,
-            KeyLastUpdateCheck,
-            KeyRetries,
-            KeyTimeout,
-            KeyDefaultWorkspaceId,
-            KeyDefaultLiveMode,
-            KeyAuthentication,
-            KeyWorkspaces,
-        ]).ToArray();
-
-        foreach (var key in keys) Inner.Remove(key);
-    }
 
     public string Json(JsonSerializerOptions serializerOptions) => Inner.ToJsonString(serializerOptions);
 }

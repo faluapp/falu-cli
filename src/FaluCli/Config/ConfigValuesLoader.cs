@@ -32,11 +32,8 @@ internal class ConfigValuesLoader
         }
 
         // compute the hash and create the values
-        hash = Hash(inner);
+        hash = Hash(inner.ToJsonString(serializerOptions));
         values = new ConfigValues(inner);
-
-        // remove unknown keys
-        values.RemoveUnknownKeys();
 
         return values;
     }
@@ -52,5 +49,4 @@ internal class ConfigValuesLoader
     }
 
     private static string Hash(string json) => Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(json)));
-    private static string Hash(JsonNode node) => Hash(node.ToJsonString());
 }
