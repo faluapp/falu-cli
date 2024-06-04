@@ -65,6 +65,19 @@ internal sealed class ConfigValues : AbstractConfigValues
 
     public ConfigValuesWorkspace GetRequiredWorkspace(string idOrName) => GetWorkspace(idOrName) ?? throw new FaluException($"Workspace '{idOrName}' not found. Check the spelling and casing and try again.");
 
+    public bool TryGetWorkspaceId(string idOrName, [NotNullWhen(true)] out string? workspaceId)
+    {
+        var workspace = GetWorkspace(idOrName);
+        if (workspace is not null)
+        {
+            workspaceId = workspace.Id;
+            return true;
+        }
+
+        workspaceId = null;
+        return false;
+    }
+
     public string Json(JsonSerializerOptions serializerOptions) => Inner.ToJsonString(serializerOptions);
 }
 
