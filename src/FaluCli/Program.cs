@@ -1,6 +1,7 @@
 ﻿using Azure.Monitor.OpenTelemetry.Exporter;
 using Falu;
 using Falu.Client;
+using Falu.Commands;
 using Falu.Commands.Config;
 using Falu.Commands.Events;
 using Falu.Commands.Login;
@@ -18,6 +19,7 @@ var rootCommand = new CliRootCommand(description: "Official CLI tool for Falu.")
 {
     new LoginCommand(),
     new LogoutCommand(),
+    new WorkspacesCommand(),
 
     new EventsCommand(),
 

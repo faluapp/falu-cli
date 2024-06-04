@@ -12,7 +12,7 @@ internal abstract class WorkspacedCommand : FaluCliCommand
 
         this.AddOption(aliases: ["--workspace"],
                        description: Res.OptionDescriptionWorkspace,
-                       format: Constants.WorkspaceIdFormat);
+                       format: Constants.WorkspaceIdFormat); // TODO: allow name here and change the validation to use configValues hence update readers of the option
 
         // without this the nullable type, the option is not found because we have not migrated to the new bindings
         this.AddOption<bool?>(aliases: ["--live"],
