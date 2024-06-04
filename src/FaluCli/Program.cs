@@ -123,8 +123,11 @@ if (!disabled)
                     });
 }
 
+// build the host
+using var host = builder.Build();
+
 // set the action to be executed
-parseResult.CommandResult.Command.Action = new FaluRootCliAction(configValuesLoader, configValues, builder);
+parseResult.CommandResult.Command.Action = new FaluRootCliAction(configValuesLoader, configValues, host);
 
 // run the command
 return await parseResult.InvokeAsync();

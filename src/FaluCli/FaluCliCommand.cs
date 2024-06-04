@@ -43,7 +43,7 @@ internal abstract class FaluCliCommand : CliCommand
     public abstract Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken);
 }
 
-internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigValues configValues, HostApplicationBuilder builder) : AsynchronousCliAction
+internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigValues configValues, IHost host) : AsynchronousCliAction
 {
     private static readonly System.Reflection.AssemblyName AssemblyName = typeof(CliCommand).Assembly.GetName();
     private static readonly ActivitySource ActivitySource = new(AssemblyName.Name!, AssemblyName.Version!.ToString());
@@ -55,8 +55,7 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
             throw new InvalidOperationException("The command is not a FaluCliCommand.");
         }
 
-        // create host and a scoped service provider
-        using var host = builder.Build();
+        // create a scoped service provider
         await using var scope = host.Services.CreateAsyncScope();
         var provider = scope.ServiceProvider;
 
