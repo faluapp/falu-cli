@@ -25,15 +25,17 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
             if (!request.RequestUri!.ToString().Contains("/workspaces"))
             {
                 // (1a) Set the X-Workspace-Id header using the CLI option to override the default
-                if (parseResult.TryGetWorkspaceId(out var workspaceId))
+                if (parseResult.TryGetWorkspace(out var workspaceId))
                 {
-                    // TODO: check if the workspace exists in the configuration
+                    // check if the workspace exists in the configuration
+                    workspaceId = configValues.GetRequiredWorkspace(workspaceId).Id;
                 }
                 workspaceId ??= (workspaceId ?? configValues.DefaultWorkspaceId) ?? throw new FaluException(Res.MissingWorkspaceId);
                 request.Headers.Replace("X-Workspace-Id", workspaceId);
 
                 // (1b) Set the X-Live-Mode header using CLI option to override the default
-                if (parseResult.TryGetLiveMode(out var live) || (live = configValues.DefaultLiveMode) != null)
+                var live = parseResult.GetLiveMode() ?? configValues.DefaultLiveMode;
+                if (live is not null)
                 {
                     request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant()); // when absent, the server assumes false
                 }

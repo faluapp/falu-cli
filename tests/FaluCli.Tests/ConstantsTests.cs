@@ -22,15 +22,6 @@ public class ConstantsTests
     }
 
     [Theory]
-    [InlineData("wksp_602cd2747409e867a240d000")]
-    [InlineData("wksp_60ffe3f79c1deb8060f91312")]
-    [InlineData("wksp_27e868O6xW4NYrQb3WvxDb8iW6D")]
-    public void WorkspaceIdFormat_IsCorrect(string input)
-    {
-        Assert.Matches(Constants.WorkspaceIdFormat, input);
-    }
-
-    [Theory]
     [InlineData("5C5F6FC9-DD6A-4C5D-A63A-DC96740CFE12")]
     [InlineData("dad11640-8f1c-4b91-8e61-051241204c8f")]
     [InlineData("pay:reload:202205091300")]

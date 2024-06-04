@@ -10,9 +10,16 @@ internal abstract class WorkspacedCommand : FaluCliCommand
                        description: Res.OptionDescriptionApiKey,
                        format: Constants.ApiKeyFormat);
 
-        this.AddOption(aliases: ["--workspace"],
-                       description: Res.OptionDescriptionWorkspace,
-                       format: Constants.WorkspaceIdFormat); // TODO: allow name here and change the validation to use configValues hence update readers of the option
+        this.AddOption<string>(aliases: ["--workspace"],
+                               description: Res.OptionDescriptionWorkspace,
+                               validate: (or) =>
+                               {
+                                   var value = or.GetValueOrDefault<string>();
+                                   if (value is not null)
+                                   {
+                                       // can't validate because we do not have access to the ConfigValues here
+                                   }
+                               });
 
         // without this the nullable type, the option is not found because we have not migrated to the new bindings
         this.AddOption<bool?>(aliases: ["--live"],

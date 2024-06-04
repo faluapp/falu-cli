@@ -25,7 +25,7 @@ internal class EventsListenCommand : WorkspacedCommand
 
         this.AddOption<string[]>(["--event-type", "--type", "-t"],
                                  description: Res.OptionDescriptionEventListenEventTypes,
-                                 validate: or =>
+                                 validate: (or) =>
                                  {
                                      var values = or.GetValueOrDefault<string[]>();
                                      if (values is not null)
@@ -68,7 +68,11 @@ internal class EventsListenCommand : WorkspacedCommand
     {
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
 
-        var workspaceId = context.ParseResult.GetWorkspaceId()!;
+        if (context.ParseResult.TryGetWorkspace(out var workspaceId))
+        {
+            workspaceId = context.ConfigValues.GetRequiredWorkspace(workspaceId).Id;
+        }
+
         var live = context.ParseResult.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");

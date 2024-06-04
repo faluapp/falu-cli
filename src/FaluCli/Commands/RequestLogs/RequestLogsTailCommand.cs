@@ -24,7 +24,7 @@ internal class RequestLogsTailCommand : WorkspacedCommand
 
         this.AddOption<string[]>(["--request-path", "--path"],
                                  description: "The request path to filter for. For example: \"/v1/messages\"",
-                                 validate: or =>
+                                 validate: (or) =>
                                  {
                                      var values = or.GetValueOrDefault<string[]>();
                                      if (values is not null)
@@ -79,7 +79,11 @@ internal class RequestLogsTailCommand : WorkspacedCommand
     {
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
 
-        var workspaceId = context.ParseResult.GetWorkspaceId()!;
+        if (context.ParseResult.TryGetWorkspace(out var workspaceId))
+        {
+            workspaceId = context.ConfigValues.GetRequiredWorkspace(workspaceId).Id;
+        }
+
         var live = context.ParseResult.GetLiveMode() ?? false;
         var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
         var ipNetworks = context.ParseResult.ValueForOption<IPNetwork[]>("--ip-network").NullIfEmpty();

@@ -21,7 +21,6 @@ internal partial class Constants
     public static readonly ByteSizeLib.ByteSize MaxStatementFileSize = ByteSizeLib.ByteSize.FromKibiBytes(256);
     public static readonly string MaxStatementFileSizeString = MaxStatementFileSize.ToBinaryString();
 
-    public static readonly Regex WorkspaceIdFormat = GetWorkspaceIdFormat();
     public static readonly Regex IdempotencyKeyFormat = GetIdempotencyKeyFormat();
     public static readonly Regex ApiKeyFormat = GetApiKeyFormat();
     public static readonly Regex EventIdFormat = GetEventIdFormat();
