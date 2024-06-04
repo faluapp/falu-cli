@@ -10,22 +10,25 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
     /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        var command = (FaluCliCommand)parseResult.CommandResult.Command;
+
         // Override the X-Idempotency-Key header if CLI contains the --idempotency-key option
-        var idempotencyKey = parseResult.ValueForOption<string>("--idempotency-key");
+        var idempotencyKey = command.GetIdempotencyKey(parseResult);
         if (!string.IsNullOrWhiteSpace(idempotencyKey))
         {
             request.Headers.Replace("X-Idempotency-Key", idempotencyKey);
         }
 
         // if we do not have a key, we use the user credentials in the configuration
-        var key = parseResult.ValueForOption<string>("--apikey");
+        var key = command.GetApiKey(parseResult);
         if (string.IsNullOrWhiteSpace(key))
         {
             // (1) Set the X-Workspace-Id and X-Live-Mode headers but skip for /workspaces
             if (!request.RequestUri!.ToString().Contains("/workspaces"))
             {
                 // (1a) Set the X-Workspace-Id header using the CLI option to override the default
-                if (parseResult.TryGetWorkspace(out var workspaceId))
+                string? workspaceId = null;
+                if (command.TryGetWorkspace(parseResult, out workspaceId))
                 {
                     // check if the workspace exists in the configuration
                     workspaceId = configValues.GetRequiredWorkspace(workspaceId).Id;
@@ -34,7 +37,7 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
                 request.Headers.Replace("X-Workspace-Id", workspaceId);
 
                 // (1b) Set the X-Live-Mode header using CLI option to override the default
-                var live = parseResult.GetLiveMode() ?? configValues.DefaultLiveMode;
+                var live = command.GetLiveMode(parseResult) ?? configValues.DefaultLiveMode;
                 if (live is not null)
                 {
                     request.Headers.Replace("X-Live-Mode", live.Value.ToString().ToLowerInvariant()); // when absent, the server assumes false

@@ -1,93 +1,74 @@
 ﻿using Falu.MessageBatches;
 using Falu.Messages;
 using Falu.MessageTemplates;
+using System.Diagnostics.CodeAnalysis;
 using Res = Falu.Properties.Resources;
 
 namespace Falu.Commands.Messages;
 
 internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
 {
+    private readonly CliOption<string[]> toOption;
+    private readonly CliOption<string> fileOption;
+    private readonly CliOption<string> streamOption;
+    private readonly CliOption<Uri?> mediaUrlOption;
+    private readonly CliOption<string?> mediaFileIdOption;
+    private readonly CliOption<DateTimeOffset?> scheduleTimeOption;
+    private readonly CliOption<string> scheduleDelayOption;
+
     protected AbstractMessagesSendCommand(string name, string? description = null) : base(name, description)
     {
-        this.AddOption<string[]>(["--to", "-t"],
-                                 description: "Phone number(s) you are sending to, in E.164 format.",
-                                 validate: (or) =>
-                                 {
-                                     var em = ValidateNumbers(or.Option.Name, or.GetValueOrDefault<string[]>()!);
-                                     if (em is not null) or.AddError(em);
-                                 });
+        toOption = new CliOption<string[]>(name: "--to", aliases: ["-t"]) { Description = "Phone number(s) you are sending to, in E.164 format.", };
+        Add(toOption);
 
-        this.AddOption<string>(["-f", "--file"],
-                               description: "File path for the path containing the phone numbers you are sending to, in E.164 format."
-                                          + " The file should have no headers, all values on one line, separated by commas.",
-                               validate: (or) =>
-                               {
-                                   // ensure the file exists
-                                   var value = or.GetValueOrDefault<string>()!;
-                                   var info = new FileInfo(value);
-                                   if (!info.Exists)
-                                   {
-                                       or.AddError($"The file {value} does not exist.");
-                                       return;
-                                   }
-
-                                   var numbers = File.ReadAllText(value)
-                                                     .Replace("\r\n", ",")
-                                                     .Replace("\r", ",")
-                                                     .Replace("\n", ",")
-                                                     .Split(',', StringSplitOptions.RemoveEmptyEntries);
-                                   var em = ValidateNumbers(or.Option.Name, numbers);
-                                   if (em is not null) or.AddError(em);
-                               });
-
-        this.AddOption(["--stream", "-s"],
-                       description: "The stream to use, either the name or unique identifier.\r\nExample: mstr_610010be9228355f14ce6e08 or transactional",
-                       defaultValue: "transactional",
-                       configure: o => o.Required = true);
-
-        this.AddOption<Uri?>(["--media-url"],
-                             description: "Publicly accessible URL of the media to include in the message(s).\r\nExample: https://c1.staticflickr.com/3/2899/14341091933_1e92e62d12_b.jpg");
-
-        this.AddOption(["--media-file-id"],
-                       description: "The unique identifier of the pre-uploaded file containing the media to include in the message(s).\r\nExample: file_602a8dd0a54847479a874de4",
-                       format: Constants.Iso8061DurationFormat);
-
-        this.AddOption<DateTimeOffset?>(["--schedule-time", "--time"],
-                                        description: $"The time at which the message(s) should be in the future.\r\nExample: {DateTime.Today.AddDays(1):O}");
-
-        this.AddOption(["--schedule-delay", "--delay"],
-                       description: "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s).\r\nExample: PT10M for 10 minutes",
-                       format: Constants.Iso8061DurationFormat);
-    }
-
-    private static string? ValidateNumbers(string optionName, string[] numbers)
-    {
-        // ensure not more than 1k messages in a batch
-        const int limit = 1_000;
-        if (numbers.Length > limit)
+        fileOption = new CliOption<string>(name: "--file", aliases: ["-f"])
         {
-            return string.Format(Res.TooManyMessagesToBeSent, limit);
-        }
+            Description = "File path for the path containing the phone numbers you are sending to, in E.164 format."
+                       + " The file should have no headers, all values on one line, separated by commas.",
+        };
+        Add(fileOption);
 
-        // ensure each value is in E.164 format
-        foreach (var n in numbers)
+        streamOption = new CliOption<string>(name: "--stream", aliases: ["-s"])
         {
-            if (!Constants.E164PhoneNumberFormat.IsMatch(n))
-            {
-                return string.Format(Res.InvalidE164PhoneNumber, optionName, n);
-            }
-        }
+            Description = "The stream to use, either the name or unique identifier.\r\nExample: mstr_610010be9228355f14ce6e08 or transactional",
+            DefaultValueFactory = r => "transactional",
+            Required = true,
+        };
+        Add(streamOption);
 
-        return null;
+        mediaUrlOption = new CliOption<Uri?>(name: "--media-url")
+        {
+            Description = "Publicly accessible URL of the media to include in the message(s).\r\nExample: https://c1.staticflickr.com/3/2899/14341091933_1e92e62d12_b.jpg",
+        };
+        Add(mediaUrlOption);
+
+        mediaFileIdOption = new CliOption<string?>("--media-file-id")
+        {
+            Description = "The unique identifier of the pre-uploaded file containing the media to include in the message(s).\r\nExample: file_602a8dd0a54847479a874de4",
+        };
+        mediaFileIdOption.MatchesFormat(Constants.FileIdFormat);
+        Add(mediaFileIdOption);
+
+        scheduleTimeOption = new CliOption<DateTimeOffset?>(name: "--schedule-time", aliases: ["--time"])
+        {
+            Description = $"The time at which the message(s) should be in the future.\r\nExample: {DateTime.Today.AddDays(1):O}",
+        };
+        Add(scheduleTimeOption);
+
+        scheduleDelayOption = new CliOption<string>(name: "--schedule-delay", aliases: ["--delay"])
+        {
+            Description = "The delay (in ISO8601 duration format) to be applied by the server before sending the message(s).\r\nExample: PT10M for 10 minutes",
+            DefaultValueFactory = r => "PT60M",
+        };
+        scheduleDelayOption.IsValidDuration();
+        Add(scheduleDelayOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var command = context.ParseResult.CommandResult.Command;
-
         // ensure both to and file are not null or empty
-        var tos = context.ParseResult.ValueForOption<string[]>("--to");
-        var filePath = context.ParseResult.ValueForOption<string>("--file");
+        var tos = context.ParseResult.GetValue(toOption);
+        var filePath = context.ParseResult.GetValue(fileOption);
         if ((tos is null || tos.Length == 0) && string.IsNullOrWhiteSpace(filePath))
         {
             context.Logger.LogError("A CSV file path must be specified or the destinations using the --to option.");
@@ -101,6 +82,13 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
             return -1;
         }
 
+        // ensure the file exists
+        if (filePath is not null && !File.Exists(filePath))
+        {
+            context.Logger.LogError("The file {value} does not exist.", filePath);
+            return -1;
+        }
+
         // read the numbers from the CSV file
         if (tos is null || tos.Length == 0)
         {
@@ -111,11 +99,18 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
                       .Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
 
-        var stream = context.ParseResult.ValueForOption<string>("--stream")!;
+        // validate the numbers
+        if (!TryValidateNumbers(tos, out var errorMessage))
+        {
+            context.Logger.LogError("{Message}", errorMessage);
+            return -1;
+        }
+
+        var stream = context.ParseResult.GetValue(streamOption)!;
 
         // ensure both media URL and medial file Id are not specified
-        var mediaUrl = context.ParseResult.ValueForOption<Uri?>("--media-url");
-        var mediaFileId = context.ParseResult.ValueForOption<string?>("--media-file-id");
+        var mediaUrl = context.ParseResult.GetValue(mediaUrlOption);
+        var mediaFileId = context.ParseResult.GetValue(mediaFileIdOption);
         if (mediaUrl is not null && mediaFileId is not null)
         {
             context.Logger.LogError("Media URL and File ID cannot be specified together.");
@@ -127,8 +122,8 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
                   : null;
 
         // ensure both time and delay are not specified
-        var time = context.ParseResult.ValueForOption<DateTimeOffset?>("--schedule-time");
-        var delay = context.ParseResult.ValueForOption<string?>("--schedule-delay");
+        var time = context.ParseResult.GetValue(scheduleTimeOption);
+        var delay = context.ParseResult.GetValue(scheduleDelayOption);
         if (time is not null && delay is not null)
         {
             context.Logger.LogError("Schedule time and delay cannot be specified together.");
@@ -142,51 +137,12 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
                         ? (MessageCreateRequestSchedule)delay
                         : null;
 
-        string? body = null;
-        MessageCreateRequestTemplate? template = null;
-        if (command is MessagesSendRawCommand)
-        {
-            body = context.ParseResult.ValueForOption<string>("--body")!; // marked required in the command
-        }
-        else if (command is MessagesSendTemplatedCommand)
-        {
-            var id = context.ParseResult.ValueForOption<string>("--id");
-            var alias = context.ParseResult.ValueForOption<string>("--alias");
-            var language = context.ParseResult.ValueForOption<string>("--language");
-            var modelJson = context.ParseResult.ValueForOption<string>("--model")!; // marked required in the command
-            var model = new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
-
-            // ensure both id and alias are not null
-            if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
-            {
-                context.Logger.LogError("A template identifier or template alias must be provided when sending a templated message.");
-                return -1;
-            }
-
-            // ensure both id and alias are not specified
-            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(alias))
-            {
-                context.Logger.LogError("Either specify the template identifier or template alias not both.");
-                return -1;
-            }
-
-            template = new MessageCreateRequestTemplate { Id = id, Alias = alias, Language = language, Model = model, };
-        }
-        else throw new InvalidOperationException($"Command of type '{command.GetType().FullName}' is not supported here.");
-
         // if there is only a single number, send a single message, otherwise use the batch
         if (tos.Length == 1)
         {
             var target = tos[0];
-            var request = new MessageCreateRequest
-            {
-                To = target,
-                Body = body,
-                Template = template,
-                Stream = stream,
-                Media = media,
-                Schedule = schedule,
-            };
+            var request = new MessageCreateRequest { To = target, Stream = stream, Media = media, Schedule = schedule, };
+            PopulateRequest(context, request);
             var rr = await context.Client.Messages.CreateAsync(request, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
 
@@ -195,21 +151,9 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
         }
         else
         {
-            var request = new MessageBatchCreateRequest
-            {
-                Messages =
-                [
-                    new MessageBatchCreateRequestMessage
-                    {
-                        Tos = tos,
-                        Body = body,
-                        Template = template,
-                        Media = media,
-                    },
-                ],
-                Stream = stream,
-                Schedule = schedule,
-            };
+            var message = new MessageBatchCreateRequestMessage { Tos = tos, Media = media, };
+            PopulateRequest(context, message);
+            var request = new MessageBatchCreateRequest { Messages = [message], Stream = stream, Schedule = schedule, };
             var rr = await context.Client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
 
@@ -221,48 +165,131 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
 
         return 0;
     }
+
+    protected abstract void PopulateRequest(CliCommandExecutionContext context, MessageCreateRequest request);
+    protected abstract void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateRequestMessage request);
+
+    private static bool TryValidateNumbers(string[] numbers, [NotNullWhen(false)] out string? errorMessage)
+    {
+        // ensure not more than 1k messages in a batch
+        const int limit = 1_000;
+        if (numbers.Length > limit)
+        {
+            errorMessage = string.Format(Res.TooManyMessagesToBeSent, limit);
+            return false;
+        }
+
+        // ensure each value is in E.164 format
+        foreach (var n in numbers)
+        {
+            if (!Constants.E164PhoneNumberFormat.IsMatch(n))
+            {
+                errorMessage = string.Format(Res.InvalidE164PhoneNumber, n);
+                return false;
+            }
+        }
+
+        errorMessage = null;
+        return true;
+    }
 }
 
 internal class MessagesSendRawCommand : AbstractMessagesSendCommand
 {
+    private readonly CliOption<string> bodyOption;
+
     public MessagesSendRawCommand() : base("raw", "Send a message with the body defined.")
     {
-        this.AddOption<string>(["--body"],
-                               description: "The actual message content to be sent.",
-                               configure: o => o.Required = true);
+        bodyOption = new CliOption<string>(name: "--body") { Description = "The actual message content to be sent.", Required = true, };
+        Add(bodyOption);
     }
+
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageCreateRequest request) => request.Body = GetBody(context);
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateRequestMessage request) => request.Body = GetBody(context);
+    private string? GetBody(CliCommandExecutionContext context) => context.ParseResult.GetValue(bodyOption);
 }
 
 internal class MessagesSendTemplatedCommand : AbstractMessagesSendCommand
 {
+    private readonly CliOption<string> idOption;
+    private readonly CliOption<string> aliasOption;
+    private readonly CliOption<string> languageOption;
+    private readonly CliOption<string> modelOption;
+
     public MessagesSendTemplatedCommand() : base("templated", "Send a templated message.")
     {
-        this.AddOption(["--id", "-i"],
-                       description: "The unique template identifier.\r\nExample: mtpl_610010be9228355f14ce6e08",
-                       format: Constants.MessageTemplateIdFormat);
+        idOption = new CliOption<string>(name: "--id", aliases: ["-i"])
+        {
+            Description = "The unique template identifier.\r\nExample: mtpl_610010be9228355f14ce6e08",
+        };
+        idOption.MatchesFormat(Constants.MessageTemplateIdFormat);
+        Add(idOption);
 
-        this.AddOption(["--alias", "-a"],
-                       description: "The template alias, unique to your workspace.",
-                       format: Constants.MessageTemplateAliasFormat);
+        aliasOption = new CliOption<string>(name: "--alias", aliases: ["-a"])
+        {
+            Description = "The template alias, unique to your workspace.",
+        };
+        aliasOption.MatchesFormat(Constants.MessageTemplateAliasFormat);
+        Add(aliasOption);
 
-        this.AddOption<string>(["--language", "--lang"],
-                               description: "The language or translation to use in the template. This is represented as the ISO-639-3 code.\r\nExample: swa for Swahili or fra for French");
+        languageOption = new CliOption<string>(name: "--language", aliases: ["--lang"])
+        {
+            Description = "The language or translation to use in the template. This is represented as the ISO-639-3 code.\r\nExample: swa for Swahili or fra for French",
+        };
+        Add(languageOption);
 
-        this.AddOption(["--model", "-m"],
-                       description: "The model to use with the template.\r\nExample --model '{\"name\": \"John\"}'",
-                       defaultValue: "{}",
-                       validate: (or) =>
-                       {
-                           var value = or.GetValueOrDefault<string>()!;
-                           try
-                           {
-                               _ = System.Text.Json.Nodes.JsonNode.Parse(value)!.AsObject();
-                           }
-                           catch (System.Text.Json.JsonException)
-                           {
-                               or.AddError(string.Format(Res.InvalidJsonInputValue, or.Option.Name));
-                           }
-                       },
-                       configure: o => o.Required = true);
+        modelOption = new CliOption<string>(name: "--model", aliases: ["-m"])
+        {
+            Description = "The model to use with the template.\r\nExample --model '{\"name\": \"John\"}'",
+            DefaultValueFactory = r => "{}",
+            Required = true,
+        };
+        Add(modelOption);
+    }
+
+    public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
+    {
+        // ensure both id and alias are not null
+        var id = context.ParseResult.GetValue(idOption);
+        var alias = context.ParseResult.GetValue(aliasOption);
+        if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(alias))
+        {
+            context.Logger.LogError("A template identifier or template alias must be provided when sending a templated message.");
+            return Task.FromResult(-1);
+        }
+
+        // ensure both id and alias are not specified
+        if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(alias))
+        {
+            context.Logger.LogError("Either specify the template identifier or template alias not both.");
+            return Task.FromResult(-1);
+        }
+
+        // ensure the model is a valid JSON
+        var modelJson = context.ParseResult.GetValue(modelOption)!;
+        try
+        {
+            _ = System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            context.Logger.LogError("{Message}", string.Format(Res.InvalidJsonInputValue, modelOption.Name));
+            return Task.FromResult(-1);
+        }
+
+        return base.ExecuteAsync(context, cancellationToken);
+    }
+
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageCreateRequest request) => request.Template = GetTemplate(context);
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateRequestMessage request) => request.Template = GetTemplate(context);
+    private MessageCreateRequestTemplate? GetTemplate(CliCommandExecutionContext context)
+    {
+        var id = context.ParseResult.GetValue(idOption);
+        var alias = context.ParseResult.GetValue(aliasOption);
+        var language = context.ParseResult.GetValue(languageOption);
+        var modelJson = context.ParseResult.GetValue(modelOption)!;
+        var model = new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
+
+        return new MessageCreateRequestTemplate { Id = id, Alias = alias, Language = language, Model = model, };
     }
 }

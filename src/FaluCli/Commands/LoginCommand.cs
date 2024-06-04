@@ -4,24 +4,32 @@ using System.Diagnostics;
 
 namespace Falu.Commands;
 
-internal class LoginCommand : FaluCliCommand
+internal class LoginCommand : FaluExecuteableCliCommand
 {
+    private readonly CliOption<bool> noBrowserOption;
+    //private readonly CliOption<bool> interactiveOption;
     public LoginCommand() : base("login", "Login to your Falu account to setup the CLI")
     {
-        this.AddOption(["--no-browser"],
-                       description: "Set true to not open the browser automatically for authentication.",
-                       defaultValue: false);
+        noBrowserOption = new CliOption<bool>(name: "--no-browser")
+        {
+            Description = "Set true to not open the browser automatically for authentication.",
+            DefaultValueFactory = r => false,
+        };
+        Add(noBrowserOption);
 
-        //this.AddOption(["-i", "--interactive"],
-        //               description: "Run interactive configuration mode if you cannot open a browser.",
-        //               defaultValue: false);
+        //interactiveOption = new CliOption<bool>(name: "--interactive", aliases: ["-i"])
+        //{
+        //    Description = "Run interactive configuration mode if you cannot open a browser.",
+        //    DefaultValueFactory = r => false,
+        //};
+        //Add(interactiveOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var oidcProvider = context.GetRequiredService<OidcProvider>();
 
-        var noBrowser = context.ParseResult.ValueForOption<bool>("--no-browser");
+        var noBrowser = context.ParseResult.GetValue(noBrowserOption);
 
         // perform device authorization
         context.Logger.LogInformation("Performing device authentication. You will be redirected to the browser.");
@@ -104,7 +112,7 @@ internal class LoginCommand : FaluCliCommand
     }
 }
 
-internal class LogoutCommand() : FaluCliCommand("logout", "Logout of your Falu account from the CLI")
+internal class LogoutCommand() : FaluExecuteableCliCommand("logout", "Logout of your Falu account from the CLI")
 {
     public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {

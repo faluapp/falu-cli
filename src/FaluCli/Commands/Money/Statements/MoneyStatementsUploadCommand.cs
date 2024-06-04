@@ -4,27 +4,40 @@ namespace Falu.Commands.Money.Statements;
 
 internal class MoneyStatementsUploadCommand : WorkspacedCommand
 {
+    private readonly CliArgument<string> objectKindArg;
+    private readonly CliOption<string> fileOption;
+    private readonly CliOption<string> providerOption;
+
     public MoneyStatementsUploadCommand() : base("upload", "Upload a statement to Falu to resolve pending payments, transfers, refunds, or reversals for bring-your-own providers.")
     {
-        this.AddArgument<string>(name: "object-kind",
-                                 description: "The object type to upload the statement against.",
-                                 configure: o => o.AcceptOnlyFromAmong("payments", "payment_refunds", "transfers", "transfer_reversals"));
+        objectKindArg = new CliArgument<string>(name: "object-kind")
+        {
+            Description = "The object type to upload the statement against.",
+        };
+        objectKindArg.AcceptOnlyFromAmong("payments", "payment_refunds", "transfers", "transfer_reversals");
+        Add(objectKindArg);
 
-        this.AddOption<string>(["-f", "--file"],
-                               description: $"File path for the statement file (up to {Constants.MaxStatementFileSizeString}).",
-                               configure: o => o.Required = true);
+        fileOption = new CliOption<string>(name: "--file", aliases: ["-f"])
+        {
+            Description = $"File path for the statement file (up to {Constants.MaxStatementFileSizeString}).",
+            Required = true,
+        };
+        Add(fileOption);
 
-        this.AddOption(["--provider"],
-                       description: "Type of statement",
-                       defaultValue: "mpesa",
-                       configure: o => o.AcceptOnlyFromAmong("mpesa"));
+        providerOption = new CliOption<string>(name: "--provider")
+        {
+            Description = "Type of statement",
+            DefaultValueFactory = r => "mpesa",
+        };
+        providerOption.AcceptOnlyFromAmong("mpesa");
+        Add(providerOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var objectKind = context.ParseResult.ValueForArgument<string>("object-kind")!;
-        var filePath = context.ParseResult.ValueForOption<string>("--file")!;
-        var provider = context.ParseResult.ValueForOption<string>("--provider")!;
+        var objectKind = context.ParseResult.GetValue(objectKindArg)!;
+        var filePath = context.ParseResult.GetValue(fileOption)!;
+        var provider = context.ParseResult.GetValue(providerOption)!;
 
         // ensure the file exists
         var info = new FileInfo(filePath);

@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace Falu.Commands;
 
-internal class ConfigCommand : CliCommand
+internal class ConfigCommand : FaluCliCommand
 {
     public ConfigCommand() : base("config", "Manage configuration for the CLI.")
     {
@@ -13,7 +13,7 @@ internal class ConfigCommand : CliCommand
     }
 }
 
-internal abstract class AbstractConfigCommand(string name, string? description = null) : FaluCliCommand(name, description)
+internal abstract class AbstractConfigCommand(string name, string? description = null) : FaluExecuteableCliCommand(name, description)
 {
     /// <summary>Represents a registration for a configuration option.</summary>
     /// <param name="name">The name of the configuration option.</param>
@@ -188,18 +188,24 @@ internal class ConfigShowCommand() : AbstractConfigCommand("show", "Show present
 
 internal class ConfigSetCommand : AbstractConfigCommand
 {
+    private readonly CliArgument<string> nameArg, valueArg;
+
     public ConfigSetCommand() : base("set", "Set a configuration value.")
     {
-        this.AddArgument<string>(name: "name", description: "The configuration name.", configure: a => a.AcceptOnlyFromAmong(ConfigNames));
-        this.AddArgument<string>(name: "value", description: "The configuration value.");
+        nameArg = new CliArgument<string>(name: "name") { Description = "The configuration name." };
+        nameArg.AcceptOnlyFromAmong(ConfigNames);
+        Add(nameArg);
+
+        valueArg = new CliArgument<string>(name: "value") { Description = "The configuration value." };
+        Add(valueArg);
     }
 
     public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var configValues = context.ConfigValues;
 
-        var name = context.ParseResult.ValueForArgument<string>("name")!.ToLower();
-        var value = context.ParseResult.ValueForArgument<string>("value")!;
+        var name = context.ParseResult.GetValue(nameArg)!.ToLowerInvariant();
+        var value = context.ParseResult.GetValue(valueArg)!;
 
         // find registration and validate the value
         var registration = FindRegistration(name);
@@ -220,14 +226,18 @@ internal class ConfigSetCommand : AbstractConfigCommand
 
 internal class ConfigUnsetCommand : AbstractConfigCommand
 {
+    private readonly CliArgument<string> nameArg;
+
     public ConfigUnsetCommand() : base("unset", "Unset a configuration value.")
     {
-        this.AddArgument<string>(name: "name", description: "The configuration name.", configure: a => a.AcceptOnlyFromAmong(ConfigNames));
+        nameArg = new CliArgument<string>(name: "name") { Description = "The configuration name." };
+        nameArg.AcceptOnlyFromAmong(ConfigNames);
+        Add(nameArg);
     }
 
     public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var name = context.ParseResult.ValueForArgument<string>("name")!.ToLower();
+        var name = context.ParseResult.GetValue(nameArg)!.ToLowerInvariant();
 
         var registration = FindRegistration(name);
         registration.ClearValue(context.ConfigValues);

@@ -4,14 +4,23 @@ namespace Falu.Commands.Templates;
 
 internal class TemplatesPullCommand : AbstractTemplatesCommand
 {
+    private readonly CliArgument<string> outputDirectoryArg;
+    private readonly CliOption<bool> overwriteOption;
+
     public TemplatesPullCommand() : base("pull", "Download templates from Falu servers to your local file system.")
     {
-        this.AddArgument<string>(name: "output-directory",
-                                 description: "The directory into which to put the pulled templates.");
+        outputDirectoryArg = new CliArgument<string>(name: "output-directory")
+        {
+            Description = "The directory into which to put the pulled templates.",
+        };
+        Add(outputDirectoryArg);
 
-        this.AddOption(["-o", "--overwrite"],
-                       description: "Overwrite templates if they already exist.",
-                       defaultValue: false);
+        overwriteOption = new CliOption<bool>(name: "--overwrite", aliases: ["-o"])
+        {
+            Description = "Overwrite templates if they already exist.",
+            DefaultValueFactory = r => false,
+        };
+        Add(overwriteOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
@@ -35,8 +44,8 @@ internal class TemplatesPullCommand : AbstractTemplatesCommand
             await stream.CopyToAsync(fs, cancellationToken);
         }
 
-        var outputPath = context.ParseResult.ValueForArgument<string>("output-directory")!;
-        var overwrite = context.ParseResult.ValueForOption<bool>("--overwrite");
+        var outputPath = context.ParseResult.GetValue(outputDirectoryArg)!;
+        var overwrite = context.ParseResult.GetValue(overwriteOption);
 
         // download the templates
         var templates = await DownloadTemplatesAsync(context, cancellationToken);
