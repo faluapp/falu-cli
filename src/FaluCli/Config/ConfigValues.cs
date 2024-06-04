@@ -68,15 +68,13 @@ internal sealed class ConfigValues : AbstractConfigValues
     public string Json(JsonSerializerOptions serializerOptions) => Inner.ToJsonString(serializerOptions);
 }
 
-internal sealed class ConfigValuesAuthenticationTokens : AbstractConfigValues
+internal sealed class ConfigValuesAuthenticationTokens(JsonObject inner) : AbstractConfigValues(inner)
 {
     private const string KeyAccessToken = "access_token";
     private const string KeyAccessTokenExpiry = "access_token_expiry";
     private const string KeyRefreshToken = "refresh_token";
 
-    public ConfigValuesAuthenticationTokens(JsonObject inner) : base(inner) { }
-
-    public ConfigValuesAuthenticationTokens(OidcTokenResponse response) : base([])
+    public ConfigValuesAuthenticationTokens(OidcTokenResponse response) : this([])
     {
         AccessToken = response.AccessToken;
         RefreshToken = response.RefreshToken;
@@ -101,15 +99,13 @@ internal sealed class ConfigValuesAuthenticationTokens : AbstractConfigValues
     public static implicit operator ConfigValuesAuthenticationTokens?(JsonObject? inner) => inner is null ? null : new(inner);
 }
 
-internal sealed class ConfigValuesWorkspace : AbstractConfigValues
+internal sealed class ConfigValuesWorkspace(JsonObject inner) : AbstractConfigValues(inner)
 {
     private const string KeyId = "id";
     private const string KeyName = "name";
     private const string KeyStatus = "status";
 
-    public ConfigValuesWorkspace(JsonObject inner) : base(inner) { }
-
-    public ConfigValuesWorkspace(Client.Workspaces.Workspace workspace) : base([])
+    public ConfigValuesWorkspace(Client.Workspaces.Workspace workspace) : this([])
     {
         Id = workspace.Id!;
         Name = workspace.Name!;

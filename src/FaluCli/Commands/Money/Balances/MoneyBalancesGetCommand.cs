@@ -2,10 +2,8 @@
 
 namespace Falu.Commands.Money.Balances;
 
-internal class MoneyBalancesGetCommand : WorkspacedCommand
+internal class MoneyBalancesGetCommand() : WorkspacedCommand("get", "Get money balances")
 {
-    public MoneyBalancesGetCommand() : base("get", "Get money balances") { }
-
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var response = await context.Client.MoneyBalances.GetAsync(cancellationToken: cancellationToken);

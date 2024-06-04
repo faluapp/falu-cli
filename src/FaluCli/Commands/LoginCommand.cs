@@ -2,7 +2,7 @@
 using Falu.Oidc;
 using System.Diagnostics;
 
-namespace Falu.Commands.Login;
+namespace Falu.Commands;
 
 internal class LoginCommand : FaluCliCommand
 {
@@ -102,4 +102,30 @@ internal class LoginCommand : FaluCliCommand
 
         return 0;
     }
+}
+
+internal class LogoutCommand() : FaluCliCommand("logout", "Logout of your Falu account from the CLI")
+{
+    public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
+    {
+        context.ConfigValues.Authentication = null;
+        context.ConfigValues.Workspaces = [];
+        context.Logger.LogInformation("Authentication information cleared.");
+
+        return Task.FromResult(0);
+    }
+}
+
+[Serializable]
+public class LoginException : Exception
+{
+    public LoginException() { }
+    public LoginException(string? message) : base(message) { }
+    public LoginException(string? message, Exception? inner) : base(message, inner) { }
+    public LoginException(OidcResponse response) : this(response.Error, inner: null)
+    {
+        Response = response;
+    }
+
+    public OidcResponse? Response { get; set; }
 }

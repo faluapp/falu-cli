@@ -1,7 +1,7 @@
 using Falu.Config;
 using Spectre.Console;
 
-namespace Falu.Commands.Config;
+namespace Falu.Commands;
 
 internal class ConfigCommand : CliCommand
 {
@@ -136,10 +136,8 @@ internal abstract class AbstractConfigCommand(string name, string? description =
     protected static ConfigRegistration FindRegistration(string name) => ConfigRegistrations.First(r => string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase));
 }
 
-internal class ConfigShowCommand : AbstractConfigCommand
+internal class ConfigShowCommand() : AbstractConfigCommand("show", "Show present configuration values.")
 {
-    public ConfigShowCommand() : base("show", "Show present configuration values.") { }
-
     public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var table = new Table().AddColumn("Name")

@@ -2,9 +2,7 @@
 using Falu;
 using Falu.Client;
 using Falu.Commands;
-using Falu.Commands.Config;
 using Falu.Commands.Events;
-using Falu.Commands.Login;
 using Falu.Commands.Messages;
 using Falu.Commands.Money;
 using Falu.Commands.RequestLogs;
@@ -19,7 +17,6 @@ var rootCommand = new CliRootCommand(description: "Official CLI tool for Falu.")
 {
     new LoginCommand(),
     new LogoutCommand(),
-    new WorkspacesCommand(),
 
     new EventsCommand(),
 
@@ -30,6 +27,7 @@ var rootCommand = new CliRootCommand(description: "Official CLI tool for Falu.")
 
     new RequestLogsCommand(),
 
+    new WorkspacesCommand(),
     new ConfigCommand(),
 };
 

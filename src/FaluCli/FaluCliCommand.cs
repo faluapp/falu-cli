@@ -1,5 +1,5 @@
 ﻿using Falu.Client;
-using Falu.Commands.Login;
+using Falu.Commands;
 using Falu.Config;
 using Spectre.Console;
 using System.Diagnostics;

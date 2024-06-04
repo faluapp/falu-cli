@@ -2,10 +2,8 @@
 
 namespace Falu.Commands.Money.Balances;
 
-internal class MoneyBalancesRefreshCommand : WorkspacedCommand
+internal class MoneyBalancesRefreshCommand() : WorkspacedCommand("refresh", "Request refresh of money balances")
 {
-    public MoneyBalancesRefreshCommand() : base("refresh", "Request refresh of money balances") { }
-
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var request = new MoneyBalancesRefreshRequest { };

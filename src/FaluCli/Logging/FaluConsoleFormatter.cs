@@ -8,11 +8,10 @@ namespace Falu.Logging;
 
 internal class FaluConsoleFormatter : ConsoleFormatter
 {
-    private const string LoglevelPadding = ": ";
+    private const string LogLevelPadding = ": ";
     private readonly IDisposable _optionsReloadToken;
 
-    public FaluConsoleFormatter(IOptionsMonitor<FaluConsoleFormatterOptions> options)
-        : base("falu")
+    public FaluConsoleFormatter(IOptionsMonitor<FaluConsoleFormatterOptions> options) : base("falu")
     {
         ReloadLoggerOptions(options.CurrentValue);
         _optionsReloadToken = options.OnChange(ReloadLoggerOptions);
@@ -72,7 +71,7 @@ internal class FaluConsoleFormatter : ConsoleFormatter
         //       Request received
 
         // category and event id
-        textWriter.Write(LoglevelPadding);
+        textWriter.Write(LogLevelPadding);
         if (includeCategory)
         {
             textWriter.Write(logEntry.Category);
@@ -226,11 +225,11 @@ internal class FaluConsoleFormatter : ConsoleFormatter
             var timestampFormat = options.TimestampFormat;
             if (timestampFormat is not null)
             {
-                messagePadding = new(' ', GetLogLevelString(LogLevel.Information).Length + LoglevelPadding.Length + timestampFormat.Length);
+                messagePadding = new(' ', GetLogLevelString(LogLevel.Information).Length + LogLevelPadding.Length + timestampFormat.Length);
             }
             else
             {
-                messagePadding = new(' ', GetLogLevelString(LogLevel.Information).Length + LoglevelPadding.Length);
+                messagePadding = new(' ', GetLogLevelString(LogLevel.Information).Length + LogLevelPadding.Length);
             }
 
             newLineWithMessagePadding = Environment.NewLine + messagePadding;
