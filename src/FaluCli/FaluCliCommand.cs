@@ -126,19 +126,22 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
             return await command.ExecuteAsync(context, cancellationToken);
         }
 
-        // track command name, command arguments and username
+        // track command name and arguments
         var commandName = GetFullCommandName(context.ParseResult);
         var commandArgs = string.Join(' ', context.ParseResult.Tokens.Select(t => Redact(t.Value)));
         activity.DisplayName = commandName;
         activity.SetTag("command.name", commandName);
         activity.SetTag("command.args", commandArgs);
 
-        // track the workspace ID and live mode
+        // track the workspace identifier
         var configValues = context.ConfigValues;
-        if (context.ParseResult.TryGetWorkspaceId(out var workspaceId) || (workspaceId = configValues.DefaultWorkspaceId) is not null)
-            activity.SetTag("workspace.id", workspaceId);
-        if (context.ParseResult.TryGetLiveMode(out var live) || (live = configValues.DefaultLiveMode) is not null)
-            activity.SetTag("live_mode", live.ToString());
+        if (context.ParseResult.TryGetWorkspace(out var workspaceId) && !configValues.TryGetWorkspaceId(workspaceId, out workspaceId)) workspaceId = null;
+        workspaceId ??= configValues.DefaultWorkspaceId;
+        if (workspaceId is not null) activity.SetTag("workspace.id", workspaceId);
+
+        // track the live mode
+        var live = context.ParseResult.GetLiveMode() ?? configValues.DefaultLiveMode;
+        if (live is not null) activity.SetTag("live_mode", live.Value.ToString().ToLowerInvariant());
 
         try
         {

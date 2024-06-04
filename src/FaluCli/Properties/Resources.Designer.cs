@@ -310,7 +310,7 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The identifier of the workspace being accessed. Use this when you are logged into your account and you want to specify which workspace to target.
+        ///   Looks up a localized string similar to The identifier or name of the workspace being accessed. Use this when you are logged into your account and you want to specify which workspace to target.
         ///Example: wksp_610010be9228355f14ce6e08.
         /// </summary>
         internal static string OptionDescriptionWorkspace {

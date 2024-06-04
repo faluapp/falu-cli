@@ -60,12 +60,12 @@ internal static class ParseResultExtensions
     public static bool IsNoTelemetry(this ParseResult result) => result.ValueForOption<bool>("--no-telemetry");
     public static bool IsNoUpdates(this ParseResult result) => result.ValueForOption<bool>("--no-updates");
 
-    public static string? GetWorkspaceId(this ParseResult result) => result.ValueForOption<string>("--workspace");
+    public static string? GetWorkspace(this ParseResult result) => result.ValueForOption<string>("--workspace");
     public static bool? GetLiveMode(this ParseResult result) => result.ValueForOption<bool?>("--live");
 
-    public static bool TryGetWorkspaceId(this ParseResult result, [NotNullWhen(true)] out string? workspaceId)
+    public static bool TryGetWorkspace(this ParseResult result, [NotNullWhen(true)] out string? workspaceId)
     {
-        workspaceId = result.GetWorkspaceId();
+        workspaceId = result.GetWorkspace();
         return !string.IsNullOrWhiteSpace(workspaceId);
     }
 
