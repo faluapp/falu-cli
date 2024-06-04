@@ -19,6 +19,9 @@ internal class ConfigValuesLoader
     private string? hash;
     private ConfigValues? values;
 
+    /// <summary>Loads the configuration values.</summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The loaded configuration values.</returns>
     public virtual async Task<ConfigValues> LoadAsync(CancellationToken cancellationToken = default)
     {
         if (values is not null) return values;
@@ -38,14 +41,19 @@ internal class ConfigValuesLoader
         return values;
     }
 
-    public virtual async Task SaveAsync(ConfigValues values, CancellationToken cancellationToken = default)
+    /// <summary>Saves the configuration values if there are changes.</summary>
+    /// <param name="values">The configuration values to save.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><see langword="true"/> if the values were saved; otherwise, <see langword="false"/></returns>
+    public virtual async Task<bool> SaveAsync(ConfigValues values, CancellationToken cancellationToken = default)
     {
         var json = values.Json(serializerOptions);
-        if (string.Equals(hash, Hash(json), StringComparison.Ordinal)) return;
+        if (string.Equals(hash, Hash(json), StringComparison.Ordinal)) return false;
 
         // the contents have changed, save them
         Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!); // ensure the directory exists
         await File.WriteAllTextAsync(FilePath, json, cancellationToken);
+        return true;
     }
 
     private static string Hash(string json) => Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(json)));

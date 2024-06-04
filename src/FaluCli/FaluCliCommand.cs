@@ -89,7 +89,10 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
                 await CheckUpdatesAsync(context, cancellationToken);
 
                 // save the configuration values
-                await configValuesLoader.SaveAsync(configValues, cancellationToken);
+                if (await configValuesLoader.SaveAsync(configValues, cancellationToken))
+                {
+                    context.Logger.LogTrace("Updated configuration values saved.");
+                }
             }
 
             // stop the host, this will stop and dispose the services which flushes OpenTelemetry data
