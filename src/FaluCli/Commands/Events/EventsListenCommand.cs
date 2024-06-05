@@ -29,7 +29,6 @@ internal class EventsListenCommand : WorkspacedCommand
         webhookEndpointOption = new CliOption<string>(name: "--webhook-endpoint")
         {
             Description = Res.OptionDescriptionEventListenWebhookEndpoint,
-            Required = true,
         };
         webhookEndpointOption.MatchesFormat(Constants.WebhookEndpointIdFormat, nulls: true);
         Add(webhookEndpointOption);
