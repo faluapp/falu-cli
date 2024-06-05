@@ -14,67 +14,72 @@ internal class EventsListenCommand : WorkspacedCommand
     private readonly HttpClientHandler forwardingClientHandler;
     private readonly HttpClient forwardingClient;
 
+    private readonly CliOption<string> webhookEndpointOption;
+    private readonly CliOption<string[]> eventTypesOption;
+    private readonly CliOption<Uri?> forwardToOption;
+    private readonly CliOption<bool> skipValidationOption;
+    private readonly CliOption<string> webhookSecretOption;
+    private readonly CliOption<string> ttlOption;
+
     public EventsListenCommand() : base("listen", "Listen to events")
     {
         forwardingClientHandler = new HttpClientHandler();
         forwardingClient = new HttpClient(forwardingClientHandler);
 
-        this.AddOption(aliases: ["--webhook-endpoint"],
-                       description: Res.OptionDescriptionEventListenWebhookEndpoint,
-                       format: Constants.WebhookEndpointIdFormat);
+        webhookEndpointOption = new CliOption<string>(name: "--webhook-endpoint")
+        {
+            Description = Res.OptionDescriptionEventListenWebhookEndpoint,
+            Required = true,
+        };
+        webhookEndpointOption.MatchesFormat(Constants.WebhookEndpointIdFormat, nulls: true);
+        Add(webhookEndpointOption);
 
-        this.AddOption<string[]>(["--event-type", "--type", "-t"],
-                                 description: Res.OptionDescriptionEventListenEventTypes,
-                                 validate: (or) =>
-                                 {
-                                     var values = or.GetValueOrDefault<string[]>();
-                                     if (values is not null)
-                                     {
-                                         foreach (var v in values)
-                                         {
-                                             if (!Constants.EventTypeWildcardFormat.IsMatch(v))
-                                             {
-                                                 or.AddError(string.Format(Res.InvalidEventTypeWildcard, v));
-                                                 break;
-                                             }
-                                         }
-                                     }
-                                 });
+        eventTypesOption = new CliOption<string[]>(name: "--event-type", aliases: ["--type", "-t"])
+        {
+            Description = Res.OptionDescriptionEventListenEventTypes,
+        };
+        eventTypesOption.MatchesFormat(Constants.EventTypeWildcardFormat, nulls: true, errorGetter: (v, _) => string.Format(Res.InvalidEventTypeWildcard, v));
+        Add(eventTypesOption);
 
-        this.AddOption<Uri>(["--forward-to", "-f"],
-                            description: Res.OptionDescriptionEventListenForwardTo);
+        forwardToOption = new CliOption<Uri?>(name: "--forward-to", aliases: ["-f"])
+        {
+            Description = Res.OptionDescriptionEventListenForwardTo,
+        };
+        Add(forwardToOption);
 
-        this.AddOption(["--skip-validation"],
-                       description: Res.OptionDescriptionEventListenSkipValidation,
-                       defaultValue: false);
+        skipValidationOption = new CliOption<bool>(name: "--skip-validation")
+        {
+            Description = Res.OptionDescriptionEventListenSkipValidation,
+            DefaultValueFactory = r => false,
+        };
+        Add(skipValidationOption);
 
-        this.AddOption<string>(["--webhook-secret", "--secret"],
-                               description: Res.OptionDescriptionEventListenWebhookSecret);
+        webhookSecretOption = new CliOption<string>(name: "--webhook-secret", aliases: ["--secret"])
+        {
+            Description = Res.OptionDescriptionEventListenWebhookSecret,
+        };
+        Add(webhookSecretOption);
 
-        this.AddOption(["--ttl"],
-                       description: Res.OptionDescriptionRealtimeConnectionTtl,
-                       defaultValue: "PT60M",
-                       validate: or =>
-                       {
-                           var value = or.GetValueOrDefault<string>();
-                           if (value is not null && !Duration.TryParse(value, out _))
-                           {
-                               or.AddError(string.Format(Res.InvalidDurationValue, value));
-                           }
-                       });
+        ttlOption = new CliOption<string>(name: "--ttl")
+        {
+            Description = Res.OptionDescriptionRealtimeConnectionTtl,
+            DefaultValueFactory = r => "PT60M",
+        };
+        ttlOption.IsValidDuration();
+        Add(ttlOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
 
-        var live = context.ParseResult.GetLiveMode() ?? false;
-        var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
-        var webhookEndpointId = context.ParseResult.ValueForOption<string>("--webhook-endpoint");
-        var types = context.ParseResult.ValueForOption<string[]>("--event-type")?.NullIfEmpty();
-        var forwardTo = context.ParseResult.ValueForOption<Uri?>("--forward-to");
-        var skipValidation = context.ParseResult.ValueForOption<bool>("--skip-validation");
-        var secret = context.ParseResult.ValueForOption<string?>("--webhook-secret");
+        var live = GetLiveMode(context.ParseResult) ?? false;
+        var ttl = Duration.Parse(context.ParseResult.GetValue(ttlOption)!);
+        var webhookEndpointId = context.ParseResult.GetValue(webhookEndpointOption);
+        var types = context.ParseResult.GetValue(eventTypesOption)?.NullIfEmpty();
+        var forwardTo = context.ParseResult.GetValue(forwardToOption);
+        var skipValidation = context.ParseResult.GetValue(skipValidationOption);
+        var secret = context.ParseResult.GetValue(webhookSecretOption);
 
         // fetch the webhook endpoint if provided
         Webhooks.WebhookEndpoint? webhookEndpoint = null;

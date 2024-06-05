@@ -7,20 +7,29 @@ namespace Falu.Commands.Templates;
 
 internal class TemplatesPushCommand : AbstractTemplatesCommand
 {
+    private readonly CliArgument<string> templatesDirectoryArg;
+    private readonly CliOption<bool> allOption;
+
     public TemplatesPushCommand() : base("push", "Pushes changed templates from the local file system to Falu servers.")
     {
-        this.AddArgument<string>(name: "templates-directory",
-                                 description: "The directory containing the templates.");
+        templatesDirectoryArg = new CliArgument<string>(name: "templates-directory")
+        {
+            Description = "The directory containing the templates.",
+        };
+        Add(templatesDirectoryArg);
 
-        this.AddOption(["-a", "--all"],
-                       description: "Push all local templates up to Falu regardless of whether they changed.",
-                       defaultValue: false);
+        allOption = new CliOption<bool>(name:"--all",aliases: ["-a"])
+        {
+            Description = "Push all local templates up to Falu regardless of whether they changed.",
+            DefaultValueFactory = r => false,
+        };
+        Add(allOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var templatesDirectory = context.ParseResult.ValueForArgument<string>("templates-directory")!;
-        var all = context.ParseResult.ValueForOption<bool>("--all");
+        var templatesDirectory = context.ParseResult.GetValue(templatesDirectoryArg)!;
+        var all = context.ParseResult.GetValue(allOption);
 
         // ensure the directory exists
         if (!Directory.Exists(templatesDirectory))

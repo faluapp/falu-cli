@@ -1,6 +1,6 @@
 namespace Falu.Commands.Money.Balances;
 
-internal class MoneyBalancesCommand : CliCommand
+internal class MoneyBalancesCommand : FaluCliCommand
 {
     public MoneyBalancesCommand() : base("balances", "Work with money balances.")
     {

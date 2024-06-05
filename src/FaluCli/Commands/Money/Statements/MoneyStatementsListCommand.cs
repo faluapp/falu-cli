@@ -5,30 +5,34 @@ namespace Falu.Commands.Money.Statements;
 
 internal class MoneyStatementsListCommand : WorkspacedCommand
 {
+    private readonly CliOption<string[]> objectKindOption;
+    private readonly CliOption<string[]> providerOption;
+    private readonly CliOption<bool?> uploadedOption;
+    private readonly CliOption<int> countOption;
+
     public MoneyStatementsListCommand() : base("list", "List recent money statements")
     {
-        this.AddOption<string[]>(["--object-kind"],
-                                 description: "The object type to filter statements for.",
-                                 configure: o => o.AcceptOnlyFromAmong("payments", "payment_refunds", "transfers", "transfer_reversals"));
+        objectKindOption = new CliOption<string[]>(name: "--object-kind") { Description = "The object type to filter statements for.", };
+        objectKindOption.AcceptOnlyFromAmong("payments", "payment_refunds", "transfers", "transfer_reversals");
+        Add(objectKindOption);
 
-        this.AddOption<string[]>(["--provider"],
-                                 description: "Type of provider to filter statements for.",
-                                 configure: o => o.AcceptOnlyFromAmong("mpesa"));
+        providerOption = new CliOption<string[]>(name: "--provider") { Description = "Type of provider to filter statements for.", };
+        providerOption.AcceptOnlyFromAmong("mpesa");
+        Add(providerOption);
 
-        this.AddOption<bool?>(["--uploaded"],
-                              description: "Whether to only list uploaded statements");
+        uploadedOption = new CliOption<bool?>(name: "--uploaded") { Description = "Whether to only list uploaded statements", };
+        Add(uploadedOption);
 
-        this.AddOption(["--count"],
-                       description: "Number of records to retrieve",
-                       defaultValue: 10);
+        countOption = new CliOption<int>(name: "--count") { Description = "Number of records to retrieve", DefaultValueFactory = r => 10, };
+        Add(countOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var objectKinds = context.ParseResult.ValueForOption<string[]?>("--object-kind")!;
-        var providers = context.ParseResult.ValueForOption<string[]?>("--provider")!;
-        var uploaded = context.ParseResult.ValueForOption<bool?>("--uploaded")!;
-        var count = context.ParseResult.ValueForOption<int>("--count")!;
+        var objectKinds = context.ParseResult.GetValue(objectKindOption);
+        var providers = context.ParseResult.GetValue(providerOption);
+        var uploaded = context.ParseResult.GetValue(uploadedOption);
+        var count = context.ParseResult.GetValue(countOption);
 
         var options = new MoneyStatementsListOptions
         {
@@ -61,7 +65,11 @@ internal class MoneyStatementsListCommand : WorkspacedCommand
                 "transfer_reversals" => "Transfer Reversals",
                 _ => statement.ObjectsKind,
             };
-            table.AddRow(new Markup(statement.Id!), new Markup($"{statement.Created.ToLocalTime():F}"), new Markup(statement.Provider!).Centered(), new Markup(kind!).Centered(), new Markup(statement.Uploaded.ToString().ToLower()).Centered());
+            table.AddRow(new Markup(statement.Id!),
+                         new Markup($"{statement.Created.ToLocalTime():F}"),
+                         new Markup(statement.Provider!).Centered(),
+                         new Markup(kind!).Centered(),
+                         new Markup(statement.Uploaded.ToString().ToLowerInvariant()).Centered());
         }
 
         AnsiConsole.Write(table);

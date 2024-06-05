@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace Falu.Commands;
 
-internal class WorkspacesCommand : CliCommand
+internal class WorkspacesCommand : FaluCliCommand
 {
     public WorkspacesCommand() : base("workspaces", "Manage workspaces")
     {
@@ -12,23 +12,32 @@ internal class WorkspacesCommand : CliCommand
     }
 }
 
-internal class WorkspacesListCommand : FaluCliCommand
+internal class WorkspacesListCommand : FaluExecuteableCliCommand
 {
+    private readonly CliOption<bool> allOption;
+    private readonly CliOption<bool> refreshOption;
+
     public WorkspacesListCommand() : base("list", "Get a list of workspaces for the logged in account.\r\nBy default, 'Terminated' workspaces are not shown.")
     {
-        this.AddOption(aliases: ["--all"],
-                       description: "List all workspaces, rather than skipping 'Terminated' ones.",
-                       defaultValue: false);
+        allOption = new CliOption<bool>(name: "--all")
+        {
+            Description = "List all workspaces, rather than skipping 'Terminated' ones.",
+            DefaultValueFactory = r => false,
+        };
+        Add(allOption);
 
-        this.AddOption(aliases: ["--refresh"],
-                       description: "Retrieve up-to-date workspaces from server.",
-                       defaultValue: false);
+        refreshOption = new CliOption<bool>(name: "--refresh")
+        {
+            Description = "Retrieve up-to-date workspaces from server.",
+            DefaultValueFactory = r => false,
+        };
+        Add(refreshOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var all = context.ParseResult.ValueForOption<bool>("--all");
-        var refresh = context.ParseResult.ValueForOption<bool>("--refresh");
+        var all = context.ParseResult.GetValue(allOption);
+        var refresh = context.ParseResult.GetValue(refreshOption);
 
         var defaultWorkspaceId = context.ConfigValues.DefaultWorkspaceId;
 
@@ -77,18 +86,19 @@ internal class WorkspacesListCommand : FaluCliCommand
     }
 }
 
-internal class WorkspacesShowCommand : FaluCliCommand
+internal class WorkspacesShowCommand : FaluExecuteableCliCommand
 {
+    private readonly CliOption<string> nameOption;
+
     public WorkspacesShowCommand() : base("show", " Get the details of a workspace.")
     {
-        this.AddOption<string>(aliases: ["--name", "-n"],
-                               description: "Name or ID of workspace.",
-                               configure: o => o.Required = true);
+        nameOption = new CliOption<string>(name: "--name", ["-n"]) { Description = "Name or ID of workspace.", Required = true, };
+        Add(nameOption);
     }
 
     public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var name = context.ParseResult.ValueForOption<string>("--name")!;
+        var name = context.ParseResult.GetValue(nameOption)!;
 
         var workspace = context.ConfigValues.GetRequiredWorkspace(name);
 

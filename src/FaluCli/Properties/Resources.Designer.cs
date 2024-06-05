@@ -111,7 +111,7 @@ namespace Falu.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value for &apos;{0}&apos; is not a valid E.164 phone number: &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not a valid E.164 phone number..
         /// </summary>
         internal static string InvalidE164PhoneNumber {
             get {

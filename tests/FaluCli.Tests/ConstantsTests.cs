@@ -41,6 +41,15 @@ public class ConstantsTests
     }
 
     [Theory]
+    [InlineData("file_602cd2747409e867a240d000")]
+    [InlineData("file_60ffe3f79c1deb8060f91312")]
+    [InlineData("file_27e868O6xW4NYrQb3WvxDb8iW6D")]
+    public void FileIdFormat_IsCorrect(string input)
+    {
+        Assert.Matches(Constants.FileIdFormat, input);
+    }
+
+    [Theory]
     [InlineData("message.delivered")]
     [InlineData("payment_refund.*")]
     [InlineData("transfer_reversal.created")]
@@ -84,17 +93,6 @@ public class ConstantsTests
     public void E164PhoneNumberFormat_IsCorrect(string input)
     {
         Assert.Matches(Constants.E164PhoneNumberFormat, input);
-    }
-
-    [Theory]
-    [InlineData("P2W")]
-    [InlineData("PT21M")]
-    [InlineData("P3Y6M4DT12H30M5S")]
-    [InlineData("P3,2Y6.5M4,7DT")]
-    [InlineData("PT57H30.5M3,77262S")]
-    public void Iso8061DurationFormat_IsCorrect(string input)
-    {
-        Assert.Matches(Constants.Iso8061DurationFormat, input);
     }
 
     [Theory]

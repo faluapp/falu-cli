@@ -41,6 +41,7 @@ var configuration = new CliConfiguration(rootCommand)
 
 // parse the arguments
 var parseResult = configuration.Parse(args);
+var command = parseResult.CommandResult.Command as FaluCliCommand;
 
 // load the configuration values
 var configValuesLoader = new ConfigValuesLoader();
@@ -50,7 +51,7 @@ var configValues = await configValuesLoader.LoadAsync();
 var builder = Host.CreateApplicationBuilder();
 
 // configure app configuration
-var verbose = parseResult.IsVerboseEnabled();
+var verbose = command?.IsVerboseEnabled(parseResult) ?? false;
 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 {
     ["Logging:LogLevel:Default"] = "Information",
@@ -101,7 +102,7 @@ builder.Services.AddHttpClient<OidcProvider>(name: "Oidc").ConfigureHttpClientSt
 builder.Services.AddHttpClient(name: "Updates").ConfigureHttpClientStandard(configValues);
 
 // register open telemetry unless disabled
-var disabled = parseResult.IsNoTelemetry() || configValues.NoTelemetry;
+var disabled = command?.IsNoTelemetry(parseResult) ?? configValues.NoTelemetry;
 if (!disabled)
 {
     builder.Services.AddOpenTelemetry()

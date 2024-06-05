@@ -30,11 +30,7 @@ internal partial class Constants
     public static readonly Regex MessageTemplateAliasFormat = GetMessageTemplateAliasFormat();
     public static readonly Regex FileIdFormat = GetFileIdFormat();
     public static readonly Regex E164PhoneNumberFormat = GetE164PhoneNumberFormat();
-    public static readonly Regex Iso8061DurationFormat = GetIso8061DurationFormat();
     public static readonly Regex RequestPathWildcardFormat = GetRequestPathWildcardFormat();
-
-    [GeneratedRegex("^wksp_[a-zA-Z0-9]{20,30}$")]
-    private static partial Regex GetWorkspaceIdFormat();
 
     [GeneratedRegex("^[a-zA-Z0-9-_:]{2,128}$")]
     private static partial Regex GetIdempotencyKeyFormat();
@@ -62,9 +58,6 @@ internal partial class Constants
 
     [GeneratedRegex("^\\+[1-9]\\d{1,14}$")]
     private static partial Regex GetE164PhoneNumberFormat(); // https://ihateregex.io/expr/e164-phone/
-
-    [GeneratedRegex("^P(([0-9.,]+Y)?([0-9.,]+M)?([0-9.,]+W)?([0-9.,]+D)?)(T([0-9.,]+H)?([0-9.,]+M)?([0-9.,]+S)?)?$")]
-    private static partial Regex GetIso8061DurationFormat(); // https://gist.github.com/tristanls/356ce5aea0054b770d49
 
     [GeneratedRegex("^[a-zA-Z0-9-_/\\*]+$")]
     private static partial Regex GetRequestPathWildcardFormat();

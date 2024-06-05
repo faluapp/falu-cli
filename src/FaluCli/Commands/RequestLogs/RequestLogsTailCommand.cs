@@ -10,83 +10,58 @@ namespace Falu.Commands.RequestLogs;
 
 internal class RequestLogsTailCommand : WorkspacedCommand
 {
+    private readonly CliOption<IPNetwork[]> ipNetworksOption;
+    private readonly CliOption<IPAddress[]> ipAddressesOption;
+    private readonly CliOption<string[]> httpMethodsOption;
+    private readonly CliOption<string[]> requestPathsOption;
+    private readonly CliOption<string[]> sourceOption;
+    private readonly CliOption<int[]> statusCodesOption;
+    private readonly CliOption<string> ttlOption;
+
     public RequestLogsTailCommand() : base("tail", "Tail request logs")
     {
-        this.AddOption<IPNetwork[]>(["--ip-network", "--network"],
-                                    description: "The IP network to filter for.");
+        ipNetworksOption = new CliOption<IPNetwork[]>(name: "--ip-network", aliases: ["--network"]) { Description = "The IP network to filter for.", };
+        Add(ipNetworksOption);
 
-        this.AddOption<IPAddress[]>(["--ip-address", "--ip"],
-                                    description: "The IP address to filter for.");
+        ipAddressesOption = new CliOption<IPAddress[]>(name: "--ip-address", aliases: ["--ip"]) { Description = "The IP address to filter for.", };
+        Add(ipAddressesOption);
 
-        this.AddOption<string[]>(["--http-method", "--method"],
-                                 description: "The HTTP method to filter for.",
-                                 configure: o => o.AcceptOnlyFromAmong("get", "patch", "post", "put", "delete"));
+        httpMethodsOption = new CliOption<string[]>(name: "--http-method", aliases: ["--method"]) { Description = "The HTTP method to filter for.", };
+        httpMethodsOption.AcceptOnlyFromAmong("get", "patch", "post", "put", "delete");
+        Add(httpMethodsOption);
 
-        this.AddOption<string[]>(["--request-path", "--path"],
-                                 description: "The request path to filter for. For example: \"/v1/messages\"",
-                                 validate: (or) =>
-                                 {
-                                     var values = or.GetValueOrDefault<string[]>();
-                                     if (values is not null)
-                                     {
-                                         foreach (var v in values)
-                                         {
-                                             if (Constants.RequestPathWildcardFormat.IsMatch(v))
-                                             {
-                                                 or.AddError(string.Format(Res.InvalidHttpRequestPath, v));
-                                                 break;
-                                             }
-                                         }
-                                     }
-                                 });
+        requestPathsOption = new CliOption<string[]>(name: "--event-type", aliases: ["--type", "-t"]) { Description = "The request path to filter for. For example: \"/v1/messages\"", };
+        requestPathsOption.MatchesFormat(Constants.RequestPathWildcardFormat, nulls: true, errorGetter: (v, _) => string.Format(Res.InvalidHttpRequestPath, v));
+        Add(requestPathsOption);
 
-        this.AddOption<string[]>(["--source"],
-                                 description: "The request source to filter for.",
-                                 configure: o => o.AcceptOnlyFromAmong("dashboard", "api"));
+        sourceOption = new CliOption<string[]>(name: "--source") { Description = "The request source to filter for.", };
+        sourceOption.AcceptOnlyFromAmong("dashboard", "api");
+        Add(sourceOption);
 
-        this.AddOption<int[]>(["--status-code"],
-                              description: "The HTTP status code to filter for.",
-                              validate: (or) =>
-                              {
-                                  var values = or.GetValueOrDefault<int[]>();
-                                  if (values is not null)
-                                  {
-                                      foreach (var v in values)
-                                      {
-                                          if (v < 200 || v > 599)
-                                          {
-                                              or.AddError(string.Format(Res.InvalidHttpStatusCode, v));
-                                              break;
-                                          }
-                                      }
-                                  }
-                              });
+        statusCodesOption = new CliOption<int[]>(name: "--status-code") { Description = "The HTTP status code to filter for.", };
+        statusCodesOption.IsWithRange(200, 599, nulls: true, errorGetter: (v, _) => string.Format(Res.InvalidHttpStatusCode, v));
 
-        this.AddOption(["--ttl"],
-                       description: Res.OptionDescriptionRealtimeConnectionTtl,
-                       defaultValue: "PT60M",
-                       validate: or =>
-                       {
-                           var value = or.GetValueOrDefault<string>();
-                           if (value is not null && !Duration.TryParse(value, out _))
-                           {
-                               or.AddError(string.Format(Res.InvalidDurationValue, value));
-                           }
-                       });
+        ttlOption = new CliOption<string>(name: "--ttl")
+        {
+            Description = Res.OptionDescriptionRealtimeConnectionTtl,
+            DefaultValueFactory = r => "PT60M",
+        };
+        ttlOption.IsValidDuration();
+        Add(ttlOption);
     }
 
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         var websocketHandler = context.GetRequiredService<WebsocketHandler>();
 
-        var live = context.ParseResult.GetLiveMode() ?? false;
-        var ttl = Duration.Parse(context.ParseResult.ValueForOption<string>("--ttl")!);
-        var ipNetworks = context.ParseResult.ValueForOption<IPNetwork[]>("--ip-network").NullIfEmpty();
-        var ipAddresses = context.ParseResult.ValueForOption<IPAddress[]>("--ip-address").NullIfEmpty();
-        var methods = context.ParseResult.ValueForOption<string[]>("--http-method").NullIfEmpty();
-        var paths = context.ParseResult.ValueForOption<string[]>("--request-path").NullIfEmpty();
-        var statusCodes = context.ParseResult.ValueForOption<int[]>("--status-code").NullIfEmpty();
-        var sources = context.ParseResult.ValueForOption<string[]>("--source").NullIfEmpty();
+        var live = GetLiveMode(context.ParseResult) ?? false;
+        var ttl = Duration.Parse(context.ParseResult.GetValue(ttlOption)!);
+        var ipNetworks = context.ParseResult.GetValue(ipNetworksOption).NullIfEmpty();
+        var ipAddresses = context.ParseResult.GetValue(ipAddressesOption).NullIfEmpty();
+        var methods = context.ParseResult.GetValue(httpMethodsOption).NullIfEmpty();
+        var paths = context.ParseResult.GetValue(requestPathsOption).NullIfEmpty();
+        var statusCodes = context.ParseResult.GetValue(statusCodesOption).NullIfEmpty();
+        var sources = context.ParseResult.GetValue(sourceOption).NullIfEmpty();
 
         // prepare filters
         var options = new RealtimeNegotiationOptionsRequestLogs
