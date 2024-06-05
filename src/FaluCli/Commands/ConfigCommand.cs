@@ -32,7 +32,7 @@ internal abstract class AbstractConfigCommand(string name, string? description =
         public abstract object? GetValue(ConfigValues values);
 
         /// <summary>Validates the value of the configuration option.</summary>
-        /// <param name="context">The current <see cref="ConfigValues"/> instance.</param>
+        /// <param name="values">The current <see cref="ConfigValues"/> instance.</param>
         /// <param name="value">The value to validate.</param>
         /// <returns>
         /// <see langword="null"/> when the value is valid; otherwise, it returns an error message.
@@ -40,12 +40,12 @@ internal abstract class AbstractConfigCommand(string name, string? description =
         public abstract string? Validate(ConfigValues values, string value);
 
         /// <summary>Sets the value of the configuration option in an instance of <see cref="ConfigValues"/>.</summary>
-        /// <param name="context">The <see cref="ConfigValues"/> instance in which to set the value.</param>
+        /// <param name="values">The <see cref="ConfigValues"/> instance in which to set the value.</param>
         /// <param name="value">The value to set.</param>
         public abstract void SetValue(ConfigValues values, string value);
 
         /// <summary>Clears the value of the configuration option in an instance of <see cref="ConfigValues"/>.</summary>
-        /// <param name="context">The <see cref="ConfigValues"/> instance in which to set the value.</param>
+        /// <param name="values">The <see cref="ConfigValues"/> instance in which to set the value.</param>
         public abstract void ClearValue(ConfigValues values);
     }
 
@@ -101,7 +101,7 @@ internal abstract class AbstractConfigCommand(string name, string? description =
             name: "retries",
             description: "The number of retries to perform for outgoing requests.",
             getter: cv => cv.Retries,
-            validator: (cv, value) =>
+            validator: (_, value) =>
             {
                 if (!int.TryParse(value, out var i)) return (string?)"The value must be an integer.";
                 if (i < 0 || i > 10) return "The value must be between 0 and 10.";
@@ -114,7 +114,7 @@ internal abstract class AbstractConfigCommand(string name, string? description =
             name: "timeout",
             description: "The timeout for outgoing requests in seconds.",
             getter: cv => cv.Timeout,
-            validator: (cv, value) =>
+            validator: (_, value) =>
             {
                 if (!int.TryParse(value, out var i)) return (string?)"The value must be an integer.";
                 if (i < 10 || i > 300) return "The value must be between 10 and 300.";
@@ -130,12 +130,9 @@ internal abstract class AbstractConfigCommand(string name, string? description =
                        + "\r\nYou can also set this using the name of the workspace."
                        + "\r\nThis is used when there is no value set and not authenticating via an API Key.",
             getter: cv => cv.DefaultWorkspaceId,
-            validator: (cv, value) =>
-            {
-                return !cv.TryGetWorkspaceId(value, out _)
-                    ? "The value must be a valid workspace ID or name. If the value is correct, try sync workspaces via `falu workspaces list --refresh'"
-                    : null;
-            },
+            validator: (cv, value) => !cv.TryGetWorkspaceId(value, out _)
+                ? "The value must be a valid workspace ID or name. If the value is correct, try sync workspaces via `falu workspaces list --refresh'"
+                : null,
             setter: (cv, value) => cv.DefaultWorkspaceId = cv.GetRequiredWorkspace(value).Id,
             clear: cv => cv.DefaultWorkspaceId = null),
 
@@ -143,12 +140,12 @@ internal abstract class AbstractConfigCommand(string name, string? description =
             name: "live-mode",
             description: "The default live mode. (true|false)\r\nThis is used when there is no value set and not authenticating via an API Key.",
             getter: cv => cv.DefaultLiveMode,
-            validator: (cv, value) => value is null || bool.TryParse(value, out _) ? null : "The value must be a boolean.",
-            setter: (cv, value) => cv.DefaultLiveMode = value is null ? null : bool.Parse(value),
+            validator: (cv, value) => bool.TryParse(value, out _) ? null : "The value must be a boolean.",
+            setter: (cv, value) => cv.DefaultLiveMode = bool.Parse(value),
             clear: cv => cv.DefaultLiveMode = null),
     ];
 
-    protected static string[] ConfigNames = ConfigRegistrations.Select(r => r.Name).ToArray();
+    protected static readonly string[] ConfigNames = ConfigRegistrations.Select(r => r.Name).ToArray();
     protected static ConfigRegistration FindRegistration(string name) => ConfigRegistrations.First(r => string.Equals(r.Name, name, StringComparison.OrdinalIgnoreCase));
 }
 
