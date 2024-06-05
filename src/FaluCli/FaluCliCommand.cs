@@ -82,11 +82,11 @@ internal abstract class FaluCliCommand : CliCommand
     public bool TryGetWorkspace(ParseResult result, [NotNullWhen(true)] out string? workspaceId) => !string.IsNullOrWhiteSpace(workspaceId = GetWorkspace(result));
 }
 
-internal abstract class FaluExecuteableCliCommand(string name, string? description = null, bool workspaced = false) : FaluCliCommand(name, description, workspaced)
+internal abstract class FaluExecutableCliCommand(string name, string? description = null, bool workspaced = false) : FaluCliCommand(name, description, workspaced)
 {
     /// <inheritdoc/>
     public abstract Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken);
 }
 
-// TODO: consider replacing this with FaluExecuteableCliCommand and overriding Workspaced property in the specific command
-internal abstract class WorkspacedCommand(string name, string? description = null) : FaluExecuteableCliCommand(name, description, workspaced: true) { }
+// TODO: consider replacing this with FaluExecutableCliCommand and overriding Workspaced property in the specific command
+internal abstract class WorkspacedCommand(string name, string? description = null) : FaluExecutableCliCommand(name, description, workspaced: true) { }

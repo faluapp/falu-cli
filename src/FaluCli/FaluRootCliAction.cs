@@ -18,7 +18,7 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
 
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var command = (FaluExecuteableCliCommand)parseResult.CommandResult.Command;
+        var command = (FaluExecutableCliCommand)parseResult.CommandResult.Command;
 
         // create a scoped service provider
         await using var scope = host.Services.CreateAsyncScope();
@@ -65,7 +65,7 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
         }
     }
 
-    private static async Task<int> TrackedAsync(CliCommandExecutionContext context, FaluExecuteableCliCommand command, CancellationToken cancellationToken)
+    private static async Task<int> TrackedAsync(CliCommandExecutionContext context, FaluExecutableCliCommand command, CancellationToken cancellationToken)
     {
         // inspired by https://medium.com/@asimmon/instrumenting-system-commandline-based-net-applications-6d910f91b8a8
 
@@ -213,7 +213,7 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
 
         return 1;
     }
-    private static async Task CheckUpdatesAsync(FaluExecuteableCliCommand command, CliCommandExecutionContext context, CancellationToken cancellationToken)
+    private static async Task CheckUpdatesAsync(FaluExecutableCliCommand command, CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
         // At this point, we can check if a newer version was found.
         // This code will not be reached if there's an exception but validation errors do get here.

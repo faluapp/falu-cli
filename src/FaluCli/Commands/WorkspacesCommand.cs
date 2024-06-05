@@ -12,7 +12,7 @@ internal class WorkspacesCommand : FaluCliCommand
     }
 }
 
-internal class WorkspacesListCommand : FaluExecuteableCliCommand
+internal class WorkspacesListCommand : FaluExecutableCliCommand
 {
     private readonly CliOption<bool> allOption;
     private readonly CliOption<bool> refreshOption;
@@ -86,7 +86,7 @@ internal class WorkspacesListCommand : FaluExecuteableCliCommand
     }
 }
 
-internal class WorkspacesShowCommand : FaluExecuteableCliCommand
+internal class WorkspacesShowCommand : FaluExecutableCliCommand
 {
     private readonly CliOption<string> nameOption;
 

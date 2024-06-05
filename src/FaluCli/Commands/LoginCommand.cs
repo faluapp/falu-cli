@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Falu.Commands;
 
-internal class LoginCommand : FaluExecuteableCliCommand
+internal class LoginCommand : FaluExecutableCliCommand
 {
     private readonly CliOption<bool> noBrowserOption;
     //private readonly CliOption<bool> interactiveOption;
@@ -112,7 +112,7 @@ internal class LoginCommand : FaluExecuteableCliCommand
     }
 }
 
-internal class LogoutCommand() : FaluExecuteableCliCommand("logout", "Logout of your Falu account from the CLI")
+internal class LogoutCommand() : FaluExecutableCliCommand("logout", "Logout of your Falu account from the CLI")
 {
     public override Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {

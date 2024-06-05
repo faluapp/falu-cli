@@ -13,7 +13,7 @@ internal class ConfigCommand : FaluCliCommand
     }
 }
 
-internal abstract class AbstractConfigCommand(string name, string? description = null) : FaluExecuteableCliCommand(name, description)
+internal abstract class AbstractConfigCommand(string name, string? description = null) : FaluExecutableCliCommand(name, description)
 {
     /// <summary>Represents a registration for a configuration option.</summary>
     /// <param name="name">The name of the configuration option.</param>
