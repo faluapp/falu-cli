@@ -97,17 +97,14 @@ jobs:
     - name: Publish
       run: >
         dotnet publish
-        -p:PublishSingleFile=true
         -p:DebugType=None
         -p:DebugSymbols=false
-        -p:PublishTrimmed=true
         -p:AssemblyName=falu
         -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersionV2 }}
         -p:VersionPrefix=${{ steps.gitversion.outputs.nuGetVersionV2 }}
         --runtime ${{ env.DOTNET_RID }}
         --configuration Release
         --output ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
-        --self-contained true
         --no-restore
         src/FaluCli/FaluCli.csproj
 
