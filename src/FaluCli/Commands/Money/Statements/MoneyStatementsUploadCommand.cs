@@ -1,6 +1,4 @@
-﻿using ClosedXML.Excel;
-
-namespace Falu.Commands.Money.Statements;
+﻿namespace Falu.Commands.Money.Statements;
 
 internal class MoneyStatementsUploadCommand : WorkspacedCommand
 {
@@ -55,21 +53,6 @@ internal class MoneyStatementsUploadCommand : WorkspacedCommand
             return -1;
         }
 
-        // ensure the file can be opened
-        if (provider == "mpesa")
-        {
-            await using var stream = File.OpenRead(filePath);
-            try
-            {
-                using var workbook = new XLWorkbook(stream);
-            }
-            catch (Exception)
-            {
-                context.Logger.LogError("The provided for MPESA must be a valid Excel file without a password.");
-                return -1;
-            }
-        }
-
         await using var fileContent = File.OpenRead(filePath);
         var fileFormats = new FileSignatures.FileFormat[] { new FileSignatures.Formats.Excel(), new FileSignatures.Formats.ExcelLegacy(), };
         var formatInspector = new FileSignatures.FileFormatInspector(fileFormats);
@@ -84,11 +67,11 @@ internal class MoneyStatementsUploadCommand : WorkspacedCommand
         var fileContentType = fileFormat.MediaType;
         context.Logger.LogInformation("Uploading {FileName} ({FileSize})", fileName, size.ToBinaryString());
         var response = await context.Client.MoneyStatements.UploadAsync(provider: provider,
-                                                                           objectKind: objectKind,
-                                                                           fileName: fileName,
-                                                                           fileContent: fileContent,
-                                                                           fileContentType: fileContentType,
-                                                                           cancellationToken: cancellationToken);
+                                                                        objectKind: objectKind,
+                                                                        fileName: fileName,
+                                                                        fileContent: fileContent,
+                                                                        fileContentType: fileContentType,
+                                                                        cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         var statement = response.Resource!;
