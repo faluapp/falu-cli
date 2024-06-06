@@ -115,22 +115,13 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
             var result = await command.ExecuteAsync(context, cancellationToken);
 
             activity.SetStatus(ActivityStatusCode.Ok);
-            activity.Stop();
             return result;
         }
         catch (Exception ex)
         {
             var cancelled = cancellationToken.IsCancellationRequested;
-
-            if (!cancelled && activity.IsAllDataRequested)
-            {
-                activity.AddTag("exception.type", ex.GetType().FullName);
-                activity.AddTag("exception.message", ex.Message);
-                activity.AddTag("exception.stacktrace", ex.StackTrace);
-            }
-
             activity.SetStatus(cancelled ? ActivityStatusCode.Ok : ActivityStatusCode.Error);
-            activity.Stop();
+            if (!cancelled) activity.AddException(ex);
 
             throw;
         }
