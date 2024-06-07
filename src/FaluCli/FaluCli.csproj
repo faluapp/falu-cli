@@ -9,7 +9,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <Deterministic>true</Deterministic>
-    <IsPackable>true</IsPackable> <!-- Needed when OutputType is Exe -->
     <!--<AssemblyName>falu</AssemblyName>-->
     <RootNamespace>Falu</RootNamespace>
     <IsTrimmable>true</IsTrimmable>

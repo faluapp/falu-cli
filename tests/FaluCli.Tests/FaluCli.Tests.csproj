@@ -3,7 +3,6 @@
   <PropertyGroup>
     <RootNamespace>Falu.Tests</RootNamespace>
     <IsTestProject>true</IsTestProject>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
