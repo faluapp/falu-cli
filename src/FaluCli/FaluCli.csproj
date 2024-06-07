@@ -25,7 +25,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <TrimmerRootDescriptor Include="TrimmingRoots.xml" />
+    <TrimmerRootAssembly Include="Spectre.Console" Preserve="All" />
+    <TrimmerRootAssembly Include="Spectre.Console.Json" Preserve="All" />
   </ItemGroup>
 
   <ItemGroup>
