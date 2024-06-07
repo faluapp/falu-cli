@@ -20,7 +20,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
     <SelfContained>true</SelfContained>
