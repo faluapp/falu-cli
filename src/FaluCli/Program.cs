@@ -67,16 +67,18 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     ["Logging:LogLevel:System.Net.Http.HttpClient.Updates.ClientHandler"] = builder.Environment.IsDevelopment() && verbose ? "Trace" : "Warning", // add what we need
 
     ["Logging:Console:FormatterName"] = "Falu",
-    ["Logging:Console:FormatterOptions:SingleLine"] = (!verbose).ToString(),
-    ["Logging:Console:FormatterOptions:IncludeCategory"] = verbose.ToString(),
-    ["Logging:Console:FormatterOptions:IncludeEventId"] = verbose.ToString(),
-    ["Logging:Console:FormatterOptions:TimestampFormat"] = "HH:mm:ss ",
 });
 
 // configure logging
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-builder.Logging.AddConsoleFormatter<Falu.Logging.FaluConsoleFormatter, Falu.Logging.FaluConsoleFormatterOptions>();
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+// not using AddConsoleFormatter<Falu.Logging.FaluConsoleFormatter, Falu.Logging.FaluConsoleFormatterOptions>() because it requires dynamic code
+builder.Services.AddSingleton<Microsoft.Extensions.Logging.Console.ConsoleFormatter, Falu.Logging.FaluConsoleFormatter>();
+builder.Services.Configure<Falu.Logging.FaluConsoleFormatterOptions>(options =>
+{
+    options.SingleLine = !verbose;
+    options.IncludeCategory = verbose;
+    options.IncludeEventId = verbose;
+    options.TimestampFormat = "HH:mm:ss ";
+});
 
 // register services
 builder.Services.AddSingleton(configValuesLoader);
