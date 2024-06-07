@@ -97,8 +97,6 @@ jobs:
     - name: Publish
       run: >
         dotnet publish
-        -p:DebugType=None
-        -p:DebugSymbols=false
         -p:AssemblyName=falu
         -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersionV2 }}
         -p:VersionPrefix=${{ steps.gitversion.outputs.nuGetVersionV2 }}
