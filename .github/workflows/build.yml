@@ -429,9 +429,17 @@ jobs:
         BINARIES_VERSION: ${{ needs.Build.outputs.BINARIES_VERSION }}
 
     - name: Replace tokens
-      uses: cschleiden/replace-tokens@v1
+      uses: qetza/replacetokens-action@v1
       with:
-        files: '["${{ github.workspace }}/generated/homebrew/falu.rb","${{ github.workspace }}/generated/scoop/falu.json"]'
+        root: ${{ github.workspace }}/generated
+        sources: |
+          **/*.rb
+          **/*.json
+          **/*.jsonc
+        variables: '[${{ toJSON(env) }}]' # use env
+        log-level: 'debug'
+        if-no-files-found: 'error'
+        missing-var-log: 'error'
 
     - name: Upload Artifact (releases)
       uses: actions/upload-artifact@v4
