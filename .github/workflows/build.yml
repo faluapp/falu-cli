@@ -36,8 +36,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ 'macos', 'ubuntu', 'windows']
-        arch: [ 'x64', 'arm64' ]
+        os: [ 'macos', 'ubuntu', 'windows' ]
+        arch: [ 'arm64' , 'x64' ]
         include:
         - { os: ubuntu, arch: x64, deb-arch: amd64, rpm-arch: x86_64 }
         - { os: ubuntu, arch: arm64, deb-arch: arm64, rpm-arch: aarch64 }
@@ -84,7 +84,7 @@ jobs:
         dotnet-version: '8.x'
 
     - name: Install dependencies
-      run: dotnet restore --runtime ${{ env.DOTNET_RID }} -v detailed
+      run: dotnet restore --runtime ${{ env.DOTNET_RID }} --verbosity detailed
 
     - name: Build
       if: github.event_name == 'pull_request'
