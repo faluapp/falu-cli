@@ -22,10 +22,10 @@
   <PropertyGroup>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
-    <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <SelfContained Condition=" '$(Configuration)' == 'Release' ">true</SelfContained>
   </PropertyGroup>
 
   <PropertyGroup>
