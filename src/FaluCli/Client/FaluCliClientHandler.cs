@@ -27,8 +27,7 @@ internal class FaluCliClientHandler(ConfigValues configValues, ParseResult parse
             if (!request.RequestUri!.ToString().Contains("/workspaces"))
             {
                 // (1a) Set the X-Workspace-Id header using the CLI option to override the default
-                string? workspaceId = null;
-                if (command.TryGetWorkspace(parseResult, out workspaceId))
+                if (command.TryGetWorkspace(parseResult, out var workspaceId))
                 {
                     // check if the workspace exists in the configuration
                     workspaceId = configValues.GetRequiredWorkspace(workspaceId).Id;

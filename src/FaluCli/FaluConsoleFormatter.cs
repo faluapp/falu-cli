@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 
-namespace Falu.Logging;
+namespace Falu;
 
 // We have this because the SimpleConsoleFormatter does not offset follow up lines with the size of the time, log level, and its padding
 internal class FaluConsoleFormatter : ConsoleFormatter
@@ -305,7 +305,7 @@ internal class FaluConsoleFormatter : ConsoleFormatter
                         // Example: \x1B[1m
                         if (IsDigit(span[i + 2]))
                         {
-                            escapeCode = (int)(span[i + 2] - '0');
+                            escapeCode = span[i + 2] - '0';
                             if (startIndex != -1)
                             {
                                 onParseWrite(message, startIndex, length, background, foreground);
@@ -323,7 +323,7 @@ internal class FaluConsoleFormatter : ConsoleFormatter
                         // Example: \x1B[40m
                         if (IsDigit(span[i + 2]) && IsDigit(span[i + 3]))
                         {
-                            escapeCode = (int)(span[i + 2] - '0') * 10 + (int)(span[i + 3] - '0');
+                            escapeCode = (span[i + 2] - '0') * 10 + (span[i + 3] - '0');
                             if (startIndex != -1)
                             {
                                 onParseWrite(message, startIndex, length, background, foreground);
@@ -368,7 +368,7 @@ internal class FaluConsoleFormatter : ConsoleFormatter
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsDigit(char c) => (uint)(c - '0') <= ('9' - '0');
+        private static bool IsDigit(char c) => (uint)(c - '0') <= '9' - '0';
 
         internal const string DefaultForegroundColor = "\x1B[39m\x1B[22m"; // reset to default foreground color
         internal const string DefaultBackgroundColor = "\x1B[49m"; // reset to the background color

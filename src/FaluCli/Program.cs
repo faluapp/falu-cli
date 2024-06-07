@@ -71,8 +71,8 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 
 // configure logging
 // not using AddConsoleFormatter<Falu.Logging.FaluConsoleFormatter, Falu.Logging.FaluConsoleFormatterOptions>() because it requires dynamic code
-builder.Services.AddSingleton<Microsoft.Extensions.Logging.Console.ConsoleFormatter, Falu.Logging.FaluConsoleFormatter>();
-builder.Services.Configure<Falu.Logging.FaluConsoleFormatterOptions>(options =>
+builder.Services.AddSingleton<Microsoft.Extensions.Logging.Console.ConsoleFormatter, FaluConsoleFormatter>();
+builder.Services.Configure<FaluConsoleFormatterOptions>(options =>
 {
     options.SingleLine = !verbose;
     options.IncludeCategory = verbose;
