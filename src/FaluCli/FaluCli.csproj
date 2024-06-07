@@ -13,10 +13,10 @@
     <!--<AssemblyName>falu</AssemblyName>-->
     <RootNamespace>Falu</RootNamespace>
     <IsTrimmable>true</IsTrimmable>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
@@ -50,7 +50,6 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.8.1" />
     <PackageReference Include="OpenTelemetry.ResourceDetectors.Host" Version="0.1.0-alpha.3" />
     <PackageReference Include="OpenTelemetry.ResourceDetectors.ProcessRuntime" Version="0.1.0-alpha.3" />
-    <PackageReference Include="SemanticVersioning" Version="2.0.2" />
     <PackageReference Include="Spectre.Console.Json" Version="0.49.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.24209.3" />
     <PackageReference Include="System.Memory.Data" Version="8.0.0" />
