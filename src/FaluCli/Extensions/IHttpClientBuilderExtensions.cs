@@ -12,7 +12,7 @@ internal static class IHttpClientBuilderExtensions
         {
             // change the User-Agent header
             client.DefaultRequestHeaders.UserAgent.Clear();
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(Constants.ProductName, VersioningHelper.ProductVersion));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(Constants.ProductName, Constants.ProductVersion));
 
             // set the Timeout from ConfigValues
             client.Timeout = TimeSpan.FromSeconds(configValues.Timeout);

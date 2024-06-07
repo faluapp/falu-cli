@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json.Serialization;
 using Res = Falu.Properties.Resources;
 
 namespace Falu;
@@ -244,8 +245,7 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
 
             if (release is not null)
             {
-                var current = SemanticVersioning.Version.Parse(VersioningHelper.ProductVersion);
-                if (SemanticVersioning.Version.TryParse(release.TagName, out var latest) && latest > current)
+                if (IsNewerVersionAvailable(release, out var current, out var latest))
                 {
                     var sb = new StringBuilder();
 
@@ -253,7 +253,7 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
 
                     sb.Append("New version (");
                     sb.Append(SpectreFormatter.ColouredLightGreen($"{latest}"));
-                    sb.AppendLine($") is available. You have version {current.BaseVersion()}");
+                    sb.AppendLine($") is available. You have version {current}");
 
                     sb.Append("Download at: ");
                     sb.AppendLine(SpectreFormatter.ColouredLightGreen(release.HtmlUrl!));
@@ -267,4 +267,34 @@ internal class FaluRootCliAction(ConfigValuesLoader configValuesLoader, ConfigVa
             }
         }
     }
+
+    internal static bool IsNewerVersionAvailable(GitHubLatestRelease release, out Version? current, out Version? latest)
+        => IsNewerVersionAvailable(Constants.Version, release.TagName, out current, out latest);
+
+    internal static bool IsNewerVersionAvailable(string version, string latestTagName, out Version? current, out Version? latest)
+    {
+        /*
+         * We are using System.Version here instead of some complex version library for semantic versioning because
+         * we do not advice updating to pre-release versions automatically (e.g. 1.0.0-beta or 1.12.1-pr0271-0047).
+         * Should this change, we can use:
+         * - NuGet.Versioning (https://www.nuget.org/packages/NuGet.Versioning/)
+         * - Semver (https://www.nuget.org/packages/Semver/)
+         * - SemanticVersioning (https://www.nuget.org/packages/SemanticVersioning/)
+         *
+         * Official support was requested but has not been added yet: https://github.com/dotnet/runtime/issues/19317
+        */
+        latest = default;
+        return Version.TryParse(version, out current)
+            && Version.TryParse(latestTagName, out latest)
+            && latest > current;
+    }
+}
+
+internal class GitHubLatestRelease
+{
+    [JsonPropertyName("tag_name")]
+    public string TagName { get; set; } = default!;
+
+    [JsonPropertyName("html_url")]
+    public string HtmlUrl { get; set; } = default!;
 }
