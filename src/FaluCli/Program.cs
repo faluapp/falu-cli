@@ -111,8 +111,8 @@ if (!disabled)
                     .ConfigureResource(resource =>
                     {
                         resource.AddAttributes([new("environment", builder.Environment.EnvironmentName)]);
-                        resource.AddDetector(new OpenTelemetry.ResourceDetectors.Host.HostDetector());
-                        resource.AddDetector(new OpenTelemetry.ResourceDetectors.ProcessRuntime.ProcessRuntimeDetector());
+                        resource.AddHostDetector();
+                        resource.AddProcessRuntimeDetector();
                         resource.AddService(serviceName: Constants.ProductName, serviceVersion: Constants.ProductVersion);
                     })
                     .WithTracing(tracing =>
