@@ -14,6 +14,14 @@
     <WarningsAsErrors>$(WarningsAsErrors),CA1069,CA1510,CA1826,CA1850,CA1854,CA1859,CA1860,CA1861,CA1865,CA1866,CA1867,CA2016,CA2253,CA2254</WarningsAsErrors>
     <WarningsAsErrors>$(WarningsAsErrors),SYSLIB1045</WarningsAsErrors>
     <WarningsAsErrors>$(WarningsAsErrors),IDE0028,IDE0290</WarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors),IL2060,IL2091,IL2095,IL3002,IL3050</WarningsAsErrors>
+    <!--
+      These warnings related to AOT/trimming are commented out because some libraries we use are not AOT-ready.
+      - Spectre.Console (https://github.com/spectreconsole/spectre.console/issues/1332)
+      - Tingle.Extensions.JsonPatch (referenced by Falu) uses JsonPatchDocument which is not AOT-ready.
+      - CloudNative.CloudEvents.SystemTextJson (https://github.com/cloudevents/sdk-csharp/issues/272)
+     -->
+    <!-- <WarningsAsErrors>$(WarningsAsErrors),IL2104,IL2026,IL3053</WarningsAsErrors> -->
   </PropertyGroup>
 
 </Project>

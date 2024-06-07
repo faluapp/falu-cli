@@ -13,14 +13,24 @@
     <RootNamespace>Falu</RootNamespace>
     <IsTrimmable>true</IsTrimmable>
     <PublishSingleFile>true</PublishSingleFile>
+    <!-- <PublishAot>true</PublishAot> -->
   </PropertyGroup>
 
+  <!-- Properties for PublishSingleFile/PublishTrimmed -->
   <PropertyGroup>
     <PublishTrimmed>true</PublishTrimmed>
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+  </PropertyGroup>
+
+  <!-- Properties for PublishAot -->
+  <PropertyGroup>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <OptimizationPreference>Size</OptimizationPreference>
+    <EventSourceSupport>true</EventSourceSupport>
+    <StripSymbols>false</StripSymbols>
   </PropertyGroup>
 
   <ItemGroup>
