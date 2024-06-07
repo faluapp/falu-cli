@@ -21,6 +21,10 @@ on:
     - docs/**
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   PKG_NAME: 'falu'
@@ -53,6 +57,10 @@ jobs:
         - { os: windows, archive-type: 'zip' } # windows creates zip files, others default to 'tar'
 
     runs-on: ${{ matrix.runs-on || format('{0}-{1}', matrix.os, 'latest') }}
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os }}-${{ matrix.arch }}
+      cancel-in-progress: true
 
     env:
       DOTNET_RID: ${{ format('{0}-{1}', matrix.rid-prefix, matrix.arch) }}
