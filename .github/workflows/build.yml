@@ -259,7 +259,7 @@ jobs:
     - name: Build docker image
       if: ${{ matrix.docker-platform }}
       id: docker-build
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         platforms: ${{ matrix.docker-platform }}
         file: ${{ github.workspace }}/Dockerfile
@@ -277,7 +277,7 @@ jobs:
 
     - name: Push docker image
       if: ${{ matrix.docker-platform && github.actor != 'dependabot[bot]' }}
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         platforms: ${{ matrix.docker-platform }}
         file: ${{ github.workspace }}/Dockerfile
