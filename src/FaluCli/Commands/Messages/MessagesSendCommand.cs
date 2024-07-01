@@ -118,7 +118,7 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
         }
 
         var media = mediaUrl is not null || mediaFileId is not null
-                  ? new[] { new MessageCreateRequestMedia { Url = mediaUrl?.ToString(), File = mediaFileId, }, }
+                  ? new[] { new MessageCreateOptionsMedia { Url = mediaUrl?.ToString(), File = mediaFileId, }, }
                   : null;
 
         // ensure both time and delay are not specified
@@ -132,18 +132,18 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
 
         // make the schedule
         var schedule = time is not null
-                     ? (MessageCreateRequestSchedule)time
+                     ? (MessageCreateOptionsSchedule)time
                      : delay is not null
-                        ? (MessageCreateRequestSchedule)delay
+                        ? (MessageCreateOptionsSchedule)delay
                         : null;
 
         // if there is only a single number, send a single message, otherwise use the batch
         if (tos.Length == 1)
         {
             var target = tos[0];
-            var request = new MessageCreateRequest { To = target, Stream = stream, Media = media, Schedule = schedule, };
-            PopulateRequest(context, request);
-            var rr = await context.Client.Messages.CreateAsync(request, cancellationToken: cancellationToken);
+            var options = new MessageCreateOptions { To = target, Stream = stream, Media = media, Schedule = schedule, };
+            PopulateRequest(context, options);
+            var rr = await context.Client.Messages.CreateAsync(options, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
 
             var response = rr.Resource!;
@@ -151,10 +151,10 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
         }
         else
         {
-            var message = new MessageBatchCreateRequestMessage { Tos = tos, Media = media, };
+            var message = new MessageBatchCreateOptionsMessage { Tos = tos, Media = media, };
             PopulateRequest(context, message);
-            var request = new MessageBatchCreateRequest { Messages = [message], Stream = stream, Schedule = schedule, };
-            var rr = await context.Client.MessageBatches.CreateAsync(request, cancellationToken: cancellationToken);
+            var options = new MessageBatchCreateOptions { Messages = [message], Stream = stream, Schedule = schedule, };
+            var rr = await context.Client.MessageBatches.CreateAsync(options, cancellationToken: cancellationToken);
             rr.EnsureSuccess();
 
             var response = rr.Resource!;
@@ -166,8 +166,8 @@ internal abstract class AbstractMessagesSendCommand : WorkspacedCommand
         return 0;
     }
 
-    protected abstract void PopulateRequest(CliCommandExecutionContext context, MessageCreateRequest request);
-    protected abstract void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateRequestMessage request);
+    protected abstract void PopulateRequest(CliCommandExecutionContext context, MessageCreateOptions options);
+    protected abstract void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateOptionsMessage options);
 
     private static bool TryValidateNumbers(string[] numbers, [NotNullWhen(false)] out string? errorMessage)
     {
@@ -204,8 +204,8 @@ internal class MessagesSendRawCommand : AbstractMessagesSendCommand
         Add(bodyOption);
     }
 
-    protected override void PopulateRequest(CliCommandExecutionContext context, MessageCreateRequest request) => request.Body = GetBody(context);
-    protected override void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateRequestMessage request) => request.Body = GetBody(context);
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageCreateOptions options) => options.Body = GetBody(context);
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateOptionsMessage options) => options.Body = GetBody(context);
     private string? GetBody(CliCommandExecutionContext context) => context.ParseResult.GetValue(bodyOption);
 }
 
@@ -280,9 +280,9 @@ internal class MessagesSendTemplatedCommand : AbstractMessagesSendCommand
         return base.ExecuteAsync(context, cancellationToken);
     }
 
-    protected override void PopulateRequest(CliCommandExecutionContext context, MessageCreateRequest request) => request.Template = GetTemplate(context);
-    protected override void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateRequestMessage request) => request.Template = GetTemplate(context);
-    private MessageCreateRequestTemplate? GetTemplate(CliCommandExecutionContext context)
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageCreateOptions options) => options.Template = GetTemplate(context);
+    protected override void PopulateRequest(CliCommandExecutionContext context, MessageBatchCreateOptionsMessage options) => options.Template = GetTemplate(context);
+    private MessageCreateOptionsTemplate? GetTemplate(CliCommandExecutionContext context)
     {
         var id = context.ParseResult.GetValue(idOption);
         var alias = context.ParseResult.GetValue(aliasOption);
@@ -290,6 +290,6 @@ internal class MessagesSendTemplatedCommand : AbstractMessagesSendCommand
         var modelJson = context.ParseResult.GetValue(modelOption)!;
         var model = new MessageTemplateModel(System.Text.Json.Nodes.JsonNode.Parse(modelJson)!.AsObject());
 
-        return new MessageCreateRequestTemplate { Id = id, Alias = alias, Language = language, Model = model, };
+        return new MessageCreateOptionsTemplate { Id = id, Alias = alias, Language = language, Model = model, };
     }
 }

@@ -33,8 +33,8 @@ internal class EventRetryCommand : WorkspacedCommand
         var eventId = context.ParseResult.GetValue(eventArg)!;
         var webhookEndpointId = context.ParseResult.GetValue(webhookEndpointOption);
 
-        var model = new EventDeliveryRetry { WebhookEndpoint = webhookEndpointId, };
-        var response = await context.Client.Events.RetryAsync(eventId, model, cancellationToken: cancellationToken);
+        var options = new EventDeliveryRetryOptions { WebhookEndpoint = webhookEndpointId, };
+        var response = await context.Client.Events.RetryAsync(eventId, options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         var attempt = response.Resource!;
