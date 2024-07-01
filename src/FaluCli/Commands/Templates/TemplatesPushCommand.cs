@@ -1,7 +1,6 @@
 ﻿using Falu.MessageTemplates;
 using Spectre.Console;
 using System.Text.Json;
-using Tingle.Extensions.JsonPatch;
 
 namespace Falu.Commands.Templates;
 
@@ -106,7 +105,7 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
             if (changeType is TemplateChangeType.Added)
             {
                 // prepare the request and send to server
-                var request = new MessageTemplateCreateRequest
+                var options = new MessageTemplateCreateOptions
                 {
                     Alias = alias,
                     Body = body,
@@ -115,21 +114,23 @@ internal class TemplatesPushCommand : AbstractTemplatesCommand
                     Metadata = metadata,
                 };
                 context.Logger.LogDebug("Creating template with alias {Alias} ...", alias);
-                var response = await context.Client.MessageTemplates.CreateAsync(request, cancellationToken: cancellationToken);
+                var response = await context.Client.MessageTemplates.CreateAsync(options, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
                 context.Logger.LogDebug("Template with alias {Alias} created with Id: '{Id}'", alias, response.Resource!.Id);
             }
             else if (changeType is TemplateChangeType.Modified)
             {
                 // prepare the patch details and send to server
-                var patch = new JsonPatchDocument<MessageTemplatePatchModel>()
-                    .Replace(mt => mt.Alias, alias)
-                    .Replace(mt => mt.Body, body)
-                    .Replace(mt => mt.Translations, translations)
-                    .Replace(mt => mt.Description, description)
-                    .Replace(mt => mt.Metadata, metadata);
+                var options = new MessageTemplateUpdateOptions
+                {
+                    Alias = alias,
+                    Body = body,
+                    Translations = translations,
+                    Description = description,
+                    Metadata = metadata,
+                };
                 context.Logger.LogDebug("Updating template with alias {Alias} ...", alias);
-                var response = await context.Client.MessageTemplates.UpdateAsync(mani.Id!, patch, cancellationToken: cancellationToken);
+                var response = await context.Client.MessageTemplates.UpdateAsync(mani.Id!, options, cancellationToken: cancellationToken);
                 response.EnsureSuccess();
             }
         }

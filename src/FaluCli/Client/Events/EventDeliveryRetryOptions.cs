@@ -2,7 +2,7 @@
 
 namespace Falu.Client.Events;
 
-public class EventDeliveryRetry
+public class EventDeliveryRetryOptions
 {
     [JsonPropertyName("webhook_endpoint")]
     public string? WebhookEndpoint { get; set; }

@@ -6,8 +6,8 @@ internal class MoneyBalancesRefreshCommand() : WorkspacedCommand("refresh", "Req
 {
     public override async Task<int> ExecuteAsync(CliCommandExecutionContext context, CancellationToken cancellationToken)
     {
-        var request = new MoneyBalancesRefreshRequest { };
-        var response = await context.Client.MoneyBalances.RefreshAsync(request, cancellationToken: cancellationToken);
+        var options = new MoneyBalancesRefreshOptions { };
+        var response = await context.Client.MoneyBalances.RefreshAsync(options, cancellationToken: cancellationToken);
         response.EnsureSuccess();
 
         context.Logger.LogInformation("Refresh requested! You can check back later using 'falu money-balances get'");
