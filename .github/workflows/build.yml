@@ -66,7 +66,7 @@ jobs:
       DOTNET_RID: ${{ format('{0}-{1}', matrix.rid-prefix, matrix.arch) }}
 
     outputs:
-      BINARIES_VERSION: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
+      BINARIES_VERSION: ${{ steps.gitversion.outputs.fullSemVer }}
       DOCKER_IMAGE_LABELS: ${{ steps.docker-meta.outputs.labels }}
 
     steps:
@@ -76,12 +76,12 @@ jobs:
         fetch-depth: 0 # Required for GitVersion
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v2
+      uses: gittools/actions/gitversion/setup@v3.0.0
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
 
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v2
+      uses: gittools/actions/gitversion/execute@v3.0.0
       id: gitversion
       with:
         useConfigFile: true
@@ -106,8 +106,8 @@ jobs:
       run: >
         dotnet publish
         -p:AssemblyName=falu
-        -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersionV2 }}
-        -p:VersionPrefix=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+        -p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
+        -p:VersionPrefix=${{ steps.gitversion.outputs.fullSemVer }}
         --runtime ${{ env.DOTNET_RID }}
         --configuration Release
         --output ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
@@ -136,7 +136,7 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: ${{ matrix.archive-type || 'tar' }}
-        filename: ${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-${{ env.DOTNET_RID }}.${{ matrix.archive-type || 'tar.gz' }}
+        filename: ${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.fullSemVer }}-${{ env.DOTNET_RID }}.${{ matrix.archive-type || 'tar.gz' }}
         directory: ${{ github.workspace }}/drop/${{ env.DOTNET_RID }}
 
     - name: Prepare .debpkg and .rpmpkg
@@ -154,7 +154,7 @@ jobs:
       with:
         desc: '${{ env.PKG_DESCRIPTION }}'
         maintainer: ${{ env.PKG_MAINTAINER }}
-        version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
+        version: ${{ steps.gitversion.outputs.fullSemVer }}
         package: ${{ env.PKG_NAME }}
         package_root: .debpkg
         arch: '${{ matrix.deb-arch}}'
@@ -180,12 +180,12 @@ jobs:
     - name: Rename deb and rpm packages
       if: ${{ matrix.deb-arch || matrix.rpm-arch }}
       run: |
-        src=falu_${{ steps.gitversion.outputs.nuGetVersionV2 }}_${{ matrix.deb-arch}}.deb
-        dest=${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-linux-${{ matrix.deb-arch}}.deb
+        src=falu_${{ steps.gitversion.outputs.fullSemVer }}_${{ matrix.deb-arch}}.deb
+        dest=${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.fullSemVer }}-linux-${{ matrix.deb-arch}}.deb
         mv $src $dest
 
         src=falu-${{ steps.gitversion.outputs.majorMinorPatch }}-1.el7.${{ matrix.rpm-arch}}.rpm
-        dest=${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-linux-${{ matrix.rpm-arch}}.rpm
+        dest=${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.fullSemVer }}-linux-${{ matrix.rpm-arch}}.rpm
         if [ -f $src ]; then
           mv $src $dest
         fi
@@ -204,7 +204,7 @@ jobs:
       if: ${{ matrix.deb-arch && matrix.arch == 'x64' }}
       run: |
         sudo apt-get install -y -f \
-        ${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-linux-${{ matrix.deb-arch}}.deb
+        ${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.fullSemVer }}-linux-${{ matrix.deb-arch}}.deb
 
     - name: Test (RPM)
       # TODO: test RPM package for ARM once we have ARM runners
@@ -214,7 +214,7 @@ jobs:
       run: |
         sudo apt-get install alien
         sudo alien -i \
-        ${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.nuGetVersionV2 }}-linux-${{ matrix.rpm-arch}}.rpm
+        ${{ github.workspace }}/releases/falu-${{ steps.gitversion.outputs.fullSemVer }}-linux-${{ matrix.rpm-arch}}.rpm
 
     - name: Set up Docker QEMU
       if: ${{ matrix.docker-platform && matrix.arch == 'arm64' }}
@@ -248,10 +248,10 @@ jobs:
           org.opencontainers.image.documentation="https://falu.io/docs/cli"
           org.opencontainers.image.authors="Falu <support@falu.io>"
           org.opencontainers.image.vendor="Falu"
-          org.opencontainers.image.version=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+          org.opencontainers.image.version=${{ steps.gitversion.outputs.fullSemVer }}
           org.opencontainers.image.revision=${{ github.sha }}
         tags: |
-          ${{ steps.gitversion.outputs.nuGetVersionV2 }}${{ matrix.docker-tag-suffix }}
+          ${{ steps.gitversion.outputs.fullSemVer }}${{ matrix.docker-tag-suffix }}
           ${{ env.LATEST_TAG }}
       env:
         LATEST_TAG: ${{ (startsWith(github.ref, 'refs/tags') && format('latest{0}', matrix.docker-tag-suffix)) || '' }}
@@ -273,7 +273,7 @@ jobs:
 
     - name: Test (Docker)
       if: ${{ matrix.docker-platform }}
-      run: docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.gitversion.outputs.nuGetVersionV2 }}${{ matrix.docker-tag-suffix }} --version
+      run: docker run --rm ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.gitversion.outputs.fullSemVer }}${{ matrix.docker-tag-suffix }} --version
 
     - name: Push docker image
       if: ${{ matrix.docker-platform && github.actor != 'dependabot[bot]' }}
