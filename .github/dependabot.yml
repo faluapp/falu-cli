@@ -9,7 +9,7 @@ updates:
   - package-ecosystem: 'nuget'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
       time: '02:00'
     open-pull-requests-limit: 10
     groups:
@@ -25,13 +25,14 @@ updates:
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
       time: '02:00'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
       time: '02:00'
+    open-pull-requests-limit: 10
     groups:
       github-actions-artifacts:
         patterns:
@@ -40,5 +41,5 @@ updates:
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: 'monthly'
       time: '02:00'
